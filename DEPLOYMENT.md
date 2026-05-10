@@ -1,0 +1,81 @@
+# Deploiement FootLink
+
+Architecture recommandee:
+
+- Frontend React: Vercel
+- Backend Express: Render
+- Base MariaDB: Railway
+
+## 1. Railway MariaDB
+
+1. Cree un projet Railway.
+2. Ajoute un service MariaDB.
+3. Recupere les variables de connexion:
+   - `DB_HOST`
+   - `DB_PORT`
+   - `DB_USER`
+   - `DB_PASSWORD`
+   - `DB_NAME`
+
+MariaDB utilise souvent le port `3306`. Le backend FootLink utilise le package
+`mysql2`, qui fonctionne avec MariaDB pour les requetes SQL utilisees dans ce
+projet.
+
+## 2. Render Backend
+
+1. Cree un Web Service depuis le repo.
+2. Root directory: `server`
+3. Build command: `npm install`
+4. Start command: `npm start`
+5. Ajoute les variables:
+
+```env
+PORT=10000
+FRONTEND_URL=https://ton-site.vercel.app
+DB_HOST=...
+DB_PORT=...
+DB_USER=...
+DB_PASSWORD=...
+DB_NAME=...
+JWT_SECRET=une-longue-valeur-secrete
+```
+
+Apres deploiement, note l'URL Render, par exemple:
+
+```text
+https://footlink-api.onrender.com
+```
+
+## 3. Vercel Frontend
+
+1. Cree un projet Vercel depuis le repo.
+2. Root directory: `client`
+3. Framework preset: Create React App
+4. Build command: `npm run build`
+5. Output directory: `build`
+6. Ajoute la variable:
+
+```env
+REACT_APP_API_URL=https://ton-backend-render.onrender.com
+```
+
+## 4. Connexion finale
+
+Quand Vercel donne l'URL du frontend, retourne dans Render et mets:
+
+```env
+FRONTEND_URL=https://ton-site.vercel.app
+```
+
+Redeploie Render, puis teste:
+
+- inscription joueur
+- inscription equipe
+- login
+- dashboards
+- pages publiques
+- upload photo
+
+## Note importante
+
+Les fichiers uploades localement dans `server/uploads` ne sont pas un stockage durable sur Render. Pour une vraie production, il faudra passer les photos sur Cloudinary, S3 ou un stockage equivalent.

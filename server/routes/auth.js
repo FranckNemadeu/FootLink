@@ -1,0 +1,468 @@
+const express = require("express");
+const router = express.Router();
+const db = require("../db");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+const sendDbError = (res, err, fallbackMessage) => {
+  console.log(err);
+
+  res.status(500).json({
+    message: fallbackMessage,
+    error: err.sqlMessage || err.message,
+    code: err.code,
+  });
+};
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ' -]{2,}$/;
+const DISPOSABLE_EMAIL_DOMAINS = new Set([
+  "10minutemail.com",
+  "guerrillamail.com",
+  "mailinator.com",
+  "tempmail.com",
+  "yopmail.com",
+]);
+
+const cleanText = (value) => (typeof value === "string" ? value.trim() : "");
+
+const normalizeEmail = (value) => cleanText(value).toLowerCase();
+
+const isDisposableEmail = (email) => {
+  const domain = email.split("@")[1];
+  return DISPOSABLE_EMAIL_DOMAINS.has(domain);
+};
+
+const validateBaseAccount = ({ name, email, password }) => {
+  if (!NAME_REGEX.test(name)) {
+    return "Le nom doit contenir au moins 2 lettres et aucun chiffre.";
+  }
+
+  if (!EMAIL_REGEX.test(email) || isDisposableEmail(email)) {
+    return "Entre une adresse email valide et non temporaire.";
+  }
+
+  if (
+    typeof password !== "string" ||
+    password.length < 8 ||
+    !/[A-Za-z]/.test(password) ||
+    !/\d/.test(password)
+  ) {
+    return "Le mot de passe doit contenir au moins 8 caracteres, avec lettres et chiffres.";
+  }
+
+  return null;
+};
+
+const ensureColumn = (tableName, columnName, columnDefinition, callback) => {
+  const checkSql = `
+    SELECT COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = ?
+      AND COLUMN_NAME = ?
+  `;
+
+  db.query(checkSql, [tableName, columnName], (checkErr, result) => {
+    if (checkErr) return callback(checkErr);
+    if (result.length > 0) return callback(null);
+
+    db.query(
+      `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition}`,
+      callback
+    );
+  });
+};
+
+const ensureUserRoleColumn = (callback) => {
+  const checkSql = `
+    SELECT COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'users'
+      AND COLUMN_NAME = 'role'
+  `;
+
+  db.query(checkSql, (checkErr, result) => {
+    if (checkErr) return callback(checkErr);
+
+    if (result.length === 0) {
+      return db.query(
+        "ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'player'",
+        callback
+      );
+    }
+
+    db.query(
+      "ALTER TABLE users MODIFY COLUMN role VARCHAR(20) DEFAULT 'player'",
+      callback
+    );
+  });
+};
+
+const ensureTeamsTable = (callback) => {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS teams (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT,
+      team_name VARCHAR(100),
+      city VARCHAR(100),
+      level VARCHAR(100),
+      category VARCHAR(100),
+      player_count INT DEFAULT 0,
+      bio TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
+
+  db.query(sql, callback);
+};
+
+const ensureTeamColumns = (callback) => {
+  const columns = [
+    ["user_id", "INT"],
+    ["team_name", "VARCHAR(100)"],
+    ["city", "VARCHAR(100)"],
+    ["level", "VARCHAR(100)"],
+    ["category", "VARCHAR(100)"],
+    ["player_count", "INT DEFAULT 0"],
+    ["bio", "TEXT"],
+  ];
+
+  const runNext = (index) => {
+    if (index >= columns.length) return callback(null);
+
+    const [columnName, columnDefinition] = columns[index];
+    ensureColumn("teams", columnName, columnDefinition, (err) => {
+      if (err) return callback(err);
+      runNext(index + 1);
+    });
+  };
+
+  runNext(0);
+};
+
+const ensurePlayerTeamColumns = (callback) => {
+  const columns = [
+    ["team_name", "VARCHAR(100)"],
+    ["no_team", "TINYINT(1) DEFAULT 0"],
+  ];
+
+  const runNext = (index) => {
+    if (index >= columns.length) return callback(null);
+
+    const [columnName, columnDefinition] = columns[index];
+    ensureColumn("players", columnName, columnDefinition, (err) => {
+      if (err) return callback(err);
+      runNext(index + 1);
+    });
+  };
+
+  runNext(0);
+};
+
+const checkTeamExists = (teamName, callback) => {
+  const sql = `SELECT * FROM teams WHERE LOWER(team_name) = LOWER(?) LIMIT 1`;
+  db.query(sql, [teamName], (err, result) => {
+    if (err) return callback(err);
+    callback(null, result.length > 0 ? result[0] : null);
+  });
+};
+
+const createUser = async ({ name, email, password, role }, callback) => {
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const sql = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)";
+
+  db.query(sql, [name, email, hashedPassword, role], callback);
+};
+
+// REGISTER PLAYER
+router.post("/register/player", (req, res) => {
+  const {
+    name: rawName,
+    email: rawEmail,
+    password,
+    position,
+    age,
+    city: rawCity,
+    height,
+    preferred_foot,
+    team_name,
+    no_team,
+    bio,
+  } = req.body;
+
+  const name = cleanText(rawName);
+  const email = normalizeEmail(rawEmail);
+  const city = cleanText(rawCity);
+  const bioText = cleanText(bio);
+  const numericAge = Number(age);
+  const numericHeight = height ? Number(height) : null;
+
+  if (!name || !email || !password || !position || !age || !city) {
+    return res.status(400).json({ message: "Tous les champs sont requis" });
+  }
+
+  const baseValidationError = validateBaseAccount({ name, email, password });
+  if (baseValidationError) {
+    return res.status(400).json({ message: baseValidationError });
+  }
+
+  if (/\d/.test(city)) {
+    return res.status(400).json({ message: "La ville ne doit pas contenir de chiffre" });
+  }
+
+  if (
+    !["Gardien", "Defenseur", "Milieu", "Attaquant"].includes(position) ||
+    !["Droit", "Gauche", "Deux pieds"].includes(preferred_foot)
+  ) {
+    return res.status(400).json({ message: "Poste ou pied fort invalide" });
+  }
+
+  if (!Number.isInteger(numericAge) || numericAge < 5 || numericAge > 60) {
+    return res.status(400).json({ message: "L'age doit etre compris entre 5 et 60 ans" });
+  }
+
+  if (numericHeight && (numericHeight < 100 || numericHeight > 230)) {
+    return res.status(400).json({ message: "La taille doit etre comprise entre 100 et 230 cm" });
+  }
+
+  if (!no_team && !team_name) {
+    return res.status(400).json({ message: "Indique ton equipe ou coche sans equipe" });
+  }
+
+  ensureUserRoleColumn(async (roleErr) => {
+    if (roleErr) {
+      return sendDbError(res, roleErr, "Impossible de preparer la table users");
+    }
+
+    ensurePlayerTeamColumns(async (playerColumnsErr) => {
+      if (playerColumnsErr) {
+        return sendDbError(
+          res,
+          playerColumnsErr,
+          "Impossible de preparer la table players"
+        );
+      }
+
+      const finalTeamName = no_team ? null : cleanText(team_name);
+
+      const createPlayerProfile = (userId) => {
+        const playerSql = `
+          INSERT INTO players
+          (user_id, position, age, city, height, preferred_foot, team_name, no_team, bio)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        db.query(
+          playerSql,
+          [
+            userId,
+            position,
+            numericAge,
+            city,
+            numericHeight,
+            preferred_foot || null,
+            finalTeamName,
+            no_team ? 1 : 0,
+            bioText || null,
+          ],
+          (playerErr) => {
+            if (playerErr) {
+              return sendDbError(
+                res,
+                playerErr,
+                "Impossible de creer le profil joueur"
+              );
+            }
+
+            res.json({ message: "Compte joueur cree" });
+          }
+        );
+      };
+
+      const processPlayerCreation = () => {
+        createUser(
+          { name, email, password, role: "player" },
+          (userErr, result) => {
+            if (userErr) {
+              if (userErr.code === "ER_DUP_ENTRY") {
+                return res.status(409).json({ message: "Cet email est deja utilise" });
+              }
+
+              return sendDbError(res, userErr, "Impossible de creer le compte");
+            }
+
+            createPlayerProfile(result.insertId);
+          }
+        );
+      };
+
+      if (!no_team) {
+        checkTeamExists(finalTeamName, (teamErr, team) => {
+          if (teamErr) {
+            return sendDbError(res, teamErr, "Impossible de verifier le club");
+          }
+
+          if (!team) {
+            return res.status(400).json({ message: "Club introuvable ou non enregistre" });
+          }
+
+          processPlayerCreation();
+        });
+      } else {
+        processPlayerCreation();
+      }
+    });
+  });
+});
+
+// REGISTER TEAM
+router.post("/register/team", (req, res) => {
+  const {
+    name: rawName,
+    email: rawEmail,
+    password,
+    team_name: rawTeamName,
+    city: rawCity,
+    level: rawLevel,
+    category: rawCategory,
+    bio,
+  } = req.body;
+
+  const name = cleanText(rawName);
+  const email = normalizeEmail(rawEmail);
+  const team_name = cleanText(rawTeamName);
+  const city = cleanText(rawCity);
+  const level = cleanText(rawLevel);
+  const category = cleanText(rawCategory);
+  const bioText = cleanText(bio);
+
+  if (!name || !email || !password || !team_name || !city || !level || !category) {
+    return res.status(400).json({ message: "Tous les champs sont requis" });
+  }
+
+  const baseValidationError = validateBaseAccount({ name, email, password });
+  if (baseValidationError) {
+    return res.status(400).json({ message: baseValidationError });
+  }
+
+  if (/\d/.test(city)) {
+    return res.status(400).json({ message: "La ville ne doit pas contenir de chiffre" });
+  }
+
+  ensureUserRoleColumn((roleErr) => {
+    if (roleErr) {
+      return sendDbError(res, roleErr, "Impossible de preparer la table users");
+    }
+
+    ensureTeamsTable((teamTableErr) => {
+      if (teamTableErr) {
+        return sendDbError(res, teamTableErr, "Impossible de creer la table teams");
+      }
+
+      ensureTeamColumns(async (teamColumnsErr) => {
+        if (teamColumnsErr) {
+          return sendDbError(
+            res,
+            teamColumnsErr,
+            "Impossible de preparer les colonnes equipe"
+          );
+        }
+
+        try {
+          await createUser(
+            { name, email, password, role: "team" },
+            (userErr, result) => {
+              if (userErr) {
+                if (userErr.code === "ER_DUP_ENTRY") {
+                  return res
+                    .status(409)
+                    .json({ message: "Cet email est deja utilise" });
+                }
+
+                return sendDbError(res, userErr, "Impossible de creer le compte");
+              }
+
+              const teamSql = `
+                INSERT INTO teams
+                (user_id, team_name, city, level, category, bio)
+                VALUES (?, ?, ?, ?, ?, ?)
+              `;
+
+              db.query(
+                teamSql,
+                [
+                  result.insertId,
+                  team_name,
+                  city,
+                  level,
+                  category,
+                  bioText || null,
+                ],
+                (insertTeamErr) => {
+                  if (insertTeamErr) {
+                    return sendDbError(
+                      res,
+                      insertTeamErr,
+                      "Impossible de creer le profil equipe"
+                    );
+                  }
+
+                  res.json({ message: "Compte equipe cree" });
+                }
+              );
+            }
+          );
+        } catch (err) {
+          sendDbError(res, err, "Impossible de creer le compte equipe");
+        }
+      });
+    });
+  });
+});
+
+// LOGIN
+router.post("/login", (req, res) => {
+  const { email: rawEmail, password } = req.body;
+  const email = normalizeEmail(rawEmail);
+  const sql = "SELECT * FROM users WHERE email = ?";
+
+  if (!EMAIL_REGEX.test(email) || !password) {
+    return res.status(400).json({ message: "Email ou mot de passe invalide" });
+  }
+
+  db.query(sql, [email], async (err, result) => {
+    if (err) return sendDbError(res, err, "Erreur connexion");
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: "Utilisateur non trouve" });
+    }
+
+    const user = result[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Mot de passe incorrect" });
+    }
+
+    const role = user.role || "player";
+    const token = jwt.sign(
+      { id: user.id, role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.json({
+      message: "Connexion reussie",
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        role,
+      },
+    });
+  });
+});
+
+module.exports = router;
