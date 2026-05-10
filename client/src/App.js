@@ -1,0 +1,594 @@
+import "./App.css";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Link, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import Login from "./pages/Login";
+import PlayerDashboard from "./pages/playerDashboard";
+import Register from "./pages/Register";
+import TeamDashboard from "./pages/TeamDashboard";
+import BrandLogo from "./components/BrandLogo";
+import PrivateRoute from "./components/PrivateRoute";
+import API_URL from "./config/api";
+
+const featuredPlayers = [
+  {
+    slug: "franck-m",
+    name: "Franck M.",
+    club: "SSL",
+    position: "Attaquant",
+    goals: 18,
+    assists: 7,
+    city: "Montreal",
+    tone: "red",
+  },
+  {
+    slug: "yanis-d",
+    name: "Yanis D.",
+    club: "Nord FC",
+    position: "Milieu",
+    goals: 14,
+    assists: 11,
+    city: "Laval",
+    tone: "green",
+  },
+  {
+    slug: "samuel-k",
+    name: "Samuel K.",
+    club: "Rive Sud",
+    position: "Ailier",
+    goals: 12,
+    assists: 6,
+    city: "Longueuil",
+    tone: "gold",
+  },
+];
+
+const topScorers = [
+  ...featuredPlayers,
+  {
+    slug: "malik-b",
+    name: "Malik B.",
+    club: "Laval Stars",
+    position: "Avant-centre",
+    goals: 10,
+    assists: 4,
+    city: "Laval",
+    tone: "blue",
+  },
+];
+
+const clubs = [
+  {
+    slug: "ssl",
+    name: "SSL",
+    city: "Montreal",
+    players: 24,
+    level: "Senior local",
+    colors: "Vert / Blanc",
+  },
+  {
+    slug: "nord-fc",
+    name: "Nord FC",
+    city: "Laval",
+    players: 19,
+    level: "Competitif",
+    colors: "Bleu / Or",
+  },
+  {
+    slug: "rive-sud",
+    name: "Rive Sud",
+    city: "Longueuil",
+    players: 21,
+    level: "Regional",
+    colors: "Cyan / Marine",
+  },
+];
+
+const playerLink = (player) => `/players/${player.id || player.slug}`;
+const clubLink = (club) => `/clubs/${club.id || club.slug}`;
+
+const normalizePlayer = (player, index = 0) => ({
+  id: player.id,
+  slug: player.slug,
+  name: player.name || "Joueur FootLink",
+  club: player.team_name || player.club || "Sans club",
+  position: player.position || "Joueur",
+  goals: Number(player.goals) || 0,
+  assists: Number(player.assists) || 0,
+  matches: Number(player.matches) || 0,
+  cards: Number(player.cards) || 0,
+  city: player.city || "Ville inconnue",
+  profile_photo: player.profile_photo,
+  bio: player.bio,
+  tone: player.tone || ["red", "green", "gold", "blue"][index % 4],
+});
+
+const normalizeClub = (club) => ({
+  id: club.id,
+  slug: club.slug,
+  name: club.team_name || club.name || "Club FootLink",
+  city: club.city || "Ville inconnue",
+  players: Number(club.player_count ?? club.players) || 0,
+  level: club.level || "Niveau non renseigne",
+  category: club.category,
+  bio: club.bio,
+  colors: club.colors || "Rouge / Blanc",
+});
+
+function Home() {
+  const navigate = useNavigate();
+  const [players, setPlayers] = useState(topScorers);
+  const [homeClubs, setHomeClubs] = useState(clubs);
+  const { dashboardPath, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    const loadHomeData = async () => {
+      try {
+        const [playersRes, clubsRes] = await Promise.all([
+          axios.get(`${API_URL}/api/player/public/featured?limit=8`),
+          axios.get(`${API_URL}/api/team/list`),
+        ]);
+
+        const apiPlayers = (playersRes.data || []).map(normalizePlayer);
+        const apiClubs = (clubsRes.data || []).map(normalizeClub);
+
+        if (apiPlayers.length > 0) setPlayers(apiPlayers);
+        if (apiClubs.length > 0) setHomeClubs(apiClubs);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    loadHomeData();
+  }, []);
+
+  const featuredHomePlayers = players.slice(0, 3);
+
+  return (
+    <div className="home">
+      <PublicNav />
+
+      <main>
+        <section className="home-hero">
+          <div className="home-hero-copy">
+            <p className="home-kicker">Recrutement local - stats - clubs</p>
+            <h2>La vitrine des joueurs et equipes de ton quartier.</h2>
+            <p>
+              Cree ton profil, rejoins un club enregistre et laisse tes stats
+              parler sur le terrain.
+            </p>
+
+            <div className="hero-buttons">
+              {isAuthenticated ? (
+                <>
+                  <button
+                    className="player-btn"
+                    onClick={() => navigate(dashboardPath)}
+                  >
+                    Ouvrir mon dashboard
+                  </button>
+
+                  <button
+                    className="team-btn"
+                    onClick={() =>
+                      document
+                        .getElementById("clubs")
+                        ?.scrollIntoView({ behavior: "smooth" })
+                    }
+                  >
+                    Voir les clubs
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="player-btn"
+                    onClick={() => navigate("/register/player")}
+                  >
+                    Je suis un joueur
+                  </button>
+
+                  <button
+                    className="team-btn"
+                    onClick={() => navigate("/register/team")}
+                  >
+                    Je suis une equipe
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="hero-posters" aria-label="Joueurs a la une">
+            {featuredHomePlayers.map((player, index) => (
+              <Link
+                className={`player-poster poster-${player.tone}`}
+                key={player.name}
+                to={playerLink(player)}
+              >
+                <div className="poster-player-art">
+                  {player.profile_photo ? (
+                    <img
+                      src={`${API_URL}${player.profile_photo}`}
+                      alt={player.name}
+                    />
+                  ) : (
+                    <span>{player.name.charAt(0)}</span>
+                  )}
+                </div>
+                <div className="poster-content">
+                  <span>{player.position}</span>
+                  <h3>{player.name}</h3>
+                  <p>{player.club}</p>
+                  <strong>{player.goals} buts</strong>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="home-section" id="players">
+          <div className="section-heading">
+            <p className="home-kicker">A la une</p>
+            <h2>Meilleurs buteurs</h2>
+          </div>
+
+          <div className="scorer-board">
+            {players.map((player, index) => (
+              <Link className="scorer-row" key={`${player.name}-${index}`} to={playerLink(player)}>
+                <span className="rank-number">{index + 1}</span>
+                <div className="scorer-player">
+                  <span className="mini-avatar scorer-avatar">
+                    {player.profile_photo ? (
+                      <img src={`${API_URL}${player.profile_photo}`} alt={player.name} />
+                    ) : (
+                      player.name.charAt(0)
+                    )}
+                  </span>
+                  <div>
+                    <h3>{player.name}</h3>
+                    <p>{player.club}</p>
+                  </div>
+                </div>
+                <strong>{player.goals}</strong>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="home-section clubs-section" id="clubs">
+          <div className="section-heading">
+            <p className="home-kicker">Clubs inscrits</p>
+            <h2>Equipes actives</h2>
+          </div>
+
+          <div className="club-grid">
+            {homeClubs.map((club) => (
+              <Link className="club-card" key={club.name} to={clubLink(club)}>
+                <div className="club-badge">{club.name.slice(0, 3)}</div>
+                <h3>{club.name}</h3>
+                <p>{club.city}</p>
+                <strong>{club.players} joueurs</strong>
+              </Link>
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+function PublicPlayer() {
+  const { slug } = useParams();
+  const fallbackPlayer = topScorers.find((item) => item.slug === slug) || topScorers[0];
+  const [player, setPlayer] = useState(normalizePlayer(fallbackPlayer));
+  const [loading, setLoading] = useState(Boolean(Number(slug)));
+  const { dashboardPath, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!Number(slug)) return;
+
+    const loadPlayer = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(`${API_URL}/api/player/public/${slug}`);
+        setPlayer(normalizePlayer(res.data));
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPlayer();
+  }, [slug]);
+
+  return (
+    <PublicShell>
+      <section className="public-detail public-showcase">
+        <div className="public-visual-panel">
+          <div className={`public-avatar poster-${player.tone}`}>
+            {player.profile_photo ? (
+              <img src={`${API_URL}${player.profile_photo}`} alt={player.name} />
+            ) : (
+              <span>{player.name.charAt(0)}</span>
+            )}
+          </div>
+          <div className="public-identity-strip">
+            <strong>{player.position}</strong>
+            <span>{player.club}</span>
+          </div>
+        </div>
+
+        <div className="public-copy-panel">
+          <p className="home-kicker">{loading ? "Chargement" : "Profil joueur"}</p>
+          <h2>{player.name}</h2>
+          <p className="public-lead">
+            {player.position} a {player.club}, base a {player.city}. Une fiche
+            publique claire pour suivre ses stats et son evolution.
+          </p>
+
+          <div className="public-stats public-stat-grid">
+            <span>
+              <strong>{player.goals}</strong>
+              Buts
+            </span>
+            <span>
+              <strong>{player.assists}</strong>
+              Passes
+            </span>
+            <span>
+              <strong>{player.matches || 0}</strong>
+              Matchs
+            </span>
+            <span>
+              <strong>{player.cards || 0}</strong>
+              Cartons
+            </span>
+          </div>
+
+          <div className="public-bio-card">
+            <h3>Bio</h3>
+            <p>{player.bio || "Ce joueur n'a pas encore ajoute de bio publique."}</p>
+          </div>
+
+          <div className="public-actions">
+            <Link className="player-btn nav-link-btn" to={isAuthenticated ? dashboardPath : "/register/team"}>
+              {isAuthenticated ? "Ouvrir mon espace" : "Recruter des joueurs"}
+            </Link>
+            <Link className="team-btn nav-link-btn" to="/">
+              Voir le classement
+            </Link>
+          </div>
+        </div>
+      </section>
+    </PublicShell>
+  );
+}
+
+function PublicClub() {
+  const { slug } = useParams();
+  const fallbackClub = clubs.find((item) => item.slug === slug) || clubs[0];
+  const [club, setClub] = useState(normalizeClub(fallbackClub));
+  const [clubPlayers, setClubPlayers] = useState([]);
+  const [loading, setLoading] = useState(Boolean(Number(slug)));
+  const { dashboardPath, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!Number(slug)) return;
+
+    const loadClub = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(`${API_URL}/api/team/public/${slug}`);
+        setClub(normalizeClub(res.data.team));
+        setClubPlayers((res.data.players || []).map(normalizePlayer));
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadClub();
+  }, [slug]);
+
+  return (
+    <PublicShell>
+      <section className="public-detail public-showcase club-detail">
+        <div className="public-visual-panel club-visual-panel">
+          <div className="club-badge public-club-badge">{club.name.slice(0, 3)}</div>
+          <div className="public-identity-strip">
+            <strong>{club.city}</strong>
+            <span>{club.level}</span>
+          </div>
+        </div>
+
+        <div className="public-copy-panel">
+          <p className="home-kicker">{loading ? "Chargement" : "Club inscrit"}</p>
+          <h2>{club.name}</h2>
+          <p className="public-lead">
+            {club.name} represente {club.city} avec un effectif actif, des demandes
+            de joueurs et une presence visible sur FootLink.
+          </p>
+
+          <div className="public-stats public-stat-grid">
+            <span>
+              <strong>{club.players}</strong>
+              Joueurs
+            </span>
+            <span>
+              <strong>{club.level}</strong>
+              Niveau
+            </span>
+            <span>
+              <strong>{club.category || "Ouvert"}</strong>
+              Categorie
+            </span>
+            <span>
+              <strong>{club.colors}</strong>
+              Couleurs
+            </span>
+          </div>
+
+          <div className="public-bio-card">
+            <h3>Presentation</h3>
+            <p>{club.bio || "Ce club n'a pas encore ajoute de description publique."}</p>
+          </div>
+
+          <div className="public-actions">
+            <Link className="player-btn nav-link-btn" to={isAuthenticated ? dashboardPath : "/register/player"}>
+              {isAuthenticated ? "Ouvrir mon espace" : "Rejoindre un club"}
+            </Link>
+            <Link className="team-btn nav-link-btn" to="/">
+              Voir les autres clubs
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="home-section public-roster-section">
+        <div className="section-heading">
+          <div>
+            <p className="home-kicker">Effectif public</p>
+            <h2>Joueurs du club</h2>
+          </div>
+        </div>
+
+        {clubPlayers.length > 0 ? (
+          <div className="public-roster-grid">
+            {clubPlayers.map((player) => (
+              <Link
+                className="team-player-card public-player-card"
+                key={player.id}
+                to={playerLink(player)}
+              >
+                <div className="player-card-main">
+                  <span className="mini-avatar">
+                    {player.profile_photo ? (
+                      <img
+                        src={`${API_URL}${player.profile_photo}`}
+                        alt={player.name}
+                      />
+                    ) : (
+                      player.name.charAt(0)
+                    )}
+                  </span>
+                  <div>
+                    <h4>{player.name}</h4>
+                    <p>
+                      {player.position} - {player.goals} buts - {player.assists} passes
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="dashboard-message">
+            Aucun joueur public n'est encore rattache a ce club.
+          </p>
+        )}
+      </section>
+    </PublicShell>
+  );
+}
+
+function PublicShell({ children }) {
+  return (
+    <div className="home">
+      <PublicNav showBack />
+      <main>{children}</main>
+    </div>
+  );
+}
+
+function PublicNav({ showBack = false }) {
+  const { dashboardPath, isAuthenticated, user, logout } = useAuth();
+
+  return (
+    <nav className="navbar">
+      <BrandLogo />
+
+      <div className="nav-menu" aria-label="Navigation principale">
+        <Link to="/">Accueil</Link>
+        <a href="/#players">Joueurs</a>
+        <a href="/#clubs">Clubs</a>
+      </div>
+
+      <div className="nav-buttons">
+        {isAuthenticated ? (
+          <>
+            <span className="nav-user">{user?.name}</span>
+            <Link className="login-btn nav-link-btn nav-primary" to={dashboardPath}>
+              Dashboard
+            </Link>
+            <button className="login-btn nav-link-btn" onClick={logout}>
+              Deconnexion
+            </button>
+          </>
+        ) : (
+          <Link className="login-btn nav-link-btn nav-primary" to="/login">
+            Connexion
+          </Link>
+        )}
+
+        {showBack && (
+          <Link className="login-btn nav-link-btn" to="/">
+            Retour
+          </Link>
+        )}
+      </div>
+    </nav>
+  );
+}
+
+function NotFound() {
+  return (
+    <PublicShell>
+      <section className="not-found">
+        <p className="home-kicker">Page introuvable</p>
+        <h2>Cette page n'existe pas sur FootLink.</h2>
+        <p>Retourne a l'accueil ou ouvre ton dashboard si tu es connecte.</p>
+        <Link className="player-btn nav-link-btn" to="/">
+          Retour a l'accueil
+        </Link>
+      </section>
+    </PublicShell>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/players/:slug" element={<PublicPlayer />} />
+        <Route path="/clubs/:slug" element={<PublicClub />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register/player" element={<Register accountType="player" />} />
+        <Route path="/register/team" element={<Register accountType="team" />} />
+        <Route
+          path="/player/dashboard"
+          element={
+            <PrivateRoute allowedRoles={["player"]}>
+              <PlayerDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/team/dashboard"
+          element={
+            <PrivateRoute allowedRoles={["team"]}>
+              <TeamDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AuthProvider>
+  );
+}
+
+export default App;
