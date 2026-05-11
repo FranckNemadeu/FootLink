@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require("../db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { ensureCoreTables } = require("../dbSchema");
 
 const sendDbError = (res, err, fallbackMessage) => {
   console.log(err);
@@ -231,7 +232,8 @@ router.post("/register/player", (req, res) => {
     return res.status(400).json({ message: "Indique ton equipe ou coche sans equipe" });
   }
 
-  ensureUserRoleColumn(async (roleErr) => {
+  ensureCoreTables()
+    .then(() => ensureUserRoleColumn(async (roleErr) => {
     if (roleErr) {
       return sendDbError(res, roleErr, "Impossible de preparer la table users");
     }
@@ -314,7 +316,10 @@ router.post("/register/player", (req, res) => {
         processPlayerCreation();
       }
     });
-  });
+  }))
+    .catch((schemaErr) =>
+      sendDbError(res, schemaErr, "Impossible de preparer la base de donnees")
+    );
 });
 
 // REGISTER TEAM
@@ -351,7 +356,8 @@ router.post("/register/team", (req, res) => {
     return res.status(400).json({ message: "La ville ne doit pas contenir de chiffre" });
   }
 
-  ensureUserRoleColumn((roleErr) => {
+  ensureCoreTables()
+    .then(() => ensureUserRoleColumn((roleErr) => {
     if (roleErr) {
       return sendDbError(res, roleErr, "Impossible de preparer la table users");
     }
@@ -419,7 +425,10 @@ router.post("/register/team", (req, res) => {
         }
       });
     });
-  });
+  }))
+    .catch((schemaErr) =>
+      sendDbError(res, schemaErr, "Impossible de preparer la base de donnees")
+    );
 });
 
 // LOGIN
@@ -432,7 +441,8 @@ router.post("/login", (req, res) => {
     return res.status(400).json({ message: "Email ou mot de passe invalide" });
   }
 
-  db.query(sql, [email], async (err, result) => {
+  ensureCoreTables()
+    .then(() => db.query(sql, [email], async (err, result) => {
     if (err) return sendDbError(res, err, "Erreur connexion");
 
     if (result.length === 0) {
@@ -462,7 +472,10 @@ router.post("/login", (req, res) => {
         role,
       },
     });
-  });
+  }))
+    .catch((schemaErr) =>
+      sendDbError(res, schemaErr, "Impossible de preparer la base de donnees")
+    );
 });
 
 module.exports = router;
