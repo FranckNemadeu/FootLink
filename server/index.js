@@ -5,9 +5,15 @@ const path = require("path");
 //cors → autoriser ton frontend (React) à parler au backend
 const app = express();
 const PORT = process.env.PORT || 5000;
-const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
-  .split(",")
-  .map((origin) => origin.trim())
+
+const normalizeOrigin = (origin) => origin.replace(/\/+$/, "");
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://foot-link.vercel.app",
+  ...(process.env.FRONTEND_URL || "").split(","),
+]
+  .map((origin) => normalizeOrigin(origin.trim()))
   .filter(Boolean);
 
 const isAllowedVercelPreview = (origin) => {
@@ -26,7 +32,13 @@ const isAllowedVercelPreview = (origin) => {
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin) || isAllowedVercelPreview(origin)) {
+      const normalizedOrigin = origin ? normalizeOrigin(origin) : origin;
+
+      if (
+        !normalizedOrigin ||
+        allowedOrigins.includes(normalizedOrigin) ||
+        isAllowedVercelPreview(normalizedOrigin)
+      ) {
         return callback(null, true);
       }
 
