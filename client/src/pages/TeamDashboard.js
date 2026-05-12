@@ -23,6 +23,7 @@ function TeamDashboard() {
   });
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [rankingTab, setRankingTab] = useState("goals");
   const [loading, setLoading] = useState(true);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [error, setError] = useState("");
@@ -40,7 +41,7 @@ function TeamDashboard() {
   const navigate = useNavigate();
   const mobileNavItems = [
     { id: "profil", target: "profil", label: "Club", icon: "C" },
-    { id: "recherche", target: "recherche", label: "Chercher", icon: "R" },
+    { id: "classements", target: "classements", label: "Stats", icon: "S" },
     { id: "joueurs", target: "joueurs", label: "Joueurs", icon: "J" },
     { id: "matchs", target: "matchs", label: "Matchs", icon: "M" },
   ];
@@ -88,6 +89,17 @@ function TeamDashboard() {
       </div>
     </div>
   );
+
+  const rankingConfig = {
+    goals: { label: "Buteurs", valueLabel: "buts", field: "goals" },
+    assists: { label: "Passeurs", valueLabel: "passes", field: "assists" },
+    cards: { label: "Cartons", valueLabel: "cartons", field: "cards" },
+  };
+
+  const rankingPlayers = [...players].sort((a, b) => {
+    const field = rankingConfig[rankingTab].field;
+    return Number(b[field] || 0) - Number(a[field] || 0) || a.name.localeCompare(b.name);
+  });
 
   const fetchPlayers = useCallback(async () => {
     if (!token) {
@@ -343,6 +355,9 @@ function TeamDashboard() {
 
         <div className="dashboard-nav-links">
           <Link to="/">Accueil</Link>
+          <button type="button" onClick={() => scrollToSection("classements")}>
+            Classements
+          </button>
           <button type="button" onClick={() => scrollToSection("recherche")}>
             Recherche
           </button>
@@ -404,6 +419,42 @@ function TeamDashboard() {
                   </label>
                 </div>
               </div>
+            </section>
+
+            <section className="profile-panel" id="classements">
+              <h3>Classements du club</h3>
+
+              <div className="ranking-tabs">
+                {Object.entries(rankingConfig).map(([key, config]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={rankingTab === key ? "active" : ""}
+                    onClick={() => setRankingTab(key)}
+                  >
+                    {config.label}
+                  </button>
+                ))}
+              </div>
+
+              {rankingPlayers.length > 0 ? (
+                <div className="ranking-list">
+                  {rankingPlayers.map((player, index) => (
+                    <div className="ranking-row" key={player.id}>
+                      <span className="rank-number">{index + 1}</span>
+                      {renderPlayerIdentity(player)}
+                      <strong>
+                        {Number(player[rankingConfig[rankingTab].field] || 0)}{" "}
+                        {rankingConfig[rankingTab].valueLabel}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="dashboard-message">
+                  Aucun joueur dans l'effectif pour etablir un classement.
+                </p>
+              )}
             </section>
 
             <section className="profile-panel" id="recherche">

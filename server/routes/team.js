@@ -425,7 +425,8 @@ router.get("/public/:teamId", (req, res) => {
             p.profile_photo,
             u.name,
             COALESCE(SUM(ms.goals), 0) AS goals,
-            COALESCE(SUM(ms.assists), 0) AS assists
+            COALESCE(SUM(ms.assists), 0) AS assists,
+            COALESCE(SUM(ms.yellow_cards), 0) + COALESCE(SUM(ms.red_cards), 0) AS cards
           FROM players p
           JOIN users u ON u.id = p.user_id
           LEFT JOIN match_stats ms ON ms.player_id = p.id

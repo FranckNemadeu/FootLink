@@ -405,7 +405,7 @@ function PublicClub() {
   const [club, setClub] = useState(normalizeClub(fallbackClub));
   const [clubPlayers, setClubPlayers] = useState([]);
   const [clubMatches, setClubMatches] = useState([]);
-  const [activeTab, setActiveTab] = useState("matchs");
+  const [activeTab, setActiveTab] = useState("classements");
   const [loading, setLoading] = useState(Boolean(Number(slug)));
   const { dashboardPath, isAuthenticated } = useAuth();
 
@@ -435,7 +435,34 @@ function PublicClub() {
   const topAssister = [...clubPlayers].sort(
     (a, b) => b.assists - a.assists || a.name.localeCompare(b.name)
   )[0];
+  const rankingGroups = [
+    {
+      title: "Meilleurs buteurs",
+      field: "goals",
+      suffix: "buts",
+      players: [...clubPlayers].sort(
+        (a, b) => b.goals - a.goals || a.name.localeCompare(b.name)
+      ),
+    },
+    {
+      title: "Meilleurs passeurs",
+      field: "assists",
+      suffix: "passes",
+      players: [...clubPlayers].sort(
+        (a, b) => b.assists - a.assists || a.name.localeCompare(b.name)
+      ),
+    },
+    {
+      title: "Plus de cartons",
+      field: "cards",
+      suffix: "cartons",
+      players: [...clubPlayers].sort(
+        (a, b) => b.cards - a.cards || a.name.localeCompare(b.name)
+      ),
+    },
+  ];
   const tabs = [
+    { id: "classements", label: "Classements" },
     { id: "matchs", label: "Matchs" },
     { id: "effectif", label: "Effectif" },
     { id: "infos", label: "Infos" },
@@ -527,6 +554,49 @@ function PublicClub() {
             </button>
           ))}
         </div>
+
+        {activeTab === "classements" && (
+          <div className="public-tab-panel">
+            <div className="section-heading">
+              <div>
+                <p className="home-kicker">Stats publiques</p>
+                <h2>Classements du club</h2>
+              </div>
+            </div>
+
+            {clubPlayers.length > 0 ? (
+              <div className="public-ranking-grid">
+                {rankingGroups.map((group) => (
+                  <div className="public-ranking-card" key={group.field}>
+                    <h3>{group.title}</h3>
+                    <div className="ranking-list">
+                      {group.players.map((player, index) => (
+                        <Link
+                          className="ranking-row public-ranking-row"
+                          key={player.id}
+                          to={playerLink(player)}
+                        >
+                          <span className="rank-number">{index + 1}</span>
+                          <div>
+                            <strong>{player.name}</strong>
+                            <p>{player.position || "Poste inconnu"}</p>
+                          </div>
+                          <strong>
+                            {Number(player[group.field] || 0)} {group.suffix}
+                          </strong>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="dashboard-message">
+                Aucun joueur public n'est encore rattache a ce club.
+              </p>
+            )}
+          </div>
+        )}
 
         {activeTab === "matchs" && (
           <div className="public-tab-panel">

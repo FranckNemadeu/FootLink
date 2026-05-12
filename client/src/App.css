@@ -573,7 +573,7 @@ button:hover {
 
 .public-club-tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-bottom: 24px;
   padding: 8px;
@@ -611,6 +611,83 @@ button:hover {
 .public-player-card {
   color: #f4fff8;
   text-decoration: none;
+}
+
+.ranking-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 6px;
+  border: 1px solid rgba(41, 255, 122, 0.18);
+  border-radius: 8px;
+  background: rgba(4, 10, 7, 0.5);
+}
+
+.ranking-tabs button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #a7b9ae;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.ranking-tabs button.active {
+  background: #29ff7a;
+  color: #07100b;
+}
+
+.ranking-list {
+  display: grid;
+  gap: 10px;
+}
+
+.ranking-row {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(41, 255, 122, 0.18);
+  border-radius: 8px;
+  background: rgba(10, 15, 12, 0.72);
+}
+
+.ranking-row > strong {
+  color: #29ff7a;
+  white-space: nowrap;
+}
+
+.public-ranking-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.public-ranking-card {
+  padding: 16px;
+  border: 1px solid rgba(41, 255, 122, 0.18);
+  border-radius: 8px;
+  background: rgba(10, 15, 12, 0.86);
+}
+
+.public-ranking-card h3 {
+  margin-bottom: 14px;
+  color: #29ff7a;
+}
+
+.public-ranking-row {
+  color: #f4fff8;
+  text-decoration: none;
+}
+
+.public-ranking-row p {
+  margin-top: 2px;
+  color: #a7b9ae;
+  font-size: 13px;
 }
 
 .public-match-list {
@@ -1843,9 +1920,23 @@ body {
 
   .public-stat-grid,
   .public-roster-grid,
+  .public-ranking-grid,
   .public-club-info-grid,
   .club-leaders-panel {
     grid-template-columns: 1fr;
+  }
+
+  .public-club-tabs,
+  .ranking-tabs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ranking-row {
+    grid-template-columns: 28px 1fr;
+  }
+
+  .ranking-row > strong {
+    grid-column: 2;
   }
 
   .public-club-badge {
