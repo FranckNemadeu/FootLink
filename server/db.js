@@ -1,33 +1,64 @@
 const mysql = require("mysql2");
 require("dotenv").config();
 
-//mysql2 → connecter Node a MariaDB/MySQL
-//dotenv → lire les variables dans .env
+const databaseName = process.env.DB_NAME;
 
-const db = mysql.createConnection({
+const connectionConfig = {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  database: databaseName,
   port: process.env.DB_PORT || 3306,
+};
 
-});
-//createConnection() → créer une Connexion a la base de donnees MariaDB/MySQL avec les infos de .env
+let connection = mysql.createConnection(connectionConfig);
 
-//Connexion a la base de donnees MariaDB/MySQL
+const db = {
+  query: (...args) => connection.query(...args),
+  promise: () => connection.promise(),
+  end: (...args) => connection.end(...args),
+};
 
-//process.env.DB_HOST → vient de .env
-//Ça évite de mettre tes infos sensibles dans le code
+const connectToDatabase = () => {
+  connection.connect((err) => {
+    if (!err) {
+      console.log("MariaDB connectee");
+      return;
+    }
 
-db.connect((err) => {
-  if (err) {
-    console.error("Erreur DB ❌", err);
-  } else {
-    console.log("MariaDB connectee");
-  }
-});
-//Teste la connexion
+    if (err.code !== "ER_BAD_DB_ERROR" || !databaseName) {
+      console.error("Erreur DB", err);
+      return;
+    }
+
+    const setupConnection = mysql.createConnection({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      port: process.env.DB_PORT || 3306,
+    });
+
+    setupConnection.query(`CREATE DATABASE IF NOT EXISTS \`${databaseName}\``, (setupErr) => {
+      setupConnection.end();
+
+      if (setupErr) {
+        console.error("Impossible de creer la base MariaDB", setupErr);
+        return;
+      }
+
+      connection = mysql.createConnection(connectionConfig);
+      connection.connect((retryErr) => {
+        if (retryErr) {
+          console.error("Erreur DB", retryErr);
+          return;
+        }
+
+        console.log("MariaDB connectee");
+      });
+    });
+  });
+};
+
+connectToDatabase();
+
 module.exports = db;
-
-//module.exports = db;
-
