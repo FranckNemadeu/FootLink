@@ -41,6 +41,8 @@ JWT_SECRET=une-longue-valeur-secrete
 CLOUDINARY_CLOUD_NAME=...
 CLOUDINARY_API_KEY=...
 CLOUDINARY_API_SECRET=...
+RESEND_API_KEY=...
+EMAIL_FROM="FootLink <onboarding@resend.dev>"
 ```
 
 Apres deploiement, note l'URL Render, par exemple:
@@ -82,3 +84,5 @@ Redeploie Render, puis teste:
 ## Note importante
 
 Les fichiers uploades localement dans `server/uploads` ne sont pas un stockage durable sur Render. En production, FootLink utilise Cloudinary si les variables `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` et `CLOUDINARY_API_SECRET` sont configurees dans Render. Sans ces variables, le serveur garde le mode local pour le developpement.
+
+Pour les emails de verification et de mot de passe oublie, FootLink utilise Resend si `RESEND_API_KEY` est configuree. Sans cette variable, les liens sont affiches dans les logs du serveur pour faciliter les tests locaux.

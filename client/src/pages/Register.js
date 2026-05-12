@@ -201,7 +201,7 @@ function Register({ accountType }) {
       navigate("/login", {
         replace: true,
         state: {
-          message: "Compte cree avec succes. Tu peux maintenant te connecter.",
+          message: "Compte cree. Verifie ton email avant de te connecter.",
         },
       });
     } catch (err) {
