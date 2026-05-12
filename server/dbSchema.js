@@ -1,12 +1,9 @@
 const db = require("./db");
 
-const runQuery = (sql, values = []) =>
-  new Promise((resolve, reject) => {
-    db.query(sql, values, (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+const runQuery = async (sql, values = []) => {
+  const [rows] = await db.promise().query(sql, values);
+  return rows;
+};
 
 const ensureColumn = async (tableName, columnName, columnDefinition) => {
   const result = await runQuery(
