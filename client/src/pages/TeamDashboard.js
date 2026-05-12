@@ -23,6 +23,7 @@ function TeamDashboard() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState(null);
   const [statsForm, setStatsForm] = useState({
@@ -194,6 +195,49 @@ function TeamDashboard() {
     navigate("/");
   };
 
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      showNotice("error", "Le logo doit etre une image.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showNotice("error", "Le logo ne doit pas depasser 5 Mo.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("logo", file);
+    setUploadingLogo(true);
+
+    try {
+      const res = await axios.post(`${API_URL}/api/team/logo`, formData, {
+        headers: {
+          authorization: token,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      setTeam((currentTeam) => ({
+        ...currentTeam,
+        logo_photo: res.data.logo_photo,
+      }));
+      showNotice("success", res.data.message || "Logo mis a jour.");
+    } catch (err) {
+      console.log(err);
+      showNotice(
+        "error",
+        err.response?.data?.message || "Impossible de mettre a jour le logo."
+      );
+    } finally {
+      setUploadingLogo(false);
+      e.target.value = "";
+    }
+  };
+
   const handleRemovePlayer = async (playerId) => {
     try {
       await axios.delete(`${API_URL}/api/team/players/${playerId}`, {
@@ -326,6 +370,35 @@ function TeamDashboard() {
 
         {!loading && !error && (
           <div className="dashboard-grid">
+            <section className="profile-panel" id="profil">
+              <h3>Identite du club</h3>
+
+              <div className="profile-photo-section">
+                <div className="profile-photo club-logo-photo">
+                  {team?.logo_photo ? (
+                    <img src={`${API_URL}${team.logo_photo}`} alt="Logo du club" />
+                  ) : (
+                    <span>{(team?.team_name || user?.name || "C").charAt(0)}</span>
+                  )}
+                </div>
+
+                <div className="profile-identity">
+                  <h4>{team?.team_name || user?.name || "Club"}</h4>
+                  <p>{team?.city || "Ville non renseignee"}</p>
+
+                  <label className="photo-upload-btn">
+                    {uploadingLogo ? "Televersement..." : "Changer le logo"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      disabled={uploadingLogo}
+                    />
+                  </label>
+                </div>
+              </div>
+            </section>
+
             <section className="profile-panel" id="recherche">
               <h3>Rechercher des joueurs</h3>
 

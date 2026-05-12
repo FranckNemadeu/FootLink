@@ -114,6 +114,7 @@ const ensureTeamsTable = (callback) => {
       category VARCHAR(100),
       player_count INT DEFAULT 0,
       bio TEXT,
+      logo_photo VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
@@ -130,6 +131,7 @@ const ensureTeamColumns = (callback) => {
     ["category", "VARCHAR(100)"],
     ["player_count", "INT DEFAULT 0"],
     ["bio", "TEXT"],
+    ["logo_photo", "VARCHAR(255)"],
   ];
 
   const runNext = (index) => {

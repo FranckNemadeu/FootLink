@@ -113,6 +113,7 @@ const normalizeClub = (club) => ({
   level: club.level || "Niveau non renseigne",
   category: club.category,
   bio: club.bio,
+  logo_photo: club.logo_photo,
   colors: club.colors || "Rouge / Blanc",
 });
 
@@ -266,7 +267,13 @@ function Home() {
           <div className="club-grid">
             {homeClubs.map((club) => (
               <Link className="club-card" key={club.name} to={clubLink(club)}>
-                <div className="club-badge">{club.name.slice(0, 3)}</div>
+                <div className="club-badge">
+                  {club.logo_photo ? (
+                    <img src={`${API_URL}${club.logo_photo}`} alt={club.name} />
+                  ) : (
+                    club.name.slice(0, 3)
+                  )}
+                </div>
                 <h3>{club.name}</h3>
                 <p>{club.city}</p>
                 <strong>{club.players} joueurs</strong>
@@ -398,7 +405,13 @@ function PublicClub() {
     <PublicShell>
       <section className="public-detail public-showcase club-detail">
         <div className="public-visual-panel club-visual-panel">
-          <div className="club-badge public-club-badge">{club.name.slice(0, 3)}</div>
+          <div className="club-badge public-club-badge">
+            {club.logo_photo ? (
+              <img src={`${API_URL}${club.logo_photo}`} alt={club.name} />
+            ) : (
+              club.name.slice(0, 3)
+            )}
+          </div>
           <div className="public-identity-strip">
             <strong>{club.city}</strong>
             <span>{club.level}</span>

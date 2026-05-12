@@ -1,7 +1,40 @@
 const express = require("express");
+const fs = require("fs");
+const multer = require("multer");
+const path = require("path");
 const router = express.Router();
 const db = require("../db");
 const verifyToken = require("../middlewares/authMiddleware");
+
+const uploadsDir = path.join(__dirname, "..", "uploads");
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `team-${req.user.id}-${Date.now()}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith("image/")) {
+      return cb(new Error("Le fichier doit etre une image"));
+    }
+
+    cb(null, true);
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+});
 
 const sendDbError = (res, err, fallbackMessage) => {
   console.log(err);
@@ -78,6 +111,33 @@ const ensureTeamInvitationsTable = (callback) => {
 
 const ensureTeamPlayerCountColumn = (callback) => {
   ensureColumn("teams", "player_count", "INT DEFAULT 0", callback);
+};
+
+const ensureTeamLogoColumn = (callback) => {
+  ensureColumn("teams", "logo_photo", "VARCHAR(255)", callback);
+};
+
+const ensureTeamPublicColumns = (callback) => {
+  ensureTeamPlayerCountColumn((countErr) => {
+    if (countErr) return callback(countErr);
+
+    ensureTeamLogoColumn((logoErr) => {
+      if (logoErr) return callback(logoErr);
+      refreshTeamPlayerCounts(callback);
+    });
+  });
+};
+
+const uploadTeamLogo = (req, res, next) => {
+  upload.single("logo")(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({
+        message: err.message || "Erreur lors du televersement du logo",
+      });
+    }
+
+    next();
+  });
 };
 
 const refreshTeamPlayerCounts = (callback) => {
@@ -171,10 +231,59 @@ router.get("/players", verifyToken, (req, res) => {
   });
 });
 
+router.post("/logo", verifyToken, uploadTeamLogo, (req, res) => {
+  if (req.user.role !== "team") {
+    return res.status(403).json({ message: "Action reservee aux equipes" });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ message: "Aucun logo envoye" });
+  }
+
+  const logoUrl = `/uploads/${req.file.filename}`;
+
+  ensureTeamLogoColumn((columnErr) => {
+    if (columnErr) {
+      return sendDbError(res, columnErr, "Impossible de preparer le logo du club");
+    }
+
+    getTeamForUser(req.user.id, (teamErr, team) => {
+      if (teamErr) {
+        return sendDbError(res, teamErr, "Impossible de charger l'equipe");
+      }
+
+      if (!team) {
+        return res.status(404).json({ message: "Equipe introuvable" });
+      }
+
+      const sql = "UPDATE teams SET logo_photo = ? WHERE user_id = ?";
+      db.query(sql, [logoUrl, req.user.id], (updateErr) => {
+        if (updateErr) {
+          return sendDbError(res, updateErr, "Impossible de mettre a jour le logo");
+        }
+
+        if (team.logo_photo) {
+          const oldLogoPath = path.join(
+            __dirname,
+            "..",
+            team.logo_photo.replace(/^[/\\]+/, "")
+          );
+          fs.unlink(oldLogoPath, () => {});
+        }
+
+        res.json({
+          message: "Logo du club mis a jour",
+          logo_photo: logoUrl,
+        });
+      });
+    });
+  });
+});
+
 router.get("/list", (req, res) => {
   const loadTeams = () => {
     const sql = `
-      SELECT id, team_name, city, level, category, player_count
+      SELECT id, team_name, city, level, category, player_count, logo_photo
       FROM teams
       ORDER BY team_name
     `;
@@ -191,7 +300,7 @@ router.get("/list", (req, res) => {
     });
   };
 
-  refreshTeamPlayerCounts((countErr) => {
+  ensureTeamPublicColumns((countErr) => {
     if (countErr) {
       if (countErr.code === "ER_NO_SUCH_TABLE") {
         return res.json([]);
@@ -204,7 +313,7 @@ router.get("/list", (req, res) => {
 });
 
 router.get("/public/:teamId", (req, res) => {
-  refreshTeamPlayerCounts((countErr) => {
+  ensureTeamPublicColumns((countErr) => {
     if (countErr) {
       if (countErr.code === "ER_NO_SUCH_TABLE") {
         return res.status(404).json({ message: "Club introuvable" });
@@ -214,7 +323,7 @@ router.get("/public/:teamId", (req, res) => {
     }
 
     const teamSql = `
-      SELECT id, team_name, city, level, category, bio, player_count
+      SELECT id, team_name, city, level, category, bio, player_count, logo_photo
       FROM teams
       WHERE id = ?
       LIMIT 1
