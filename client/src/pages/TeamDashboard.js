@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import BrandLogo from "../components/BrandLogo";
+import DashboardBottomNav from "../components/DashboardBottomNav";
 import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
 
@@ -37,6 +38,12 @@ function TeamDashboard() {
 
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
+  const mobileNavItems = [
+    { id: "profil", target: "profil", label: "Club", icon: "C" },
+    { id: "recherche", target: "recherche", label: "Chercher", icon: "R" },
+    { id: "joueurs", target: "joueurs", label: "Joueurs", icon: "J" },
+    { id: "matchs", target: "matchs", label: "Matchs", icon: "M" },
+  ];
 
   useEffect(() => {
     if (!notice) return undefined;
@@ -663,6 +670,8 @@ function TeamDashboard() {
           </div>
         )}
       </main>
+
+      <DashboardBottomNav items={mobileNavItems} />
     </div>
   );
 }

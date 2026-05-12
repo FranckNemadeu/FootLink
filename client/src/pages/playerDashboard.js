@@ -2,12 +2,19 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import BrandLogo from "../components/BrandLogo";
+import DashboardBottomNav from "../components/DashboardBottomNav";
 import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
 
 function PlayerDashboard() {
   const navigate = useNavigate();
   const { user, token, logout } = useAuth();
+  const mobileNavItems = [
+    { id: "profil", target: "profil", label: "Profil", icon: "P" },
+    { id: "stats", target: "stats", label: "Stats", icon: "S" },
+    { id: "clubs", target: "clubs", label: "Clubs", icon: "C" },
+    { id: "compte", target: "compte", label: "Compte", icon: "!" },
+  ];
   const [player, setPlayer] = useState(null);
   const [stats, setStats] = useState({
     matches: 0,
@@ -419,7 +426,7 @@ function PlayerDashboard() {
                       {player.bio || "Aucune bio pour le moment."}
                     </p>
 
-                    <div className="club-change-section">
+                    <div className="club-change-section" id="clubs">
                       <h4>Changer de club</h4>
                       <div className="club-selection">
                         <select
@@ -596,7 +603,7 @@ function PlayerDashboard() {
                 )}
               </div>
 
-              <form className="danger-zone" onSubmit={handleDeleteAccount}>
+              <form className="danger-zone" id="compte" onSubmit={handleDeleteAccount}>
                 <h3>Supprimer mon compte</h3>
                 <p>
                   Cette action supprime ton compte, ton profil joueur, tes stats
@@ -642,6 +649,8 @@ function PlayerDashboard() {
           </div>
         )}
       </main>
+
+      <DashboardBottomNav items={mobileNavItems} />
     </div>
   );
 }
