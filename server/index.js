@@ -10,10 +10,23 @@ const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+const isAllowedVercelPreview = (origin) => {
+  try {
+    const { hostname, protocol } = new URL(origin);
+
+    return (
+      protocol === "https:" &&
+      /^foot-link(-git-[a-z0-9-]+)?-[a-z0-9-]+-franck-nemadeu-s-projects\.vercel\.app$/.test(hostname)
+    );
+  } catch {
+    return false;
+  }
+};
+
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(origin) || isAllowedVercelPreview(origin)) {
         return callback(null, true);
       }
 
