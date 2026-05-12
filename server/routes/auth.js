@@ -8,6 +8,8 @@ const { ensureCoreTables } = require("../dbSchema");
 const sendDbError = (res, err, fallbackMessage) => {
   console.log(err);
 
+  if (res.headersSent) return;
+
   res.status(500).json({
     message: fallbackMessage,
     error: err.sqlMessage || err.message,
@@ -442,37 +444,39 @@ router.post("/login", (req, res) => {
   }
 
   ensureCoreTables()
-    .then(() => db.query(sql, [email], async (err, result) => {
-    if (err) return sendDbError(res, err, "Erreur connexion");
+    .then(() => {
+      db.query(sql, [email], async (err, result) => {
+        if (err) return sendDbError(res, err, "Erreur connexion");
 
-    if (result.length === 0) {
-      return res.status(404).json({ message: "Utilisateur non trouve" });
-    }
+        if (result.length === 0) {
+          return res.status(404).json({ message: "Utilisateur non trouve" });
+        }
 
-    const user = result[0];
-    const isMatch = await bcrypt.compare(password, user.password);
+        const user = result[0];
+        const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!isMatch) {
-      return res.status(400).json({ message: "Mot de passe incorrect" });
-    }
+        if (!isMatch) {
+          return res.status(400).json({ message: "Mot de passe incorrect" });
+        }
 
-    const role = user.role || "player";
-    const token = jwt.sign(
-      { id: user.id, role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+        const role = user.role || "player";
+        const token = jwt.sign(
+          { id: user.id, role },
+          process.env.JWT_SECRET,
+          { expiresIn: "1d" }
+        );
 
-    res.json({
-      message: "Connexion reussie",
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        role,
-      },
-    });
-  }))
+        res.json({
+          message: "Connexion reussie",
+          token,
+          user: {
+            id: user.id,
+            name: user.name,
+            role,
+          },
+        });
+      });
+    })
     .catch((schemaErr) =>
       sendDbError(res, schemaErr, "Impossible de preparer la base de donnees")
     );
