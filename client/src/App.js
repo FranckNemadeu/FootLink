@@ -114,6 +114,13 @@ const normalizeClub = (club) => ({
   category: club.category,
   bio: club.bio,
   logo_photo: club.logo_photo,
+  goals: Number(club.goals) || 0,
+  assists: Number(club.assists) || 0,
+  matches: Number(club.matches) || 0,
+  top_scorer: club.top_scorer,
+  top_scorer_goals: Number(club.top_scorer_goals) || 0,
+  top_assister: club.top_assister,
+  top_assister_assists: Number(club.top_assister_assists) || 0,
   colors: club.colors || "Rouge / Blanc",
 });
 
@@ -145,6 +152,7 @@ function Home() {
   }, []);
 
   const featuredHomePlayers = players.slice(0, 3);
+  const getLeaderName = (name) => name || "A definir";
 
   return (
     <div className="home">
@@ -276,7 +284,24 @@ function Home() {
                 </div>
                 <h3>{club.name}</h3>
                 <p>{club.city}</p>
-                <strong>{club.players} joueurs</strong>
+                <div className="club-card-stats">
+                  <span>
+                    <strong>{club.players}</strong>
+                    Joueurs
+                  </span>
+                  <span>
+                    <strong>{club.goals}</strong>
+                    Buts
+                  </span>
+                  <span>
+                    <strong>{club.assists}</strong>
+                    Passes
+                  </span>
+                </div>
+                <div className="club-card-leaders">
+                  <p>Buteur: {getLeaderName(club.top_scorer)}</p>
+                  <p>Passeur: {getLeaderName(club.top_assister)}</p>
+                </div>
               </Link>
             ))}
           </div>
@@ -401,6 +426,13 @@ function PublicClub() {
     loadClub();
   }, [slug]);
 
+  const topScorer = [...clubPlayers].sort(
+    (a, b) => b.goals - a.goals || a.name.localeCompare(b.name)
+  )[0];
+  const topAssister = [...clubPlayers].sort(
+    (a, b) => b.assists - a.assists || a.name.localeCompare(b.name)
+  )[0];
+
   return (
     <PublicShell>
       <section className="public-detail public-showcase club-detail">
@@ -440,9 +472,22 @@ function PublicClub() {
               Categorie
             </span>
             <span>
-              <strong>{club.colors}</strong>
-              Couleurs
+              <strong>{club.matches}</strong>
+              Matchs
             </span>
+          </div>
+
+          <div className="club-leaders-panel">
+            <div>
+              <span>Meilleur buteur</span>
+              <strong>{topScorer?.name || club.top_scorer || "A definir"}</strong>
+              <p>{topScorer?.goals ?? club.top_scorer_goals} buts</p>
+            </div>
+            <div>
+              <span>Meilleur passeur</span>
+              <strong>{topAssister?.name || club.top_assister || "A definir"}</strong>
+              <p>{topAssister?.assists ?? club.top_assister_assists} passes</p>
+            </div>
           </div>
 
           <div className="public-bio-card">

@@ -166,6 +166,63 @@ const getTeamForUser = (userId, callback) => {
   });
 };
 
+const teamPublicSelect = `
+  SELECT
+    t.id,
+    t.team_name,
+    t.city,
+    t.level,
+    t.category,
+    t.bio,
+    t.player_count,
+    t.logo_photo,
+    COALESCE(SUM(ms.goals), 0) AS goals,
+    COALESCE(SUM(ms.assists), 0) AS assists,
+    COUNT(DISTINCT ms.match_id) AS matches,
+    (
+      SELECT u2.name
+      FROM players p2
+      JOIN users u2 ON u2.id = p2.user_id
+      LEFT JOIN match_stats ms2 ON ms2.player_id = p2.id
+      WHERE LOWER(p2.team_name) = LOWER(t.team_name)
+      GROUP BY p2.id, u2.name
+      ORDER BY COALESCE(SUM(ms2.goals), 0) DESC, u2.name
+      LIMIT 1
+    ) AS top_scorer,
+    (
+      SELECT COALESCE(SUM(ms2.goals), 0)
+      FROM players p2
+      LEFT JOIN match_stats ms2 ON ms2.player_id = p2.id
+      WHERE LOWER(p2.team_name) = LOWER(t.team_name)
+      GROUP BY p2.id
+      ORDER BY COALESCE(SUM(ms2.goals), 0) DESC, p2.id
+      LIMIT 1
+    ) AS top_scorer_goals,
+    (
+      SELECT u3.name
+      FROM players p3
+      JOIN users u3 ON u3.id = p3.user_id
+      LEFT JOIN match_stats ms3 ON ms3.player_id = p3.id
+      WHERE LOWER(p3.team_name) = LOWER(t.team_name)
+      GROUP BY p3.id, u3.name
+      ORDER BY COALESCE(SUM(ms3.assists), 0) DESC, u3.name
+      LIMIT 1
+    ) AS top_assister
+    ,
+    (
+      SELECT COALESCE(SUM(ms3.assists), 0)
+      FROM players p3
+      LEFT JOIN match_stats ms3 ON ms3.player_id = p3.id
+      WHERE LOWER(p3.team_name) = LOWER(t.team_name)
+      GROUP BY p3.id
+      ORDER BY COALESCE(SUM(ms3.assists), 0) DESC, p3.id
+      LIMIT 1
+    ) AS top_assister_assists
+  FROM teams t
+  LEFT JOIN players p ON LOWER(p.team_name) = LOWER(t.team_name)
+  LEFT JOIN match_stats ms ON ms.player_id = p.id
+`;
+
 router.get("/players", verifyToken, (req, res) => {
   if (req.user.role !== "team") {
     return res.status(403).json({ message: "Acces reserve aux equipes" });
@@ -283,8 +340,16 @@ router.post("/logo", verifyToken, uploadTeamLogo, (req, res) => {
 router.get("/list", (req, res) => {
   const loadTeams = () => {
     const sql = `
-      SELECT id, team_name, city, level, category, player_count, logo_photo
-      FROM teams
+      ${teamPublicSelect}
+      GROUP BY
+        t.id,
+        t.team_name,
+        t.city,
+        t.level,
+        t.category,
+        t.bio,
+        t.player_count,
+        t.logo_photo
       ORDER BY team_name
     `;
 
@@ -323,9 +388,17 @@ router.get("/public/:teamId", (req, res) => {
     }
 
     const teamSql = `
-      SELECT id, team_name, city, level, category, bio, player_count, logo_photo
-      FROM teams
-      WHERE id = ?
+      ${teamPublicSelect}
+      WHERE t.id = ?
+      GROUP BY
+        t.id,
+        t.team_name,
+        t.city,
+        t.level,
+        t.category,
+        t.bio,
+        t.player_count,
+        t.logo_photo
       LIMIT 1
     `;
 

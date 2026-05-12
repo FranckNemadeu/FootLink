@@ -392,10 +392,72 @@ body {
   font-size: 26px;
 }
 
-.club-card strong {
+.club-card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.club-card-stats span {
+  min-height: 64px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(5, 20, 15, 0.72);
+  border: 1px solid rgba(41, 255, 122, 0.22);
+  color: #b7c8bd;
+  font-size: 12px;
+}
+
+.club-card-stats strong {
   display: block;
-  margin-top: 16px;
+  margin-bottom: 4px;
   color: white;
+  font-size: 20px;
+}
+
+.club-card-leaders {
+  margin-top: 14px;
+  display: grid;
+  gap: 4px;
+}
+
+.club-card-leaders p {
+  color: #d5e9dc;
+  font-size: 14px;
+}
+
+.club-leaders-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.club-leaders-panel div {
+  padding: 16px;
+  border-radius: 8px;
+  background: #102531;
+  border: 1px solid #1d554a;
+}
+
+.club-leaders-panel span {
+  color: #29ff7a;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.club-leaders-panel strong {
+  display: block;
+  margin-top: 8px;
+  color: white;
+  font-size: 22px;
+}
+
+.club-leaders-panel p {
+  margin-top: 4px;
+  color: #b7c8bd;
 }
 
 button:hover {
@@ -1567,7 +1629,8 @@ body {
   }
 
   .public-stat-grid,
-  .public-roster-grid {
+  .public-roster-grid,
+  .club-leaders-panel {
     grid-template-columns: 1fr;
   }
 
