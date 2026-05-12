@@ -5,6 +5,7 @@ import BrandLogo from "../components/BrandLogo";
 import DashboardBottomNav from "../components/DashboardBottomNav";
 import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
+import getMediaUrl from "../utils/mediaUrl";
 
 function TeamDashboard() {
   const [team, setTeam] = useState(null);
@@ -78,7 +79,7 @@ function TeamDashboard() {
       <div className="mini-avatar">
         {player.profile_photo ? (
           <img
-            src={`${API_URL}${player.profile_photo}`}
+            src={getMediaUrl(player.profile_photo)}
             alt={player.name || "Joueur"}
           />
         ) : (
@@ -445,7 +446,7 @@ function TeamDashboard() {
               <div className="profile-photo-section">
                 <div className="profile-photo club-logo-photo">
                   {team?.logo_photo ? (
-                    <img src={`${API_URL}${team.logo_photo}`} alt="Logo du club" />
+                    <img src={getMediaUrl(team.logo_photo)} alt="Logo du club" />
                   ) : (
                     <span>{(team?.team_name || user?.name || "C").charAt(0)}</span>
                   )}
@@ -569,7 +570,7 @@ function TeamDashboard() {
                           <div className="mini-avatar">
                             {invitation.profile_photo ? (
                               <img
-                                src={`${API_URL}${invitation.profile_photo}`}
+                                src={getMediaUrl(invitation.profile_photo)}
                                 alt={invitation.name || "Joueur"}
                               />
                             ) : (
@@ -633,7 +634,7 @@ function TeamDashboard() {
                         <div className="mini-avatar">
                           {player.profile_photo ? (
                             <img
-                              src={`${API_URL}${player.profile_photo}`}
+                              src={getMediaUrl(player.profile_photo)}
                               alt={player.name || "Joueur"}
                             />
                           ) : (

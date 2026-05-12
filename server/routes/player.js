@@ -5,6 +5,7 @@ const path = require("path");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const db = require("../db");
+const { isCloudinaryConfigured } = require("../config/cloudinary");
 const playerController = require("../controllers/playerController");
 const verifyToken = require("../middlewares/authMiddleware");
 
@@ -25,7 +26,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({
-  storage,
+  storage: isCloudinaryConfigured ? multer.memoryStorage() : storage,
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.startsWith("image/")) {
       return cb(new Error("Le fichier doit etre une image"));
@@ -152,7 +153,7 @@ router.delete("/account", verifyToken, (req, res) => {
                         db.commit((commitErr) => {
                           if (commitErr) return rollback("Impossible de finaliser la suppression");
 
-                          if (player.profile_photo) {
+                          if (player.profile_photo && player.profile_photo.startsWith("/uploads/")) {
                             const photoPath = path.join(
                               __dirname,
                               "..",

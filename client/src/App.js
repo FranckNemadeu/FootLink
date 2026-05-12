@@ -10,6 +10,7 @@ import TeamDashboard from "./pages/TeamDashboard";
 import BrandLogo from "./components/BrandLogo";
 import PrivateRoute from "./components/PrivateRoute";
 import API_URL from "./config/api";
+import getMediaUrl from "./utils/mediaUrl";
 
 const featuredPlayers = [
   {
@@ -219,7 +220,7 @@ function Home() {
                 <div className="poster-player-art">
                   {player.profile_photo ? (
                     <img
-                      src={`${API_URL}${player.profile_photo}`}
+                      src={getMediaUrl(player.profile_photo)}
                       alt={player.name}
                     />
                   ) : (
@@ -250,7 +251,7 @@ function Home() {
                 <div className="scorer-player">
                   <span className="mini-avatar scorer-avatar">
                     {player.profile_photo ? (
-                      <img src={`${API_URL}${player.profile_photo}`} alt={player.name} />
+                      <img src={getMediaUrl(player.profile_photo)} alt={player.name} />
                     ) : (
                       player.name.charAt(0)
                     )}
@@ -277,7 +278,7 @@ function Home() {
               <Link className="club-card" key={club.name} to={clubLink(club)}>
                 <div className="club-badge">
                   {club.logo_photo ? (
-                    <img src={`${API_URL}${club.logo_photo}`} alt={club.name} />
+                    <img src={getMediaUrl(club.logo_photo)} alt={club.name} />
                   ) : (
                     club.name.slice(0, 3)
                   )}
@@ -342,7 +343,7 @@ function PublicPlayer() {
         <div className="public-visual-panel">
           <div className={`public-avatar poster-${player.tone}`}>
             {player.profile_photo ? (
-              <img src={`${API_URL}${player.profile_photo}`} alt={player.name} />
+              <img src={getMediaUrl(player.profile_photo)} alt={player.name} />
             ) : (
               <span>{player.name.charAt(0)}</span>
             )}
@@ -474,7 +475,7 @@ function PublicClub() {
         <div className="public-visual-panel club-visual-panel">
           <div className="club-badge public-club-badge">
             {club.logo_photo ? (
-              <img src={`${API_URL}${club.logo_photo}`} alt={club.name} />
+              <img src={getMediaUrl(club.logo_photo)} alt={club.name} />
             ) : (
               club.name.slice(0, 3)
             )}
@@ -646,7 +647,7 @@ function PublicClub() {
                       <span className="mini-avatar">
                         {player.profile_photo ? (
                           <img
-                            src={`${API_URL}${player.profile_photo}`}
+                            src={getMediaUrl(player.profile_photo)}
                             alt={player.name}
                           />
                         ) : (

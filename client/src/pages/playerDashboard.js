@@ -5,6 +5,7 @@ import BrandLogo from "../components/BrandLogo";
 import DashboardBottomNav from "../components/DashboardBottomNav";
 import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
+import getMediaUrl from "../utils/mediaUrl";
 
 function PlayerDashboard() {
   const navigate = useNavigate();
@@ -372,7 +373,7 @@ function PlayerDashboard() {
                     <div className="profile-photo">
                       {player.profile_photo ? (
                         <img
-                          src={`${API_URL}${player.profile_photo}`}
+                          src={getMediaUrl(player.profile_photo)}
                           alt="Profil joueur"
                         />
                       ) : (

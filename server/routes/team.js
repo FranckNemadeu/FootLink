@@ -5,6 +5,7 @@ const path = require("path");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const db = require("../db");
+const { isCloudinaryConfigured, uploadImage } = require("../config/cloudinary");
 const verifyToken = require("../middlewares/authMiddleware");
 
 const uploadsDir = path.join(__dirname, "..", "uploads");
@@ -24,7 +25,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({
-  storage,
+  storage: isCloudinaryConfigured ? multer.memoryStorage() : storage,
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.startsWith("image/")) {
       return cb(new Error("Le fichier doit etre une image"));
@@ -291,7 +292,7 @@ router.get("/players", verifyToken, (req, res) => {
   });
 });
 
-router.post("/logo", verifyToken, uploadTeamLogo, (req, res) => {
+router.post("/logo", verifyToken, uploadTeamLogo, async (req, res) => {
   if (req.user.role !== "team") {
     return res.status(403).json({ message: "Action reservee aux equipes" });
   }
@@ -300,7 +301,12 @@ router.post("/logo", verifyToken, uploadTeamLogo, (req, res) => {
     return res.status(400).json({ message: "Aucun logo envoye" });
   }
 
-  const logoUrl = `/uploads/${req.file.filename}`;
+  let logoUrl;
+  try {
+    logoUrl = await uploadImage(req.file, "footlink/teams");
+  } catch (err) {
+    return sendDbError(res, err, "Impossible de televerser le logo");
+  }
 
   ensureTeamLogoColumn((columnErr) => {
     if (columnErr) {
@@ -322,7 +328,7 @@ router.post("/logo", verifyToken, uploadTeamLogo, (req, res) => {
           return sendDbError(res, updateErr, "Impossible de mettre a jour le logo");
         }
 
-        if (team.logo_photo) {
+        if (team.logo_photo && team.logo_photo.startsWith("/uploads/")) {
           const oldLogoPath = path.join(
             __dirname,
             "..",
@@ -973,7 +979,7 @@ router.delete("/account", verifyToken, (req, res) => {
                         db.commit((commitErr) => {
                           if (commitErr) return rollback("Impossible de finaliser la suppression");
 
-                          if (team.logo_photo) {
+                          if (team.logo_photo && team.logo_photo.startsWith("/uploads/")) {
                             const logoPath = path.join(
                               __dirname,
                               "..",

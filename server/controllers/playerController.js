@@ -1,4 +1,5 @@
 const db = require("../db");
+const { uploadImage } = require("../config/cloudinary");
 
 const ensureProfilePhotoColumn = (callback) => {
   const checkSql = `
@@ -291,14 +292,19 @@ exports.getPlayerStats = (req, res) => {
 };
 
 // UPLOAD PLAYER PHOTO
-exports.uploadPlayerPhoto = (req, res) => {
+exports.uploadPlayerPhoto = async (req, res) => {
   const userId = req.user.id;
 
   if (!req.file) {
     return res.status(400).json({ message: "Aucune photo envoyee" });
   }
 
-  const photoUrl = `/uploads/${req.file.filename}`;
+  let photoUrl;
+  try {
+    photoUrl = await uploadImage(req.file, "footlink/players");
+  } catch (err) {
+    return sendDbError(res, err, "Impossible de televerser la photo");
+  }
 
   ensureProfilePhotoColumn((columnErr) => {
     if (columnErr) return res.status(500).json(columnErr);
