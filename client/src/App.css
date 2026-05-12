@@ -567,6 +567,41 @@ button:hover {
   padding-top: 0;
 }
 
+.public-club-tabs-section {
+  padding-top: 0;
+}
+
+.public-club-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 8px;
+  border: 1px solid rgba(41, 255, 122, 0.18);
+  border-radius: 8px;
+  background: rgba(10, 15, 12, 0.86);
+}
+
+.public-club-tabs button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #a7b9ae;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.public-club-tabs button.active {
+  background: #29ff7a;
+  color: #07100b;
+}
+
+.public-tab-panel {
+  min-height: 260px;
+}
+
 .public-roster-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -576,6 +611,50 @@ button:hover {
 .public-player-card {
   color: #f4fff8;
   text-decoration: none;
+}
+
+.public-match-list {
+  display: grid;
+  gap: 12px;
+}
+
+.public-match-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(41, 255, 122, 0.18);
+  border-radius: 8px;
+  background: rgba(10, 15, 12, 0.86);
+}
+
+.public-match-row > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(41, 255, 122, 0.13);
+  color: #29ff7a;
+  font-weight: 900;
+}
+
+.public-match-row h4 {
+  color: #f4fff8;
+  font-size: 18px;
+}
+
+.public-match-row p {
+  margin-top: 3px;
+  color: #a7b9ae;
+  font-size: 14px;
+}
+
+.public-club-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .not-found {
@@ -1764,6 +1843,7 @@ body {
 
   .public-stat-grid,
   .public-roster-grid,
+  .public-club-info-grid,
   .club-leaders-panel {
     grid-template-columns: 1fr;
   }

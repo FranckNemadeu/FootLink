@@ -439,7 +439,21 @@ router.get("/public/:teamId", (req, res) => {
             return sendDbError(res, playersErr, "Impossible de charger les joueurs");
           }
 
-          res.json({ team, players });
+          const matchesSql = `
+            SELECT id, type, match_date, created_at
+            FROM matches
+            WHERE team_id = ?
+            ORDER BY match_date DESC, id DESC
+            LIMIT 8
+          `;
+
+          db.query(matchesSql, [team.id], (matchesErr, matches) => {
+            if (matchesErr) {
+              return sendDbError(res, matchesErr, "Impossible de charger les matchs");
+            }
+
+            res.json({ team, players, matches });
+          });
         });
       });
     });

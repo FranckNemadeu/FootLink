@@ -404,6 +404,8 @@ function PublicClub() {
   const fallbackClub = clubs.find((item) => item.slug === slug) || clubs[0];
   const [club, setClub] = useState(normalizeClub(fallbackClub));
   const [clubPlayers, setClubPlayers] = useState([]);
+  const [clubMatches, setClubMatches] = useState([]);
+  const [activeTab, setActiveTab] = useState("matchs");
   const [loading, setLoading] = useState(Boolean(Number(slug)));
   const { dashboardPath, isAuthenticated } = useAuth();
 
@@ -416,6 +418,7 @@ function PublicClub() {
         const res = await axios.get(`${API_URL}/api/team/public/${slug}`);
         setClub(normalizeClub(res.data.team));
         setClubPlayers((res.data.players || []).map(normalizePlayer));
+        setClubMatches(res.data.matches || []);
       } catch (err) {
         console.log(err);
       } finally {
@@ -432,6 +435,11 @@ function PublicClub() {
   const topAssister = [...clubPlayers].sort(
     (a, b) => b.assists - a.assists || a.name.localeCompare(b.name)
   )[0];
+  const tabs = [
+    { id: "matchs", label: "Matchs" },
+    { id: "effectif", label: "Effectif" },
+    { id: "infos", label: "Infos" },
+  ];
 
   return (
     <PublicShell>
@@ -506,47 +514,108 @@ function PublicClub() {
         </div>
       </section>
 
-      <section className="home-section public-roster-section">
-        <div className="section-heading">
-          <div>
-            <p className="home-kicker">Effectif public</p>
-            <h2>Joueurs du club</h2>
-          </div>
+      <section className="home-section public-club-tabs-section">
+        <div className="public-club-tabs">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={activeTab === tab.id ? "active" : ""}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        {clubPlayers.length > 0 ? (
-          <div className="public-roster-grid">
-            {clubPlayers.map((player) => (
-              <Link
-                className="team-player-card public-player-card"
-                key={player.id}
-                to={playerLink(player)}
-              >
-                <div className="player-card-main">
-                  <span className="mini-avatar">
-                    {player.profile_photo ? (
-                      <img
-                        src={`${API_URL}${player.profile_photo}`}
-                        alt={player.name}
-                      />
-                    ) : (
-                      player.name.charAt(0)
-                    )}
-                  </span>
-                  <div>
-                    <h4>{player.name}</h4>
-                    <p>
-                      {player.position} - {player.goals} buts - {player.assists} passes
-                    </p>
+        {activeTab === "matchs" && (
+          <div className="public-tab-panel">
+            <div className="section-heading">
+              <div>
+                <p className="home-kicker">Calendrier</p>
+                <h2>Derniers matchs</h2>
+              </div>
+            </div>
+
+            {clubMatches.length > 0 ? (
+              <div className="public-match-list">
+                {clubMatches.map((match) => (
+                  <div className="public-match-row" key={match.id}>
+                    <span>{match.type?.slice(0, 1).toUpperCase() || "M"}</span>
+                    <div>
+                      <h4>{match.type || "Match"}</h4>
+                      <p>{match.match_date?.slice(0, 10) || "Date a definir"}</p>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                ))}
+              </div>
+            ) : (
+              <p className="dashboard-message">Aucun match public pour le moment.</p>
+            )}
           </div>
-        ) : (
-          <p className="dashboard-message">
-            Aucun joueur public n'est encore rattache a ce club.
-          </p>
+        )}
+
+        {activeTab === "effectif" && (
+          <div className="public-tab-panel">
+            <div className="section-heading">
+              <div>
+                <p className="home-kicker">Effectif public</p>
+                <h2>Joueurs du club</h2>
+              </div>
+            </div>
+
+            {clubPlayers.length > 0 ? (
+              <div className="public-roster-grid">
+                {clubPlayers.map((player) => (
+                  <Link
+                    className="team-player-card public-player-card"
+                    key={player.id}
+                    to={playerLink(player)}
+                  >
+                    <div className="player-card-main">
+                      <span className="mini-avatar">
+                        {player.profile_photo ? (
+                          <img
+                            src={`${API_URL}${player.profile_photo}`}
+                            alt={player.name}
+                          />
+                        ) : (
+                          player.name.charAt(0)
+                        )}
+                      </span>
+                      <div>
+                        <h4>{player.name}</h4>
+                        <p>
+                          {player.position} - {player.goals} buts - {player.assists} passes
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="dashboard-message">
+                Aucun joueur public n'est encore rattache a ce club.
+              </p>
+            )}
+          </div>
+        )}
+
+        {activeTab === "infos" && (
+          <div className="public-tab-panel public-club-info-grid">
+            <div className="public-bio-card">
+              <h3>Identite</h3>
+              <p>Ville: {club.city}</p>
+              <p>Niveau: {club.level}</p>
+              <p>Categorie: {club.category || "Ouvert"}</p>
+            </div>
+            <div className="public-bio-card">
+              <h3>Stats club</h3>
+              <p>{club.players} joueurs inscrits</p>
+              <p>{club.goals} buts marques</p>
+              <p>{club.assists} passes decisives</p>
+            </div>
+          </div>
         )}
       </section>
     </PublicShell>
