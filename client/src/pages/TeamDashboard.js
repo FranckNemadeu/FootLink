@@ -28,6 +28,11 @@ function TeamDashboard() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState(null);
+  const [deleteForm, setDeleteForm] = useState({
+    password: "",
+    confirmation: "",
+  });
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [statsForm, setStatsForm] = useState({
     playerId: "",
     matchId: "",
@@ -44,6 +49,7 @@ function TeamDashboard() {
     { id: "classements", target: "classements", label: "Stats", icon: "S" },
     { id: "joueurs", target: "joueurs", label: "Joueurs", icon: "J" },
     { id: "matchs", target: "matchs", label: "Matchs", icon: "M" },
+    { id: "compte", target: "compte", label: "Compte", icon: "!" },
   ];
 
   useEffect(() => {
@@ -348,6 +354,44 @@ function TeamDashboard() {
     }
   };
 
+  const handleDeleteAccount = async (e) => {
+    e.preventDefault();
+
+    if (deleteForm.confirmation !== "SUPPRIMER") {
+      showNotice("error", "Tape SUPPRIMER pour confirmer la suppression du compte.");
+      return;
+    }
+
+    if (!deleteForm.password) {
+      showNotice("error", "Entre ton mot de passe pour supprimer ton compte.");
+      return;
+    }
+
+    try {
+      setDeletingAccount(true);
+
+      await axios.delete(`${API_URL}/api/team/account`, {
+        headers: {
+          authorization: token,
+        },
+        data: {
+          password: deleteForm.password,
+        },
+      });
+
+      logout("Ton compte equipe a ete supprime.");
+      navigate("/", { replace: true });
+    } catch (err) {
+      console.log(err);
+      showNotice(
+        "error",
+        err.response?.data?.message || "Impossible de supprimer le compte."
+      );
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
   return (
     <div className="dashboard-page">
       <nav className="dashboard-navbar">
@@ -366,6 +410,9 @@ function TeamDashboard() {
           </button>
           <button type="button" onClick={() => scrollToSection("matchs")}>
             Matchs
+          </button>
+          <button type="button" onClick={() => scrollToSection("compte")}>
+            Compte
           </button>
           <button onClick={handleLogout}>Deconnexion</button>
         </div>
@@ -718,6 +765,49 @@ function TeamDashboard() {
                 <button type="submit">Ajouter stats</button>
               </form>
             </section>
+
+            <form className="danger-zone" id="compte" onSubmit={handleDeleteAccount}>
+              <h3>Supprimer mon compte club</h3>
+              <p>
+                Cette action supprime le compte equipe, le club, ses matchs,
+                ses invitations et detache les joueurs de l'effectif.
+              </p>
+
+              <input
+                type="password"
+                placeholder="Mot de passe"
+                value={deleteForm.password}
+                onChange={(e) =>
+                  setDeleteForm({ ...deleteForm, password: e.target.value })
+                }
+                disabled={deletingAccount}
+              />
+
+              <input
+                type="text"
+                placeholder="Tape SUPPRIMER"
+                value={deleteForm.confirmation}
+                onChange={(e) =>
+                  setDeleteForm({
+                    ...deleteForm,
+                    confirmation: e.target.value,
+                  })
+                }
+                disabled={deletingAccount}
+              />
+
+              <button
+                className="danger-btn"
+                type="submit"
+                disabled={
+                  deletingAccount ||
+                  deleteForm.confirmation !== "SUPPRIMER" ||
+                  !deleteForm.password
+                }
+              >
+                {deletingAccount ? "Suppression..." : "Supprimer mon compte club"}
+              </button>
+            </form>
           </div>
         )}
       </main>

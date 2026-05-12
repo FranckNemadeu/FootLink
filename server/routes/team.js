@@ -3,6 +3,7 @@ const fs = require("fs");
 const multer = require("multer");
 const path = require("path");
 const router = express.Router();
+const bcrypt = require("bcryptjs");
 const db = require("../db");
 const verifyToken = require("../middlewares/authMiddleware");
 
@@ -38,6 +39,8 @@ const upload = multer({
 
 const sendDbError = (res, err, fallbackMessage) => {
   console.log(err);
+
+  if (res.headersSent) return;
 
   res.status(500).json({
     message: fallbackMessage,
@@ -895,6 +898,101 @@ router.post("/players/:playerId/stats", verifyToken, (req, res) => {
           res.json({ message: "Stats ajoutees" });
         }
       );
+    });
+  });
+});
+
+router.delete("/account", verifyToken, (req, res) => {
+  const { password } = req.body;
+
+  if (req.user.role !== "team") {
+    return res.status(403).json({ message: "Action reservee aux equipes" });
+  }
+
+  if (!password) {
+    return res.status(400).json({ message: "Mot de passe requis" });
+  }
+
+  const userSql = "SELECT id, password FROM users WHERE id = ? LIMIT 1";
+  db.query(userSql, [req.user.id], async (userErr, users) => {
+    if (userErr) {
+      return sendDbError(res, userErr, "Impossible de verifier le compte");
+    }
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: "Compte introuvable" });
+    }
+
+    const passwordMatches = await bcrypt.compare(password, users[0].password);
+    if (!passwordMatches) {
+      return res.status(400).json({ message: "Mot de passe incorrect" });
+    }
+
+    getTeamForUser(req.user.id, (teamErr, team) => {
+      if (teamErr) {
+        return sendDbError(res, teamErr, "Impossible de charger l'equipe");
+      }
+
+      if (!team) {
+        return res.status(404).json({ message: "Equipe introuvable" });
+      }
+
+      db.beginTransaction((transactionErr) => {
+        if (transactionErr) {
+          return sendDbError(res, transactionErr, "Impossible de demarrer la suppression");
+        }
+
+        const rollback = (message) => {
+          db.rollback(() => res.status(500).json({ message }));
+        };
+
+        db.query("DELETE FROM team_invitations WHERE team_id = ?", [team.id], (inviteErr) => {
+          if (inviteErr) return rollback("Impossible de supprimer les invitations");
+
+          db.query(
+            "DELETE FROM match_stats WHERE match_id IN (SELECT id FROM matches WHERE team_id = ?)",
+            [team.id],
+            (statsErr) => {
+              if (statsErr) return rollback("Impossible de supprimer les stats des matchs");
+
+              db.query("DELETE FROM matches WHERE team_id = ?", [team.id], (matchesErr) => {
+                if (matchesErr) return rollback("Impossible de supprimer les matchs");
+
+                db.query(
+                  "UPDATE players SET team_name = NULL, no_team = 1 WHERE LOWER(team_name) = LOWER(?)",
+                  [team.team_name],
+                  (playersErr) => {
+                    if (playersErr) return rollback("Impossible de detacher les joueurs");
+
+                    db.query("DELETE FROM teams WHERE id = ? AND user_id = ?", [team.id, req.user.id], (teamDeleteErr) => {
+                      if (teamDeleteErr) return rollback("Impossible de supprimer le club");
+
+                      db.query("DELETE FROM users WHERE id = ?", [req.user.id], (userDeleteErr) => {
+                        if (userDeleteErr) return rollback("Impossible de supprimer le compte");
+
+                        db.commit((commitErr) => {
+                          if (commitErr) return rollback("Impossible de finaliser la suppression");
+
+                          if (team.logo_photo) {
+                            const logoPath = path.join(
+                              __dirname,
+                              "..",
+                              team.logo_photo.replace(/^[/\\]+/, "")
+                            );
+                            fs.unlink(logoPath, () => {});
+                          }
+
+                          res.json({ message: "Compte equipe supprime" });
+                        });
+                      });
+                    });
+                  }
+                );
+              });
+            }
+          );
+        });
+      });
     });
   });
 });

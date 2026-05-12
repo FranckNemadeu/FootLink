@@ -15,6 +15,9 @@ let connection = mysql.createConnection(connectionConfig);
 
 const db = {
   query: (...args) => connection.query(...args),
+  beginTransaction: (...args) => connection.beginTransaction(...args),
+  commit: (...args) => connection.commit(...args),
+  rollback: (...args) => connection.rollback(...args),
   promise: () => connection.promise(),
   end: (...args) => connection.end(...args),
 };
