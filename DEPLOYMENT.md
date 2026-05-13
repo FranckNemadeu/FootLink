@@ -45,6 +45,17 @@ RESEND_API_KEY=...
 EMAIL_FROM="FootLink <onboarding@resend.dev>"
 ```
 
+Alternative sans domaine Resend: utilise SMTP avec un compte Gmail et un mot de passe d'application.
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=ton-adresse@gmail.com
+SMTP_PASS=ton-mot-de-passe-application-gmail
+EMAIL_FROM=FootLink <ton-adresse@gmail.com>
+```
+
 Apres deploiement, note l'URL Render, par exemple:
 
 ```text
@@ -85,6 +96,6 @@ Redeploie Render, puis teste:
 
 Les fichiers uploades localement dans `server/uploads` ne sont pas un stockage durable sur Render. En production, FootLink utilise Cloudinary si les variables `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` et `CLOUDINARY_API_SECRET` sont configurees dans Render. Sans ces variables, le serveur garde le mode local pour le developpement.
 
-Pour les emails de mot de passe oublie, FootLink utilise Resend si `RESEND_API_KEY` est configuree. Sans cette variable, les liens sont affiches dans les logs du serveur pour faciliter les tests locaux.
+Pour les emails de mot de passe oublie, FootLink utilise SMTP si `SMTP_HOST`, `SMTP_USER` et `SMTP_PASS` sont configures. Sinon il utilise Resend si `RESEND_API_KEY` est configuree. Sans ces variables, les liens sont affiches dans les logs du serveur pour faciliter les tests locaux.
 
 Avec l'adresse par defaut `onboarding@resend.dev`, Resend limite l'envoi aux emails de test de ton propre compte Resend. Pour envoyer a tous les joueurs et clubs, verifie un domaine dans Resend puis remplace `EMAIL_FROM` par une adresse de ce domaine, par exemple `FootLink <noreply@ton-domaine.com>`.
