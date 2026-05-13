@@ -196,12 +196,12 @@ function Register({ accountType }) {
     try {
       setLoading(true);
 
-      await axios.post(endpoint, payload);
+      const res = await axios.post(endpoint, payload);
 
       navigate("/login", {
         replace: true,
         state: {
-          message: "Compte cree. Verifie ton email avant de te connecter.",
+          message: res.data.message || "Compte cree. Verifie ton email avant de te connecter.",
         },
       });
     } catch (err) {

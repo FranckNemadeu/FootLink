@@ -239,6 +239,20 @@ const sendPasswordResetEmail = (user, token) => {
   });
 };
 
+const getAccountCreationMessage = (role, verificationToken, verificationSent) => {
+  const accountLabel = role === "team" ? "equipe" : "joueur";
+
+  if (!verificationToken) {
+    return `Compte ${accountLabel} cree. Tu peux maintenant te connecter.`;
+  }
+
+  if (verificationSent) {
+    return `Compte ${accountLabel} cree. Verifie ton email avant de te connecter.`;
+  }
+
+  return `Compte ${accountLabel} cree, mais l'email de verification n'a pas pu etre envoye. Utilise le bouton de renvoi sur la page connexion.`;
+};
+
 const createUser = async ({ name, email, password, role, verificationToken }, callback) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const verificationHash = verificationToken ? hashToken(verificationToken) : null;
@@ -354,7 +368,7 @@ router.post("/register/player", (req, res) => {
             no_team ? 1 : 0,
             bioText || null,
           ],
-          (playerErr) => {
+          async (playerErr) => {
             if (playerErr) {
               return sendDbError(
                 res,
@@ -363,16 +377,22 @@ router.post("/register/player", (req, res) => {
               );
             }
 
+            let verificationSent = true;
             if (verificationToken) {
-              sendVerificationEmail({ name, email }, verificationToken).catch((mailErr) =>
-                console.log("Email verification non envoye", mailErr)
-              );
+              try {
+                await sendVerificationEmail({ name, email }, verificationToken);
+              } catch (mailErr) {
+                verificationSent = false;
+                console.log("Email verification non envoye", mailErr);
+              }
             }
 
-            res.json({
-              message: verificationToken
-                ? "Compte joueur cree. Verifie ton email avant de te connecter."
-                : "Compte joueur cree. Tu peux maintenant te connecter.",
+            res.status(verificationSent ? 200 : 202).json({
+              message: getAccountCreationMessage(
+                "player",
+                verificationToken,
+                verificationSent
+              ),
             });
           }
         );
@@ -511,7 +531,7 @@ router.post("/register/team", (req, res) => {
                   category,
                   bioText || null,
                 ],
-                (insertTeamErr) => {
+                async (insertTeamErr) => {
                   if (insertTeamErr) {
                     return sendDbError(
                       res,
@@ -520,16 +540,22 @@ router.post("/register/team", (req, res) => {
                     );
                   }
 
+                  let verificationSent = true;
                   if (verificationToken) {
-                    sendVerificationEmail({ name, email }, verificationToken).catch((mailErr) =>
-                      console.log("Email verification non envoye", mailErr)
-                    );
+                    try {
+                      await sendVerificationEmail({ name, email }, verificationToken);
+                    } catch (mailErr) {
+                      verificationSent = false;
+                      console.log("Email verification non envoye", mailErr);
+                    }
                   }
 
-                  res.json({
-                    message: verificationToken
-                      ? "Compte equipe cree. Verifie ton email avant de te connecter."
-                      : "Compte equipe cree. Tu peux maintenant te connecter.",
+                  res.status(verificationSent ? 200 : 202).json({
+                    message: getAccountCreationMessage(
+                      "team",
+                      verificationToken,
+                      verificationSent
+                    ),
                   });
                 }
               );

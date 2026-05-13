@@ -16,6 +16,7 @@ function Login() {
   const { isAuthenticated, dashboardPath, login, sessionMessage } = useAuth();
   const from = location.state?.from?.pathname;
   const successMessage = location.state?.message;
+  const canResendVerification = email.trim().length > 0 && !isAuthenticated;
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -87,7 +88,7 @@ function Login() {
           <p className="auth-notice auth-notice-success">{infoMessage}</p>
         )}
 
-        {errorMessage.includes("Email non verifie") && (
+        {canResendVerification && (
           <button
             className="secondary-auth-action"
             type="button"
