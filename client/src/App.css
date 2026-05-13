@@ -1514,14 +1514,6 @@ body {
   color: #29ff7a;
 }
 
-.login-form .secondary-auth-action {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(41, 255, 122, 0.28);
-  box-shadow: none;
-  color: #f4fff8;
-  margin-bottom: 15px;
-}
-
 .register-form {
   width: min(620px, 100%);
 }

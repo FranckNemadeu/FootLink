@@ -117,9 +117,6 @@ const ensureUserRoleColumn = (callback) => {
 
 const ensureUserSecurityColumns = (callback) => {
   const columns = [
-    ["email_verified", "TINYINT(1) NOT NULL DEFAULT 1"],
-    ["email_verification_token", "VARCHAR(128)"],
-    ["email_verification_expires", "DATETIME"],
     ["reset_password_token", "VARCHAR(128)"],
     ["reset_password_expires", "DATETIME"],
   ];
@@ -208,21 +205,6 @@ const checkTeamExists = (teamName, callback) => {
   });
 };
 
-const sendVerificationEmail = (user, token) => {
-  const verificationUrl = `${getFrontendUrl()}/verify-email?token=${token}`;
-
-  return sendEmail({
-    to: user.email,
-    subject: "Verifie ton email FootLink",
-    text: `Salut ${user.name}, verifie ton email FootLink ici: ${verificationUrl}`,
-    html: `
-      <p>Salut ${user.name},</p>
-      <p>Confirme ton adresse email pour activer ton compte FootLink.</p>
-      <p><a href="${verificationUrl}">Verifier mon email</a></p>
-    `,
-  });
-};
-
 const sendPasswordResetEmail = (user, token) => {
   const resetUrl = `${getFrontendUrl()}/reset-password?token=${token}`;
 
@@ -239,36 +221,11 @@ const sendPasswordResetEmail = (user, token) => {
   });
 };
 
-const getAccountCreationMessage = (role, verificationToken, verificationSent) => {
-  const accountLabel = role === "team" ? "equipe" : "joueur";
-
-  if (!verificationToken) {
-    return `Compte ${accountLabel} cree. Tu peux maintenant te connecter.`;
-  }
-
-  if (verificationSent) {
-    return `Compte ${accountLabel} cree. Verifie ton email avant de te connecter.`;
-  }
-
-  return `Compte ${accountLabel} cree, mais l'email de verification n'a pas pu etre envoye. Utilise le bouton de renvoi sur la page connexion.`;
-};
-
-const createUser = async ({ name, email, password, role, verificationToken }, callback) => {
+const createUser = async ({ name, email, password, role }, callback) => {
   const hashedPassword = await bcrypt.hash(password, 10);
-  const verificationHash = verificationToken ? hashToken(verificationToken) : null;
-  const verificationExpires = verificationToken ? addHours(24) : null;
-  const emailVerified = isEmailConfigured ? 0 : 1;
-  const sql = `
-    INSERT INTO users
-    (name, email, password, role, email_verified, email_verification_token, email_verification_expires)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `;
+  const sql = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)";
 
-  db.query(
-    sql,
-    [name, email, hashedPassword, role, emailVerified, verificationHash, verificationExpires],
-    callback
-  );
+  db.query(sql, [name, email, hashedPassword, role], callback);
 };
 
 // REGISTER PLAYER
@@ -332,11 +289,6 @@ router.post("/register/player", (req, res) => {
       return sendDbError(res, roleErr, "Impossible de preparer la table users");
     }
 
-    ensureUserSecurityColumns((securityErr) => {
-      if (securityErr) {
-        return sendDbError(res, securityErr, "Impossible de preparer la verification email");
-      }
-
     ensurePlayerTeamColumns(async (playerColumnsErr) => {
       if (playerColumnsErr) {
         return sendDbError(
@@ -348,7 +300,7 @@ router.post("/register/player", (req, res) => {
 
       const finalTeamName = no_team ? null : cleanText(team_name);
 
-      const createPlayerProfile = (userId, verificationToken) => {
+      const createPlayerProfile = (userId) => {
         const playerSql = `
           INSERT INTO players
           (user_id, position, age, city, height, preferred_foot, team_name, no_team, bio)
@@ -368,7 +320,7 @@ router.post("/register/player", (req, res) => {
             no_team ? 1 : 0,
             bioText || null,
           ],
-          async (playerErr) => {
+          (playerErr) => {
             if (playerErr) {
               return sendDbError(
                 res,
@@ -377,32 +329,14 @@ router.post("/register/player", (req, res) => {
               );
             }
 
-            let verificationSent = true;
-            if (verificationToken) {
-              try {
-                await sendVerificationEmail({ name, email }, verificationToken);
-              } catch (mailErr) {
-                verificationSent = false;
-                console.log("Email verification non envoye", mailErr);
-              }
-            }
-
-            res.status(verificationSent ? 200 : 202).json({
-              message: getAccountCreationMessage(
-                "player",
-                verificationToken,
-                verificationSent
-              ),
-            });
+            res.json({ message: "Compte joueur cree. Tu peux maintenant te connecter." });
           }
         );
       };
 
       const processPlayerCreation = () => {
-        const verificationToken = isEmailConfigured ? createSecureToken() : null;
-
         createUser(
-          { name, email, password, role: "player", verificationToken },
+          { name, email, password, role: "player" },
           (userErr, result) => {
             if (userErr) {
               if (userErr.code === "ER_DUP_ENTRY") {
@@ -412,7 +346,7 @@ router.post("/register/player", (req, res) => {
               return sendDbError(res, userErr, "Impossible de creer le compte");
             }
 
-            createPlayerProfile(result.insertId, verificationToken);
+            createPlayerProfile(result.insertId);
           }
         );
       };
@@ -432,7 +366,6 @@ router.post("/register/player", (req, res) => {
       } else {
         processPlayerCreation();
       }
-    });
     });
   }))
     .catch((schemaErr) =>
@@ -480,11 +413,6 @@ router.post("/register/team", (req, res) => {
       return sendDbError(res, roleErr, "Impossible de preparer la table users");
     }
 
-    ensureUserSecurityColumns((securityErr) => {
-      if (securityErr) {
-        return sendDbError(res, securityErr, "Impossible de preparer la verification email");
-      }
-
     ensureTeamsTable((teamTableErr) => {
       if (teamTableErr) {
         return sendDbError(res, teamTableErr, "Impossible de creer la table teams");
@@ -500,10 +428,8 @@ router.post("/register/team", (req, res) => {
         }
 
         try {
-          const verificationToken = isEmailConfigured ? createSecureToken() : null;
-
           await createUser(
-            { name, email, password, role: "team", verificationToken },
+            { name, email, password, role: "team" },
             (userErr, result) => {
               if (userErr) {
                 if (userErr.code === "ER_DUP_ENTRY") {
@@ -531,7 +457,7 @@ router.post("/register/team", (req, res) => {
                   category,
                   bioText || null,
                 ],
-                async (insertTeamErr) => {
+                (insertTeamErr) => {
                   if (insertTeamErr) {
                     return sendDbError(
                       res,
@@ -540,23 +466,7 @@ router.post("/register/team", (req, res) => {
                     );
                   }
 
-                  let verificationSent = true;
-                  if (verificationToken) {
-                    try {
-                      await sendVerificationEmail({ name, email }, verificationToken);
-                    } catch (mailErr) {
-                      verificationSent = false;
-                      console.log("Email verification non envoye", mailErr);
-                    }
-                  }
-
-                  res.status(verificationSent ? 200 : 202).json({
-                    message: getAccountCreationMessage(
-                      "team",
-                      verificationToken,
-                      verificationSent
-                    ),
-                  });
+                  res.json({ message: "Compte equipe cree. Tu peux maintenant te connecter." });
                 }
               );
             }
@@ -565,7 +475,6 @@ router.post("/register/team", (req, res) => {
           sendDbError(res, err, "Impossible de creer le compte equipe");
         }
       });
-    });
     });
   }))
     .catch((schemaErr) =>
@@ -589,11 +498,6 @@ router.post("/login", (req, res) => {
         return sendDbError(res, roleErr, "Impossible de preparer la table users");
       }
 
-      ensureUserSecurityColumns((securityErr) => {
-        if (securityErr) {
-          return sendDbError(res, securityErr, "Impossible de preparer la verification email");
-        }
-
       db.query(sql, [email], async (err, result) => {
         if (err) return sendDbError(res, err, "Erreur connexion");
 
@@ -606,12 +510,6 @@ router.post("/login", (req, res) => {
 
         if (!isMatch) {
           return res.status(400).json({ message: "Mot de passe incorrect" });
-        }
-
-        if (isEmailConfigured && Number(user.email_verified) !== 1) {
-          return res.status(403).json({
-            message: "Email non verifie. Verifie ta boite mail avant de te connecter.",
-          });
         }
 
         const role = user.role || "player";
@@ -630,118 +528,6 @@ router.post("/login", (req, res) => {
             role,
           },
         });
-      });
-      });
-    }))
-    .catch((schemaErr) =>
-      sendDbError(res, schemaErr, "Impossible de preparer la base de donnees")
-    );
-});
-
-router.post("/verify-email", (req, res) => {
-  const token = cleanText(req.body.token);
-
-  if (!token) {
-    return res.status(400).json({ message: "Lien de verification invalide" });
-  }
-
-  ensureCoreTables()
-    .then(() => ensureUserSecurityColumns((securityErr) => {
-      if (securityErr) {
-        return sendDbError(res, securityErr, "Impossible de verifier l'email");
-      }
-
-      const sql = `
-        SELECT id
-        FROM users
-        WHERE email_verification_token = ?
-          AND email_verification_expires > NOW()
-        LIMIT 1
-      `;
-
-      db.query(sql, [hashToken(token)], (err, result) => {
-        if (err) return sendDbError(res, err, "Impossible de verifier l'email");
-
-        if (result.length === 0) {
-          return res.status(400).json({ message: "Lien de verification invalide ou expire" });
-        }
-
-        db.query(
-          `
-            UPDATE users
-            SET email_verified = 1,
-                email_verification_token = NULL,
-                email_verification_expires = NULL
-            WHERE id = ?
-          `,
-          [result[0].id],
-          (updateErr) => {
-            if (updateErr) return sendDbError(res, updateErr, "Impossible de verifier l'email");
-            res.json({ message: "Email verifie. Tu peux maintenant te connecter." });
-          }
-        );
-      });
-    }))
-    .catch((schemaErr) =>
-      sendDbError(res, schemaErr, "Impossible de preparer la base de donnees")
-    );
-});
-
-router.post("/resend-verification", (req, res) => {
-  const email = normalizeEmail(req.body.email);
-
-  if (!EMAIL_REGEX.test(email)) {
-    return res.status(400).json({ message: "Email invalide" });
-  }
-
-  if (!isEmailConfigured) {
-    return res.status(503).json({
-      message: "L'envoi email n'est pas configure sur le serveur.",
-    });
-  }
-
-  ensureCoreTables()
-    .then(() => ensureUserSecurityColumns((securityErr) => {
-      if (securityErr) {
-        return sendDbError(res, securityErr, "Impossible de renvoyer l'email");
-      }
-
-      db.query("SELECT id, name, email, email_verified FROM users WHERE email = ? LIMIT 1", [email], (err, result) => {
-        if (err) return sendDbError(res, err, "Impossible de renvoyer l'email");
-
-        if (result.length === 0) {
-          return res.json({ message: "Si ce compte existe, un email vient d'etre envoye." });
-        }
-
-        const user = result[0];
-        if (Number(user.email_verified) === 1) {
-          return res.json({ message: "Cet email est deja verifie." });
-        }
-
-        const verificationToken = createSecureToken();
-        db.query(
-          `
-            UPDATE users
-            SET email_verification_token = ?,
-                email_verification_expires = ?
-            WHERE id = ?
-          `,
-          [hashToken(verificationToken), addHours(24), user.id],
-          async (updateErr) => {
-            if (updateErr) return sendDbError(res, updateErr, "Impossible de renvoyer l'email");
-
-            try {
-              await sendVerificationEmail(user, verificationToken);
-            } catch (mailErr) {
-              console.log("Email verification non envoye", mailErr);
-              return res.status(502).json({
-                message: "Email non envoye. Verifie RESEND_API_KEY et EMAIL_FROM dans Render.",
-              });
-            }
-
-            res.json({ message: "Email de verification renvoye." });
-          }
-        );
       });
     }))
     .catch((schemaErr) =>

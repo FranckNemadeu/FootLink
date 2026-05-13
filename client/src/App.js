@@ -9,7 +9,6 @@ import PlayerDashboard from "./pages/playerDashboard";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import TeamDashboard from "./pages/TeamDashboard";
-import VerifyEmail from "./pages/VerifyEmail";
 import BrandLogo from "./components/BrandLogo";
 import PrivateRoute from "./components/PrivateRoute";
 import API_URL from "./config/api";
@@ -770,7 +769,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/register/player" element={<Register accountType="player" />} />
         <Route path="/register/team" element={<Register accountType="team" />} />
         <Route

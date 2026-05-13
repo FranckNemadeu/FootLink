@@ -8,15 +8,12 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resendingVerification, setResendingVerification] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [infoMessage, setInfoMessage] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, dashboardPath, login, sessionMessage } = useAuth();
   const from = location.state?.from?.pathname;
   const successMessage = location.state?.message;
-  const canResendVerification = email.trim().length > 0 && !isAuthenticated;
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -27,7 +24,6 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage("");
-    setInfoMessage("");
     setLoading(true);
 
     try {
@@ -51,23 +47,6 @@ function Login() {
     }
   };
 
-  const handleResendVerification = async () => {
-    setErrorMessage("");
-    setInfoMessage("");
-    setResendingVerification(true);
-
-    try {
-      const res = await axios.post(`${API_URL}/api/auth/resend-verification`, {
-        email: email.trim().toLowerCase(),
-      });
-      setInfoMessage(res.data.message);
-    } catch (err) {
-      setErrorMessage(err.response?.data?.message || "Impossible de renvoyer l'email.");
-    } finally {
-      setResendingVerification(false);
-    }
-  };
-
   return (
     <div className="login-page">
       <form className="login-form" onSubmit={handleLogin}>
@@ -83,20 +62,6 @@ function Login() {
         )}
         {errorMessage && (
           <p className="auth-notice auth-notice-error">{errorMessage}</p>
-        )}
-        {infoMessage && (
-          <p className="auth-notice auth-notice-success">{infoMessage}</p>
-        )}
-
-        {canResendVerification && (
-          <button
-            className="secondary-auth-action"
-            type="button"
-            onClick={handleResendVerification}
-            disabled={resendingVerification}
-          >
-            {resendingVerification ? "Envoi..." : "Renvoyer l'email de verification"}
-          </button>
         )}
 
         <input
