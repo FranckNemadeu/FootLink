@@ -86,3 +86,5 @@ Redeploie Render, puis teste:
 Les fichiers uploades localement dans `server/uploads` ne sont pas un stockage durable sur Render. En production, FootLink utilise Cloudinary si les variables `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` et `CLOUDINARY_API_SECRET` sont configurees dans Render. Sans ces variables, le serveur garde le mode local pour le developpement.
 
 Pour les emails de verification et de mot de passe oublie, FootLink utilise Resend si `RESEND_API_KEY` est configuree. Sans cette variable, les liens sont affiches dans les logs du serveur pour faciliter les tests locaux.
+
+Avec l'adresse par defaut `onboarding@resend.dev`, Resend limite l'envoi aux emails de test de ton propre compte Resend. Pour envoyer a tous les joueurs et clubs, verifie un domaine dans Resend puis remplace `EMAIL_FROM` par une adresse de ce domaine, par exemple `FootLink <noreply@ton-domaine.com>`.

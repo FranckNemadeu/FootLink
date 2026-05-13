@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { ensureCoreTables } = require("../dbSchema");
-const { sendEmail } = require("../config/email");
+const { isEmailConfigured, sendEmail } = require("../config/email");
 
 const sendDbError = (res, err, fallbackMessage) => {
   console.log(err);
@@ -241,17 +241,18 @@ const sendPasswordResetEmail = (user, token) => {
 
 const createUser = async ({ name, email, password, role, verificationToken }, callback) => {
   const hashedPassword = await bcrypt.hash(password, 10);
-  const verificationHash = hashToken(verificationToken);
-  const verificationExpires = addHours(24);
+  const verificationHash = verificationToken ? hashToken(verificationToken) : null;
+  const verificationExpires = verificationToken ? addHours(24) : null;
+  const emailVerified = isEmailConfigured ? 0 : 1;
   const sql = `
     INSERT INTO users
     (name, email, password, role, email_verified, email_verification_token, email_verification_expires)
-    VALUES (?, ?, ?, ?, 0, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
   db.query(
     sql,
-    [name, email, hashedPassword, role, verificationHash, verificationExpires],
+    [name, email, hashedPassword, role, emailVerified, verificationHash, verificationExpires],
     callback
   );
 };
@@ -362,19 +363,23 @@ router.post("/register/player", (req, res) => {
               );
             }
 
-            sendVerificationEmail({ name, email }, verificationToken).catch((mailErr) =>
-              console.log("Email verification non envoye", mailErr)
-            );
+            if (verificationToken) {
+              sendVerificationEmail({ name, email }, verificationToken).catch((mailErr) =>
+                console.log("Email verification non envoye", mailErr)
+              );
+            }
 
             res.json({
-              message: "Compte joueur cree. Verifie ton email avant de te connecter.",
+              message: verificationToken
+                ? "Compte joueur cree. Verifie ton email avant de te connecter."
+                : "Compte joueur cree. Tu peux maintenant te connecter.",
             });
           }
         );
       };
 
       const processPlayerCreation = () => {
-        const verificationToken = createSecureToken();
+        const verificationToken = isEmailConfigured ? createSecureToken() : null;
 
         createUser(
           { name, email, password, role: "player", verificationToken },
@@ -475,7 +480,7 @@ router.post("/register/team", (req, res) => {
         }
 
         try {
-          const verificationToken = createSecureToken();
+          const verificationToken = isEmailConfigured ? createSecureToken() : null;
 
           await createUser(
             { name, email, password, role: "team", verificationToken },
@@ -515,12 +520,16 @@ router.post("/register/team", (req, res) => {
                     );
                   }
 
-                  sendVerificationEmail({ name, email }, verificationToken).catch((mailErr) =>
-                    console.log("Email verification non envoye", mailErr)
-                  );
+                  if (verificationToken) {
+                    sendVerificationEmail({ name, email }, verificationToken).catch((mailErr) =>
+                      console.log("Email verification non envoye", mailErr)
+                    );
+                  }
 
                   res.json({
-                    message: "Compte equipe cree. Verifie ton email avant de te connecter.",
+                    message: verificationToken
+                      ? "Compte equipe cree. Verifie ton email avant de te connecter."
+                      : "Compte equipe cree. Tu peux maintenant te connecter.",
                   });
                 }
               );
@@ -573,7 +582,7 @@ router.post("/login", (req, res) => {
           return res.status(400).json({ message: "Mot de passe incorrect" });
         }
 
-        if (Number(user.email_verified) !== 1) {
+        if (isEmailConfigured && Number(user.email_verified) !== 1) {
           return res.status(403).json({
             message: "Email non verifie. Verifie ta boite mail avant de te connecter.",
           });
@@ -659,6 +668,12 @@ router.post("/resend-verification", (req, res) => {
     return res.status(400).json({ message: "Email invalide" });
   }
 
+  if (!isEmailConfigured) {
+    return res.status(503).json({
+      message: "L'envoi email n'est pas configure sur le serveur.",
+    });
+  }
+
   ensureCoreTables()
     .then(() => ensureUserSecurityColumns((securityErr) => {
       if (securityErr) {
@@ -686,12 +701,17 @@ router.post("/resend-verification", (req, res) => {
             WHERE id = ?
           `,
           [hashToken(verificationToken), addHours(24), user.id],
-          (updateErr) => {
+          async (updateErr) => {
             if (updateErr) return sendDbError(res, updateErr, "Impossible de renvoyer l'email");
 
-            sendVerificationEmail(user, verificationToken).catch((mailErr) =>
-              console.log("Email verification non envoye", mailErr)
-            );
+            try {
+              await sendVerificationEmail(user, verificationToken);
+            } catch (mailErr) {
+              console.log("Email verification non envoye", mailErr);
+              return res.status(502).json({
+                message: "Email non envoye. Verifie RESEND_API_KEY et EMAIL_FROM dans Render.",
+              });
+            }
 
             res.json({ message: "Email de verification renvoye." });
           }
@@ -710,6 +730,12 @@ router.post("/forgot-password", (req, res) => {
 
   if (!EMAIL_REGEX.test(email)) {
     return res.status(400).json({ message: "Email invalide" });
+  }
+
+  if (!isEmailConfigured) {
+    return res.status(503).json({
+      message: "L'envoi email n'est pas configure sur le serveur. Ajoute RESEND_API_KEY dans Render.",
+    });
   }
 
   ensureCoreTables()
@@ -733,14 +759,19 @@ router.post("/forgot-password", (req, res) => {
             WHERE id = ?
           `,
           [hashToken(resetToken), addHours(1), user.id],
-          (updateErr) => {
+          async (updateErr) => {
             if (updateErr) {
               return sendDbError(res, updateErr, "Impossible de preparer la reinitialisation");
             }
 
-            sendPasswordResetEmail(user, resetToken).catch((mailErr) =>
-              console.log("Email reset non envoye", mailErr)
-            );
+            try {
+              await sendPasswordResetEmail(user, resetToken);
+            } catch (mailErr) {
+              console.log("Email reset non envoye", mailErr);
+              return res.status(502).json({
+                message: "Email non envoye. Verifie RESEND_API_KEY et EMAIL_FROM dans Render.",
+              });
+            }
 
             res.json({ message: neutralMessage });
           }

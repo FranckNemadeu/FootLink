@@ -1,8 +1,10 @@
 const getEmailFrom = () =>
   process.env.EMAIL_FROM || "FootLink <onboarding@resend.dev>";
 
+const isEmailConfigured = Boolean(process.env.RESEND_API_KEY);
+
 const sendEmail = async ({ to, subject, html, text }) => {
-  if (!process.env.RESEND_API_KEY) {
+  if (!isEmailConfigured) {
     console.log(`[EMAIL DEV] ${subject} -> ${to}`);
     console.log(text);
     return { dev: true };
@@ -25,12 +27,16 @@ const sendEmail = async ({ to, subject, html, text }) => {
 
   if (!response.ok) {
     const body = await response.text();
+    console.error(`[EMAIL ERROR] ${response.status} ${body}`);
     throw new Error(`Email non envoye: ${body}`);
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log(`[EMAIL SENT] ${subject} -> ${to}`);
+  return result;
 };
 
 module.exports = {
+  isEmailConfigured,
   sendEmail,
 };
