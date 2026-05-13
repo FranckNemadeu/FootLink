@@ -14,11 +14,16 @@ const isResendConfigured = Boolean(process.env.RESEND_API_KEY);
 
 const isEmailConfigured = isSmtpConfigured || isResendConfigured;
 
+const getEmailTimeoutMs = () => Number(process.env.EMAIL_TIMEOUT_MS || 12000);
+
 const sendSmtpEmail = async ({ to, subject, html, text }) => {
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 465),
     secure: String(process.env.SMTP_SECURE || "true") === "true",
+    connectionTimeout: getEmailTimeoutMs(),
+    greetingTimeout: getEmailTimeoutMs(),
+    socketTimeout: getEmailTimeoutMs(),
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
@@ -48,8 +53,12 @@ const sendEmail = async ({ to, subject, html, text }) => {
     return sendSmtpEmail({ to, subject, html, text });
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), getEmailTimeoutMs());
+
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
+    signal: controller.signal,
     headers: {
       Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       "Content-Type": "application/json",
@@ -62,6 +71,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
       text,
     }),
   });
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     const body = await response.text();

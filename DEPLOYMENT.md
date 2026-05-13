@@ -54,6 +54,19 @@ SMTP_SECURE=true
 SMTP_USER=ton-adresse@gmail.com
 SMTP_PASS=ton-mot-de-passe-application-gmail
 EMAIL_FROM=FootLink <ton-adresse@gmail.com>
+EMAIL_TIMEOUT_MS=12000
+```
+
+Si l'envoi reste bloque avec le port `465`, essaye la variante TLS explicite:
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=ton-adresse@gmail.com
+SMTP_PASS=ton-mot-de-passe-application-gmail
+EMAIL_FROM=FootLink <ton-adresse@gmail.com>
+EMAIL_TIMEOUT_MS=12000
 ```
 
 Apres deploiement, note l'URL Render, par exemple:

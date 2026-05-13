@@ -17,13 +17,16 @@ function ForgotPassword() {
     try {
       const res = await axios.post(`${API_URL}/api/auth/forgot-password`, {
         email: email.trim().toLowerCase(),
-      });
+      }, { timeout: 20000 });
 
       setMessage({ type: "success", text: res.data.message });
     } catch (err) {
       setMessage({
         type: "error",
-        text: err.response?.data?.message || "Impossible d'envoyer le lien.",
+        text:
+          err.code === "ECONNABORTED"
+            ? "L'envoi prend trop de temps. Verifie la configuration email du serveur."
+            : err.response?.data?.message || "Impossible d'envoyer le lien.",
       });
     } finally {
       setLoading(false);

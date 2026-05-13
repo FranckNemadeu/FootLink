@@ -581,7 +581,7 @@ router.post("/forgot-password", (req, res) => {
             } catch (mailErr) {
               console.log("Email reset non envoye", mailErr);
               return res.status(502).json({
-                message: "Email non envoye. Verifie RESEND_API_KEY et EMAIL_FROM dans Render.",
+                message: "Email non envoye. Verifie la configuration SMTP ou Resend dans Render.",
               });
             }
 
