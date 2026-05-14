@@ -22,7 +22,7 @@ function ResetPassword() {
     if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
       setMessage({
         type: "error",
-        text: "Le mot de passe doit contenir au moins 8 caracteres, avec lettres et chiffres.",
+        text: "Le mot de passe doit contenir au moins 8 caractères, avec lettres et chiffres.",
       });
       return;
     }
@@ -65,7 +65,7 @@ function ResetPassword() {
 
         {!token && (
           <p className="auth-notice auth-notice-error">
-            Lien de reinitialisation invalide.
+            Lien de réinitialisation invalide.
           </p>
         )}
 
@@ -94,7 +94,7 @@ function ResetPassword() {
         />
 
         <button type="submit" disabled={loading || !token}>
-          {loading ? "Mise a jour..." : "Changer le mot de passe"}
+          {loading ? "Mise à jour..." : "Changer le mot de passe"}
         </button>
 
         <Link className="auth-text-link" to="/forgot-password">

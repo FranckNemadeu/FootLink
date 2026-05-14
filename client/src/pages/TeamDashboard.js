@@ -132,7 +132,7 @@ function TeamDashboard() {
       setMatches(matchesRes.data);
     } catch (err) {
       console.log(err);
-      setError(err.response?.data?.message || "Impossible de charger l'equipe.");
+      setError(err.response?.data?.message || "Impossible de charger l'équipe.");
     } finally {
       setLoading(false);
     }
@@ -183,7 +183,7 @@ function TeamDashboard() {
         }
       );
 
-      showNotice("success", "Invitation envoyee au joueur.");
+      showNotice("success", "Invitation envoyée au joueur.");
     } catch (err) {
       console.log(err);
       showNotice(
@@ -275,7 +275,7 @@ function TeamDashboard() {
       setPlayers((currentPlayers) =>
         currentPlayers.filter((player) => player.id !== playerId)
       );
-      showNotice("success", "Joueur retire de l'equipe.");
+      showNotice("success", "Joueur retiré de l'équipe.");
     } catch (err) {
       console.log(err);
       showNotice(
@@ -289,7 +289,7 @@ function TeamDashboard() {
     e.preventDefault();
 
     if (!statsForm.playerId || !statsForm.matchId) {
-      showNotice("error", "Selectionne un joueur et un match avant d'ajouter les stats.");
+      showNotice("error", "Sélectionne un joueur et un match avant d'ajouter les stats.");
       return;
     }
 
@@ -345,12 +345,12 @@ function TeamDashboard() {
 
       setMatches((currentMatches) => [res.data.match, ...currentMatches]);
       setMatchForm({ type: "local", matchDate: "" });
-      showNotice("success", "Match cree.");
+      showNotice("success", "Match créé.");
     } catch (err) {
       console.log(err);
       showNotice(
         "error",
-        err.response?.data?.message || "Impossible de creer le match."
+        err.response?.data?.message || "Impossible de créer le match."
       );
     }
   };
@@ -380,7 +380,7 @@ function TeamDashboard() {
         },
       });
 
-      logout("Ton compte equipe a ete supprime.");
+      logout("Ton compte équipe a été supprimé.");
       navigate("/", { replace: true });
     } catch (err) {
       console.log(err);
@@ -415,14 +415,14 @@ function TeamDashboard() {
           <button type="button" onClick={() => scrollToSection("compte")}>
             Compte
           </button>
-          <button onClick={handleLogout}>Deconnexion</button>
+          <button onClick={handleLogout}>Déconnexion</button>
         </div>
       </nav>
 
       <main className="dashboard-content">
         <section className="dashboard-header">
           <div>
-            <p className="dashboard-label">Dashboard Equipe</p>
+            <p className="dashboard-label">Espace équipe</p>
             <h2>{team?.team_name || user?.name || "Equipe"}</h2>
           </div>
 
@@ -441,7 +441,7 @@ function TeamDashboard() {
         {!loading && !error && (
           <div className="dashboard-grid">
             <section className="profile-panel" id="profil">
-              <h3>Identite du club</h3>
+              <h3>Identité du club</h3>
 
               <div className="profile-photo-section">
                 <div className="profile-photo club-logo-photo">
@@ -454,10 +454,10 @@ function TeamDashboard() {
 
                 <div className="profile-identity">
                   <h4>{team?.team_name || user?.name || "Club"}</h4>
-                  <p>{team?.city || "Ville non renseignee"}</p>
+                  <p>{team?.city || "Ville non renseignée"}</p>
 
                   <label className="photo-upload-btn">
-                    {uploadingLogo ? "Televersement..." : "Changer le logo"}
+                    {uploadingLogo ? "Téléversement..." : "Changer le logo"}
                     <input
                       type="file"
                       accept="image/*"
@@ -500,7 +500,7 @@ function TeamDashboard() {
                 </div>
               ) : (
                 <p className="dashboard-message">
-                  Aucun joueur dans l'effectif pour etablir un classement.
+                  Aucun joueur dans l'effectif pour établir un classement.
                 </p>
               )}
             </section>
@@ -583,7 +583,7 @@ function TeamDashboard() {
                           <p>
                             {invitation.requested_by === "player"
                               ? "Demande a rejoindre ton club"
-                              : "Invitation envoyee par ton club"}
+                              : "Invitation envoyée par ton club"}
                           </p>
                           <p>
                             {invitation.position || "Poste inconnu"} -{" "}
@@ -620,11 +620,11 @@ function TeamDashboard() {
             </section>
 
             <section className="profile-panel" id="joueurs">
-              <h3>Joueurs de l'equipe</h3>
+              <h3>Joueurs de l'équipe</h3>
 
               {players.length === 0 ? (
                 <p className="dashboard-message">
-                  Aucun joueur n'a encore indique cette equipe.
+                  Aucun joueur n'a encore indiqué cette équipe.
                 </p>
               ) : (
                 <div className="team-player-list">
@@ -665,7 +665,7 @@ function TeamDashboard() {
             </section>
 
             <section className="stats-panel" id="matchs">
-              <h3>Creer un match</h3>
+              <h3>Créer un match</h3>
 
               <form className="team-stats-form" onSubmit={handleCreateMatch}>
                 <select
@@ -687,7 +687,7 @@ function TeamDashboard() {
                   required
                 />
 
-                <button type="submit">Creer match</button>
+                <button type="submit">Créer match</button>
               </form>
 
               <h3>Ajuster stats</h3>
@@ -770,7 +770,7 @@ function TeamDashboard() {
             <form className="danger-zone" id="compte" onSubmit={handleDeleteAccount}>
               <h3>Supprimer mon compte club</h3>
               <p>
-                Cette action supprime le compte equipe, le club, ses matchs,
+                Cette action supprime le compte équipe, le club, ses matchs,
                 ses invitations et detache les joueurs de l'effectif.
               </p>
 

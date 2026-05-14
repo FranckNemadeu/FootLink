@@ -128,7 +128,7 @@ function PlayerDashboard() {
 
   const handleChangeClub = async () => {
     if (!selectedClub) {
-      showNotice("error", "Selectionne un club avant d'envoyer la demande.");
+      showNotice("error", "Sélectionne un club avant d'envoyer la demande.");
       return;
     }
 
@@ -146,7 +146,7 @@ function PlayerDashboard() {
       );
 
       setSelectedClub("");
-      showNotice("success", res.data.message || "Demande envoyee au club.");
+      showNotice("success", res.data.message || "Demande envoyée au club.");
     } catch (err) {
       console.log(err);
       showNotice(
@@ -338,14 +338,14 @@ function PlayerDashboard() {
           <button type="button" onClick={() => scrollToSection("stats")}>
             Stats
           </button>
-          <button onClick={handleLogout}>Deconnexion</button>
+          <button onClick={handleLogout}>Déconnexion</button>
         </div>
       </nav>
 
       <main className="dashboard-content">
         <section className="dashboard-header">
           <div>
-            <p className="dashboard-label">Dashboard Joueur</p>
+            <p className="dashboard-label">Espace joueur</p>
             <h2>Bienvenue {user.name || "joueur"}</h2>
           </div>
 
@@ -386,7 +386,7 @@ function PlayerDashboard() {
                       <p>{player.team_name || "Sans club"}</p>
 
                       <label className="photo-upload-btn">
-                        {uploadingPhoto ? "Televersement..." : "Changer la photo"}
+                        {uploadingPhoto ? "Téléversement..." : "Changer la photo"}
                         <input
                           type="file"
                           accept="image/*"
@@ -400,23 +400,23 @@ function PlayerDashboard() {
                   <div className="profile-info">
                     <p>
                       <span>Poste</span>
-                      {player.position || "Non renseigne"}
+                      {player.position || "Non renseigné"}
                     </p>
                     <p>
                       <span>Age</span>
-                      {player.age || "Non renseigne"}
+                      {player.age || "Non renseigné"}
                     </p>
                     <p>
                       <span>Ville</span>
-                      {player.city || "Non renseignee"}
+                      {player.city || "Non renseignée"}
                     </p>
                     <p>
                       <span>Taille</span>
-                      {player.height || "Non renseignee"}
+                      {player.height || "Non renseignée"}
                     </p>
                     <p>
                       <span>Pied fort</span>
-                      {player.preferred_foot || "Non renseigne"}
+                      {player.preferred_foot || "Non renseigné"}
                     </p>
                     <p>
                       <span>Club</span>
@@ -435,7 +435,7 @@ function PlayerDashboard() {
                           onChange={(e) => setSelectedClub(e.target.value)}
                           disabled={clubLoading}
                         >
-                          <option value="">-- Selectionne un club --</option>
+                          <option value="">Sélectionne un club</option>
                           {clubs.map((club) => (
                             <option key={club.id} value={club.team_name}>
                           {club.team_name} ({club.city}) -{" "}
@@ -538,7 +538,7 @@ function PlayerDashboard() {
                 </div>
               ) : (
                 <p className="dashboard-message">
-                  Aucun profil joueur trouve pour ce compte.
+                  Aucun profil joueur trouvé pour ce compte.
                 </p>
               )}
             </section>
@@ -578,7 +578,7 @@ function PlayerDashboard() {
                           <h4>{invitation.team_name}</h4>
                           <p>
                             {invitation.city || "Ville inconnue"} -{" "}
-                            {invitation.level || "Niveau non renseigne"}
+                            {invitation.level || "Niveau non renseigné"}
                           </p>
                         </div>
 

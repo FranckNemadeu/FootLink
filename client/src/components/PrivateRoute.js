@@ -15,7 +15,7 @@ function PrivateRoute({ children, allowedRoles = [] }) {
     return (
       <div className="dashboard-page">
         <main className="dashboard-content">
-          <p className="dashboard-message">Verification de la session...</p>
+          <p className="dashboard-message">Vérification de la session...</p>
         </main>
       </div>
     );

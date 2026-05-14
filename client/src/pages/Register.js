@@ -106,7 +106,7 @@ function Register({ accountType }) {
     if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
       setFormMessage({
         type: "error",
-        text: "Le mot de passe doit contenir au moins 8 caracteres, avec lettres et chiffres.",
+        text: "Le mot de passe doit contenir au moins 8 caractères, avec lettres et chiffres.",
       });
       return;
     }
@@ -134,7 +134,7 @@ function Register({ accountType }) {
       if (!position || !preferredFoot) {
         setFormMessage({
           type: "error",
-          text: "Selectionne ton poste et ton pied fort.",
+          text: "Sélectionne ton poste et ton pied fort.",
         });
         return;
       }
@@ -142,7 +142,7 @@ function Register({ accountType }) {
       if (!Number.isInteger(numericAge) || numericAge < 5 || numericAge > 60) {
         setFormMessage({
           type: "error",
-          text: "L'age doit etre compris entre 5 et 60 ans.",
+          text: "L'âge doit être compris entre 5 et 60 ans.",
         });
         return;
       }
@@ -150,7 +150,7 @@ function Register({ accountType }) {
       if (numericHeight && (numericHeight < 100 || numericHeight > 230)) {
         setFormMessage({
           type: "error",
-          text: "La taille doit etre comprise entre 100 et 230 cm.",
+          text: "La taille doit être comprise entre 100 et 230 cm.",
         });
         return;
       }
@@ -159,7 +159,7 @@ function Register({ accountType }) {
     if (isTeam && (!cleanTeamName || !cleanLevel || !cleanCategory)) {
       setFormMessage({
         type: "error",
-        text: "Nom d'equipe, niveau et categorie sont obligatoires.",
+        text: "Nom d'équipe, niveau et catégorie sont obligatoires.",
       });
       return;
     }
@@ -201,7 +201,7 @@ function Register({ accountType }) {
       navigate("/login", {
         replace: true,
         state: {
-          message: res.data.message || "Compte cree. Tu peux maintenant te connecter.",
+          message: res.data.message || "Compte créé. Tu peux maintenant te connecter.",
         },
       });
     } catch (err) {
@@ -223,7 +223,7 @@ function Register({ accountType }) {
           Retour
         </button>
 
-        <h2>{isTeam ? "Inscription Equipe" : "Inscription Joueur"}</h2>
+        <h2>{isTeam ? "Inscription Équipe" : "Inscription Joueur"}</h2>
 
         {formMessage && (
           <p className={`auth-notice auth-notice-${formMessage.type}`}>
@@ -257,7 +257,7 @@ function Register({ accountType }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           minLength="8"
-          title="Au moins 8 caracteres, avec lettres et chiffres."
+          title="Au moins 8 caractères, avec lettres et chiffres."
           required
         />
 
@@ -274,7 +274,7 @@ function Register({ accountType }) {
           <>
             <input
               type="text"
-              placeholder="Nom de l'equipe"
+              placeholder="Nom de l'équipe"
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}
               required
@@ -300,7 +300,7 @@ function Register({ accountType }) {
 
             <input
               type="text"
-              placeholder="Categorie"
+              placeholder="Catégorie"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               required
@@ -315,7 +315,7 @@ function Register({ accountType }) {
             >
               <option value="">Poste</option>
               <option value="Gardien">Gardien</option>
-              <option value="Defenseur">Defenseur</option>
+              <option value="Defenseur">Défenseur</option>
               <option value="Milieu">Milieu</option>
               <option value="Attaquant">Attaquant</option>
             </select>
@@ -366,7 +366,7 @@ function Register({ accountType }) {
                 checked={noTeam}
                 onChange={(e) => setNoTeam(e.target.checked)}
               />
-              Je n'ai pas d'equipe
+              Je n'ai pas d'équipe
             </label>
 
             {!noTeam && (
@@ -379,7 +379,7 @@ function Register({ accountType }) {
                     onChange={(e) => handleClubSelect(Number(e.target.value))}
                     required
                   >
-                    <option value="">-- Selectionne ton club --</option>
+                    <option value="">Sélectionne ton club</option>
                     {clubs.map((club) => (
                       <option key={club.id} value={club.id}>
                         {club.team_name} ({club.city})
@@ -387,7 +387,7 @@ function Register({ accountType }) {
                     ))}
                   </select>
                 ) : (
-                  <p className="info-text">Aucun club enregistre pour le moment.</p>
+                  <p className="info-text">Aucun club enregistré pour le moment.</p>
                 )}
               </>
             )}
@@ -395,14 +395,14 @@ function Register({ accountType }) {
         )}
 
         <textarea
-          placeholder={isTeam ? "Description de l'equipe" : "Bio courte"}
+          placeholder={isTeam ? "Description de l'équipe" : "Bio courte"}
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           rows="4"
         />
 
         <button type="submit" disabled={loading}>
-          {loading ? "Creation..." : "Creer mon compte"}
+          {loading ? "Création..." : "Créer mon compte"}
         </button>
       </form>
     </div>

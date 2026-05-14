@@ -113,7 +113,7 @@ const normalizeClub = (club) => ({
   name: club.team_name || club.name || "Club FootLink",
   city: club.city || "Ville inconnue",
   players: Number(club.player_count ?? club.players) || 0,
-  level: club.level || "Niveau non renseigne",
+  level: club.level || "Niveau non renseigné",
   category: club.category,
   bio: club.bio,
   logo_photo: club.logo_photo,
@@ -155,7 +155,7 @@ function Home() {
   }, []);
 
   const featuredHomePlayers = players.slice(0, 3);
-  const getLeaderName = (name) => name || "A definir";
+  const getLeaderName = (name) => name || "À définir";
 
   return (
     <div className="home">
@@ -165,9 +165,9 @@ function Home() {
         <section className="home-hero">
           <div className="home-hero-copy">
             <p className="home-kicker">Recrutement local - stats - clubs</p>
-            <h2>La vitrine des joueurs et equipes de ton quartier.</h2>
+            <h2>La vitrine des joueurs et équipes de ton quartier.</h2>
             <p>
-              Cree ton profil, rejoins un club enregistre et laisse tes stats
+              Crée ton profil, rejoins un club enregistré et laisse tes stats
               parler sur le terrain.
             </p>
 
@@ -178,7 +178,7 @@ function Home() {
                     className="player-btn"
                     onClick={() => navigate(dashboardPath)}
                   >
-                    Ouvrir mon dashboard
+                    Ouvrir mon espace
                   </button>
 
                   <button
@@ -205,7 +205,7 @@ function Home() {
                     className="team-btn"
                     onClick={() => navigate("/register/team")}
                   >
-                    Je suis une equipe
+                    Je suis une équipe
                   </button>
                 </>
               )}
@@ -360,8 +360,8 @@ function PublicPlayer() {
           <p className="home-kicker">{loading ? "Chargement" : "Profil joueur"}</p>
           <h2>{player.name}</h2>
           <p className="public-lead">
-            {player.position} a {player.club}, base a {player.city}. Une fiche
-            publique claire pour suivre ses stats et son evolution.
+            {player.position} à {player.club}, basé à {player.city}. Une fiche
+            publique claire pour suivre ses stats et son évolution.
           </p>
 
           <div className="public-stats public-stat-grid">
@@ -385,7 +385,7 @@ function PublicPlayer() {
 
           <div className="public-bio-card">
             <h3>Bio</h3>
-            <p>{player.bio || "Ce joueur n'a pas encore ajoute de bio publique."}</p>
+            <p>{player.bio || "Ce joueur n'a pas encore ajouté de bio publique."}</p>
           </div>
 
           <div className="public-actions">
@@ -507,7 +507,7 @@ function PublicClub() {
             </span>
             <span>
               <strong>{club.category || "Ouvert"}</strong>
-              Categorie
+              Catégorie
             </span>
             <span>
               <strong>{club.matches}</strong>
@@ -518,19 +518,19 @@ function PublicClub() {
           <div className="club-leaders-panel">
             <div>
               <span>Meilleur buteur</span>
-              <strong>{topScorer?.name || club.top_scorer || "A definir"}</strong>
+              <strong>{topScorer?.name || club.top_scorer || "À définir"}</strong>
               <p>{topScorer?.goals ?? club.top_scorer_goals} buts</p>
             </div>
             <div>
               <span>Meilleur passeur</span>
-              <strong>{topAssister?.name || club.top_assister || "A definir"}</strong>
+              <strong>{topAssister?.name || club.top_assister || "À définir"}</strong>
               <p>{topAssister?.assists ?? club.top_assister_assists} passes</p>
             </div>
           </div>
 
           <div className="public-bio-card">
-            <h3>Presentation</h3>
-            <p>{club.bio || "Ce club n'a pas encore ajoute de description publique."}</p>
+            <h3>Présentation</h3>
+            <p>{club.bio || "Ce club n'a pas encore ajouté de description publique."}</p>
           </div>
 
           <div className="public-actions">
@@ -595,7 +595,7 @@ function PublicClub() {
               </div>
             ) : (
               <p className="dashboard-message">
-                Aucun joueur public n'est encore rattache a ce club.
+                Aucun joueur public n'est encore rattaché à ce club.
               </p>
             )}
           </div>
@@ -617,7 +617,7 @@ function PublicClub() {
                     <span>{match.type?.slice(0, 1).toUpperCase() || "M"}</span>
                     <div>
                       <h4>{match.type || "Match"}</h4>
-                      <p>{match.match_date?.slice(0, 10) || "Date a definir"}</p>
+                      <p>{match.match_date?.slice(0, 10) || "Date à définir"}</p>
                     </div>
                   </div>
                 ))}
@@ -668,7 +668,7 @@ function PublicClub() {
               </div>
             ) : (
               <p className="dashboard-message">
-                Aucun joueur public n'est encore rattache a ce club.
+                Aucun joueur public n'est encore rattaché à ce club.
               </p>
             )}
           </div>
@@ -677,10 +677,10 @@ function PublicClub() {
         {activeTab === "infos" && (
           <div className="public-tab-panel public-club-info-grid">
             <div className="public-bio-card">
-              <h3>Identite</h3>
+              <h3>Identité</h3>
               <p>Ville: {club.city}</p>
               <p>Niveau: {club.level}</p>
-              <p>Categorie: {club.category || "Ouvert"}</p>
+              <p>Catégorie: {club.category || "Ouvert"}</p>
             </div>
             <div className="public-bio-card">
               <h3>Stats club</h3>
@@ -722,10 +722,10 @@ function PublicNav({ showBack = false }) {
           <>
             <span className="nav-user">{user?.name}</span>
             <Link className="login-btn nav-link-btn nav-primary" to={dashboardPath}>
-              Dashboard
+              Espace
             </Link>
             <button className="login-btn nav-link-btn" onClick={logout}>
-              Deconnexion
+              Déconnexion
             </button>
           </>
         ) : (
@@ -750,9 +750,9 @@ function NotFound() {
       <section className="not-found">
         <p className="home-kicker">Page introuvable</p>
         <h2>Cette page n'existe pas sur FootLink.</h2>
-        <p>Retourne a l'accueil ou ouvre ton dashboard si tu es connecte.</p>
+        <p>Retourne à l'accueil ou ouvre ton espace si tu es connecté.</p>
         <Link className="player-btn nav-link-btn" to="/">
-          Retour a l'accueil
+          Retour à l'accueil
         </Link>
       </section>
     </PublicShell>

@@ -4,9 +4,26 @@
   box-sizing: border-box;
 }
 
+:root {
+  --bg: #070a12;
+  --panel: rgba(15, 20, 30, 0.94);
+  --panel-strong: #111827;
+  --line: rgba(210, 185, 116, 0.18);
+  --text: #f7f4ec;
+  --muted: #b8bdc6;
+  --green: #48d68a;
+  --green-soft: rgba(72, 214, 138, 0.11);
+  --blue: #8aa4c8;
+  --blue-soft: rgba(138, 164, 200, 0.14);
+  --gold: #d8b568;
+  --danger: #c4354a;
+  --shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
+  --font-main: Inter, "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+}
+
 body {
   background-color: #07141b;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-main);
   color: white;
 }
 
@@ -1994,5 +2011,304 @@ body {
 
   .team-search-form {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Professional polish layer */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-main);
+  letter-spacing: 0;
+}
+
+.home,
+.dashboard-page,
+.login-page {
+  background:
+    linear-gradient(118deg, rgba(216, 181, 104, 0.105), transparent 30%),
+    linear-gradient(245deg, rgba(138, 164, 200, 0.11), transparent 38%),
+    linear-gradient(180deg, #070a12 0%, #05070c 54%, #0c111c 100%);
+}
+
+.home::before,
+.dashboard-page::before,
+.login-page::before {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.035) 0,
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px,
+      transparent 96px
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(216, 181, 104, 0.045));
+  mix-blend-mode: normal;
+  opacity: 0.55;
+}
+
+.home::after,
+.dashboard-page::after,
+.login-page::after {
+  opacity: 0.12;
+}
+
+.navbar,
+.dashboard-navbar {
+  background: rgba(6, 9, 16, 0.92);
+  border-bottom-color: var(--line);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.3);
+}
+
+.home-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(390px, 0.96fr);
+  min-height: 68vh;
+}
+
+.home-hero-copy h2,
+.public-detail h2,
+.not-found h2 {
+  letter-spacing: 0;
+}
+
+.home-hero-copy h2 {
+  max-width: 720px;
+  font-size: clamp(42px, 5.4vw, 68px);
+  line-height: 0.98;
+}
+
+.home-kicker,
+.dashboard-label {
+  color: var(--gold);
+  letter-spacing: 0.06em;
+}
+
+.player-btn,
+.team-btn,
+.login-form button,
+.photo-upload-btn,
+.club-selection button,
+.profile-edit-form button,
+.team-player-card button,
+.team-stats-form button,
+.team-search-form button,
+.dashboard-nav-links button:last-child {
+  background: var(--green);
+  border-color: var(--green);
+  color: #06110c;
+  font-weight: 800;
+  box-shadow: 0 10px 28px rgba(53, 208, 116, 0.14);
+}
+
+.team-btn {
+  background: transparent;
+  border-color: rgba(216, 181, 104, 0.58);
+  color: var(--text);
+}
+
+button:hover,
+.player-poster:hover,
+.scorer-row:hover,
+.club-card:hover,
+.nav-link-btn:hover {
+  transform: translateY(-2px);
+}
+
+.player-poster,
+.scorer-row,
+.club-card,
+.profile-panel,
+.stats-panel,
+.login-form,
+.public-visual-panel,
+.public-copy-panel,
+.public-bio-card,
+.team-player-card,
+.club-change-section,
+.profile-edit-form,
+.dashboard-message,
+.dashboard-error,
+.public-ranking-card,
+.public-match-row,
+.public-club-tabs {
+  background: var(--panel);
+  border-color: var(--line);
+  box-shadow: var(--shadow);
+}
+
+.poster-red,
+.poster-green,
+.poster-gold,
+.poster-blue {
+  background:
+    linear-gradient(180deg, rgba(216, 181, 104, 0.15), transparent 38%),
+    linear-gradient(160deg, #182033 0%, #101624 54%, #05070c 100%);
+}
+
+.poster-player-art,
+.public-avatar {
+  background:
+    linear-gradient(145deg, rgba(216, 181, 104, 0.13), rgba(138, 164, 200, 0.09)),
+    #101624;
+}
+
+.poster-content strong,
+.club-card strong,
+.stat-card strong,
+.scorer-row strong,
+.public-stat-grid strong,
+.public-bio-card h3,
+.public-ranking-card h3,
+.club-leaders-panel span {
+  color: var(--gold);
+}
+
+.rank-number,
+.club-badge,
+.player-status {
+  background: var(--gold);
+  color: #151106;
+}
+
+.profile-panel h3,
+.stats-panel h3,
+.login-form h2,
+.brand-link,
+.dashboard-navbar h1 {
+  color: var(--text);
+}
+
+.brand-link,
+.dashboard-navbar h1 {
+  color: var(--gold);
+}
+
+.section-heading h2,
+.home-hero-copy h2,
+.dashboard-header h2,
+.public-detail h2 {
+  color: #f8fbfb;
+}
+
+.login-form {
+  border-radius: 8px;
+  padding: clamp(28px, 5vw, 44px);
+}
+
+.login-form input,
+.login-form select,
+.login-form textarea,
+.club-selection select,
+.profile-edit-form input,
+.profile-edit-form select,
+.profile-edit-form textarea,
+.team-search-form input,
+.team-stats-form input,
+.team-stats-form select {
+  min-height: 46px;
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.055);
+  font-family: var(--font-main);
+}
+
+.auth-notice,
+.dashboard-notice {
+  border-radius: 8px;
+  line-height: 1.45;
+}
+
+.auth-notice-error,
+.dashboard-notice-error,
+.dashboard-error {
+  color: #930b20;
+  border-color: rgba(196, 53, 74, 0.34);
+}
+
+.danger-zone {
+  border-color: rgba(196, 53, 74, 0.34);
+}
+
+.nav-menu,
+.public-club-tabs,
+.ranking-tabs {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: var(--line);
+}
+
+.nav-menu a {
+  color: #dce7ee;
+}
+
+.nav-menu a:hover,
+.login-btn:hover,
+.nav-link-btn:hover {
+  background: rgba(216, 181, 104, 0.1);
+  color: #ffffff;
+}
+
+.login-btn,
+.nav-link-btn,
+.dashboard-nav-links button,
+.dashboard-nav-links a {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.nav-primary {
+  border-color: rgba(216, 181, 104, 0.52);
+}
+
+.club-card {
+  background:
+    linear-gradient(155deg, rgba(216, 181, 104, 0.11), rgba(138, 164, 200, 0.07)),
+    var(--panel);
+}
+
+.club-card-stats span,
+.profile-info p,
+.stat-card,
+.public-stats span {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: var(--line);
+}
+
+.stat-card {
+  background:
+    linear-gradient(150deg, rgba(121, 169, 216, 0.12), rgba(255, 255, 255, 0.035)),
+    var(--panel-strong);
+}
+
+.profile-photo,
+.mini-avatar {
+  background: #111827;
+  border-color: rgba(216, 181, 104, 0.58);
+}
+
+.profile-photo span,
+.mini-avatar span,
+.poster-player-art span,
+.public-avatar span {
+  color: var(--gold);
+}
+
+.public-club-tabs button.active,
+.ranking-tabs button.active {
+  background: var(--gold);
+  color: #11100a;
+}
+
+.danger-btn,
+.invitation-actions button:last-child {
+  background: #a82b3d;
+  border-color: #a82b3d;
+}
+
+@media (max-width: 800px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .home-hero-copy h2 {
+    font-size: clamp(36px, 11vw, 46px);
   }
 }

@@ -40,7 +40,7 @@ function ForgotPassword() {
           Retour
         </button>
 
-        <h2>Mot de passe oublie</h2>
+        <h2>Mot de passe oublié</h2>
 
         {message && (
           <p className={`auth-notice auth-notice-${message.type}`}>
@@ -62,7 +62,7 @@ function ForgotPassword() {
         </button>
 
         <Link className="auth-text-link" to="/login">
-          Retour a la connexion
+          Retour à la connexion
         </Link>
       </form>
     </div>

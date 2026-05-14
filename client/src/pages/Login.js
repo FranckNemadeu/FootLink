@@ -85,7 +85,7 @@ function Login() {
         </button>
 
         <Link className="auth-text-link" to="/forgot-password">
-          Mot de passe oublie ?
+          Mot de passe oublié ?
         </Link>
       </form>
     </div>
