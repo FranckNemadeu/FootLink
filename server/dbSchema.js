@@ -101,6 +101,9 @@ const ensureCoreTables = async () => {
   `);
 
   await ensureColumn("users", "role", "VARCHAR(20) DEFAULT 'player'");
+  await ensureColumn("users", "email_verified", "TINYINT(1) DEFAULT 1");
+  await ensureColumn("users", "email_verification_token", "VARCHAR(128)");
+  await ensureColumn("users", "email_verification_expires", "DATETIME");
   await ensureColumn("players", "team_name", "VARCHAR(100)");
   await ensureColumn("players", "no_team", "TINYINT(1) DEFAULT 0");
   await ensureColumn("players", "profile_photo", "VARCHAR(255)");

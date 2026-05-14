@@ -117,6 +117,9 @@ const ensureUserRoleColumn = (callback) => {
 
 const ensureUserSecurityColumns = (callback) => {
   const columns = [
+    ["email_verified", "TINYINT(1) DEFAULT 1"],
+    ["email_verification_token", "VARCHAR(128)"],
+    ["email_verification_expires", "DATETIME"],
     ["reset_password_token", "VARCHAR(128)"],
     ["reset_password_expires", "DATETIME"],
   ];
@@ -221,11 +224,36 @@ const sendPasswordResetEmail = (user, token) => {
   });
 };
 
+const sendEmailVerificationEmail = (user, token) => {
+  const verifyUrl = `${getFrontendUrl()}/verify-email?token=${token}`;
+
+  return sendEmail({
+    to: user.email,
+    subject: "Confirme ton adresse email FootLink",
+    text: `Salut ${user.name}, confirme ton adresse email FootLink ici: ${verifyUrl}`,
+    html: `
+      <p>Salut ${user.name},</p>
+      <p>Confirme ton adresse email pour activer ton compte FootLink.</p>
+      <p><a href="${verifyUrl}">Confirmer mon email</a></p>
+      <p>Ce lien expire dans 24 heures.</p>
+    `,
+  });
+};
+
 const createUser = async ({ name, email, password, role }, callback) => {
   const hashedPassword = await bcrypt.hash(password, 10);
-  const sql = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)";
+  const verificationToken = createSecureToken();
+  const sql = `
+    INSERT INTO users
+    (name, email, password, role, email_verified, email_verification_token, email_verification_expires)
+    VALUES (?, ?, ?, ?, 0, ?, ?)
+  `;
 
-  db.query(sql, [name, email, hashedPassword, role], callback);
+  db.query(
+    sql,
+    [name, email, hashedPassword, role, hashToken(verificationToken), addHours(24)],
+    (err, result) => callback(err, result, verificationToken)
+  );
 };
 
 // REGISTER PLAYER
@@ -289,6 +317,11 @@ router.post("/register/player", (req, res) => {
       return sendDbError(res, roleErr, "Impossible de preparer la table users");
     }
 
+    ensureUserSecurityColumns((securityErr) => {
+      if (securityErr) {
+        return sendDbError(res, securityErr, "Impossible de preparer la verification email");
+      }
+
     ensurePlayerTeamColumns(async (playerColumnsErr) => {
       if (playerColumnsErr) {
         return sendDbError(
@@ -300,7 +333,7 @@ router.post("/register/player", (req, res) => {
 
       const finalTeamName = no_team ? null : cleanText(team_name);
 
-      const createPlayerProfile = (userId) => {
+      const createPlayerProfile = (user, verificationToken) => {
         const playerSql = `
           INSERT INTO players
           (user_id, position, age, city, height, preferred_foot, team_name, no_team, bio)
@@ -310,7 +343,7 @@ router.post("/register/player", (req, res) => {
         db.query(
           playerSql,
           [
-            userId,
+            user.id,
             position,
             numericAge,
             city,
@@ -329,7 +362,20 @@ router.post("/register/player", (req, res) => {
               );
             }
 
-            res.json({ message: "Compte joueur cree. Tu peux maintenant te connecter." });
+            sendEmailVerificationEmail(user, verificationToken)
+              .then(() =>
+                res.json({
+                  message:
+                    "Compte joueur cree. Verifie ton adresse email avant de te connecter.",
+                })
+              )
+              .catch((mailErr) => {
+                console.log("Email verification non envoye", mailErr);
+                res.status(502).json({
+                  message:
+                    "Compte cree, mais l'email de verification n'a pas pu etre envoye. Reessaie depuis la page de connexion.",
+                });
+              });
           }
         );
       };
@@ -337,7 +383,7 @@ router.post("/register/player", (req, res) => {
       const processPlayerCreation = () => {
         createUser(
           { name, email, password, role: "player" },
-          (userErr, result) => {
+          (userErr, result, verificationToken) => {
             if (userErr) {
               if (userErr.code === "ER_DUP_ENTRY") {
                 return res.status(409).json({ message: "Cet email est deja utilise" });
@@ -346,7 +392,10 @@ router.post("/register/player", (req, res) => {
               return sendDbError(res, userErr, "Impossible de creer le compte");
             }
 
-            createPlayerProfile(result.insertId);
+            createPlayerProfile(
+              { id: result.insertId, name, email },
+              verificationToken
+            );
           }
         );
       };
@@ -366,6 +415,7 @@ router.post("/register/player", (req, res) => {
       } else {
         processPlayerCreation();
       }
+    });
     });
   }))
     .catch((schemaErr) =>
@@ -413,6 +463,11 @@ router.post("/register/team", (req, res) => {
       return sendDbError(res, roleErr, "Impossible de preparer la table users");
     }
 
+    ensureUserSecurityColumns((securityErr) => {
+      if (securityErr) {
+        return sendDbError(res, securityErr, "Impossible de preparer la verification email");
+      }
+
     ensureTeamsTable((teamTableErr) => {
       if (teamTableErr) {
         return sendDbError(res, teamTableErr, "Impossible de creer la table teams");
@@ -430,7 +485,7 @@ router.post("/register/team", (req, res) => {
         try {
           await createUser(
             { name, email, password, role: "team" },
-            (userErr, result) => {
+            (userErr, result, verificationToken) => {
               if (userErr) {
                 if (userErr.code === "ER_DUP_ENTRY") {
                   return res
@@ -466,7 +521,23 @@ router.post("/register/team", (req, res) => {
                     );
                   }
 
-                  res.json({ message: "Compte equipe cree. Tu peux maintenant te connecter." });
+                  sendEmailVerificationEmail(
+                    { id: result.insertId, name, email },
+                    verificationToken
+                  )
+                    .then(() =>
+                      res.json({
+                        message:
+                          "Compte equipe cree. Verifie ton adresse email avant de te connecter.",
+                      })
+                    )
+                    .catch((mailErr) => {
+                      console.log("Email verification non envoye", mailErr);
+                      res.status(502).json({
+                        message:
+                          "Compte cree, mais l'email de verification n'a pas pu etre envoye. Reessaie depuis la page de connexion.",
+                      });
+                    });
                 }
               );
             }
@@ -475,6 +546,7 @@ router.post("/register/team", (req, res) => {
           sendDbError(res, err, "Impossible de creer le compte equipe");
         }
       });
+    });
     });
   }))
     .catch((schemaErr) =>
@@ -498,6 +570,11 @@ router.post("/login", (req, res) => {
         return sendDbError(res, roleErr, "Impossible de preparer la table users");
       }
 
+      ensureUserSecurityColumns((securityErr) => {
+        if (securityErr) {
+          return sendDbError(res, securityErr, "Impossible de verifier le compte");
+        }
+
       db.query(sql, [email], async (err, result) => {
         if (err) return sendDbError(res, err, "Erreur connexion");
 
@@ -510,6 +587,13 @@ router.post("/login", (req, res) => {
 
         if (!isMatch) {
           return res.status(400).json({ message: "Mot de passe incorrect" });
+        }
+
+        if (!user.email_verified) {
+          return res.status(403).json({
+            message: "Verifie ton adresse email avant de te connecter.",
+            requiresEmailVerification: true,
+          });
         }
 
         const role = user.role || "player";
@@ -529,6 +613,119 @@ router.post("/login", (req, res) => {
           },
         });
       });
+      });
+    }))
+    .catch((schemaErr) =>
+      sendDbError(res, schemaErr, "Impossible de preparer la base de donnees")
+    );
+});
+
+router.post("/verify-email", (req, res) => {
+  const token = cleanText(req.body.token);
+
+  if (!token) {
+    return res.status(400).json({ message: "Lien de verification invalide" });
+  }
+
+  ensureCoreTables()
+    .then(() => ensureUserSecurityColumns((securityErr) => {
+      if (securityErr) {
+        return sendDbError(res, securityErr, "Impossible de verifier l'email");
+      }
+
+      const sql = `
+        SELECT id
+        FROM users
+        WHERE email_verification_token = ?
+          AND email_verification_expires > NOW()
+        LIMIT 1
+      `;
+
+      db.query(sql, [hashToken(token)], (err, result) => {
+        if (err) return sendDbError(res, err, "Impossible de verifier l'email");
+
+        if (result.length === 0) {
+          return res.status(400).json({ message: "Lien de verification invalide ou expire" });
+        }
+
+        db.query(
+          `
+            UPDATE users
+            SET email_verified = 1,
+                email_verification_token = NULL,
+                email_verification_expires = NULL
+            WHERE id = ?
+          `,
+          [result[0].id],
+          (updateErr) => {
+            if (updateErr) {
+              return sendDbError(res, updateErr, "Impossible de confirmer l'email");
+            }
+
+            res.json({ message: "Email verifie. Tu peux maintenant te connecter." });
+          }
+        );
+      });
+    }))
+    .catch((schemaErr) =>
+      sendDbError(res, schemaErr, "Impossible de preparer la base de donnees")
+    );
+});
+
+router.post("/resend-verification", (req, res) => {
+  const email = normalizeEmail(req.body.email);
+  const neutralMessage =
+    "Si ce compte doit etre verifie, un nouvel email vient d'etre envoye.";
+
+  if (!EMAIL_REGEX.test(email)) {
+    return res.status(400).json({ message: "Email invalide" });
+  }
+
+  ensureCoreTables()
+    .then(() => ensureUserSecurityColumns((securityErr) => {
+      if (securityErr) {
+        return sendDbError(res, securityErr, "Impossible de preparer la verification");
+      }
+
+      db.query(
+        "SELECT id, name, email, email_verified FROM users WHERE email = ? LIMIT 1",
+        [email],
+        (err, result) => {
+          if (err) return sendDbError(res, err, "Impossible de preparer la verification");
+          if (result.length === 0 || result[0].email_verified) {
+            return res.json({ message: neutralMessage });
+          }
+
+          const user = result[0];
+          const verificationToken = createSecureToken();
+
+          db.query(
+            `
+              UPDATE users
+              SET email_verification_token = ?,
+                  email_verification_expires = ?
+              WHERE id = ?
+            `,
+            [hashToken(verificationToken), addHours(24), user.id],
+            async (updateErr) => {
+              if (updateErr) {
+                return sendDbError(res, updateErr, "Impossible de preparer la verification");
+              }
+
+              try {
+                await sendEmailVerificationEmail(user, verificationToken);
+              } catch (mailErr) {
+                console.log("Email verification non envoye", mailErr);
+                return res.status(502).json({
+                  message: "Email non envoye. Verifie la configuration Resend dans Render.",
+                });
+              }
+
+              res.json({ message: neutralMessage });
+            }
+          );
+        }
+      );
     }))
     .catch((schemaErr) =>
       sendDbError(res, schemaErr, "Impossible de preparer la base de donnees")

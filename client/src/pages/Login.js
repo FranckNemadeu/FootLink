@@ -8,7 +8,9 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [requiresVerification, setRequiresVerification] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, dashboardPath, login, sessionMessage } = useAuth();
@@ -24,6 +26,7 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage("");
+    setRequiresVerification(false);
     setLoading(true);
 
     try {
@@ -42,8 +45,38 @@ function Login() {
     } catch (err) {
       console.log(err);
       setErrorMessage(err.response?.data?.message || "Erreur connexion");
+      setRequiresVerification(Boolean(err.response?.data?.requiresEmailVerification));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email.trim()) {
+      setErrorMessage("Entre ton email pour recevoir un nouveau lien.");
+      return;
+    }
+
+    try {
+      setResendingVerification(true);
+      const res = await axios.post(`${API_URL}/api/auth/resend-verification`, {
+        email: email.trim().toLowerCase(),
+      });
+
+      setErrorMessage("");
+      setRequiresVerification(false);
+      navigate("/login", {
+        replace: true,
+        state: {
+          message: res.data.message,
+        },
+      });
+    } catch (err) {
+      setErrorMessage(
+        err.response?.data?.message || "Impossible de renvoyer l'email."
+      );
+    } finally {
+      setResendingVerification(false);
     }
   };
 
@@ -62,6 +95,16 @@ function Login() {
         )}
         {errorMessage && (
           <p className="auth-notice auth-notice-error">{errorMessage}</p>
+        )}
+        {requiresVerification && (
+          <button
+            type="button"
+            className="secondary-auth-btn"
+            onClick={handleResendVerification}
+            disabled={resendingVerification}
+          >
+            {resendingVerification ? "Envoi..." : "Renvoyer l'email de verification"}
+          </button>
         )}
 
         <input

@@ -1531,6 +1531,10 @@ body {
   color: #29ff7a;
 }
 
+.secondary-auth-btn {
+  margin-bottom: 14px;
+}
+
 .register-form {
   width: min(620px, 100%);
 }
