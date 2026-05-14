@@ -19,6 +19,12 @@ const isResendConfigured = Boolean(process.env.RESEND_API_KEY);
 
 const isEmailConfigured = isSmtpConfigured || isResendConfigured;
 
+const getEmailProvider = () => {
+  if (isResendConfigured) return "resend";
+  if (isSmtpConfigured) return "smtp";
+  return "none";
+};
+
 const getEmailTimeoutMs = () => Number(process.env.EMAIL_TIMEOUT_MS || 12000);
 
 const getSmtpFamily = () => {
@@ -87,11 +93,11 @@ const verifyEmailTransport = async () => {
     };
   }
 
-  if (!isSmtpConfigured) {
+  if (getEmailProvider() === "resend") {
     return {
       ok: true,
       provider: "resend",
-      message: "Resend est configure. La verification SMTP est ignoree.",
+      message: "Resend est configure et sera utilise pour envoyer les emails.",
     };
   }
 
@@ -112,13 +118,12 @@ const sendEmail = async ({ to, subject, html, text }) => {
     return { dev: true };
   }
 
-  if (isSmtpConfigured) {
+  if (getEmailProvider() === "smtp") {
     return sendSmtpEmail({ to, subject, html, text });
   }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), getEmailTimeoutMs());
-
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     signal: controller.signal,
@@ -149,6 +154,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
 
 module.exports = {
   isEmailConfigured,
+  getEmailProvider,
   sendEmail,
   verifyEmailTransport,
 };

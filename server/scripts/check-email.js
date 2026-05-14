@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const { verifyEmailTransport } = require("../config/email");
+const { getEmailProvider, verifyEmailTransport } = require("../config/email");
 
 const maskEmail = (value = "") => {
   const [name, domain] = value.split("@");
@@ -22,6 +22,7 @@ const main = async () => {
 
   console.log("Configuration email:");
   console.log(config);
+  console.log(`Provider utilise: ${getEmailProvider()}`);
 
   const result = await verifyEmailTransport();
   console.log("Verification:");
