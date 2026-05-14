@@ -26,8 +26,23 @@ const getSmtpFamily = () => {
   return family === 6 ? 6 : 4;
 };
 
+const resolveSmtpHost = async () => {
+  const host = process.env.SMTP_HOST;
+  const family = getSmtpFamily();
+
+  if (!host || family !== 4) {
+    return { host, servername: host };
+  }
+
+  const address = await dns.promises.lookup(host, { family: 4 });
+  return {
+    host: address.address,
+    servername: host,
+  };
+};
+
 const sendSmtpEmail = async ({ to, subject, html, text }) => {
-  const transporter = createSmtpTransporter();
+  const transporter = await createSmtpTransporter();
 
   const result = await transporter.sendMail({
     from: getEmailFrom(),
@@ -41,9 +56,11 @@ const sendSmtpEmail = async ({ to, subject, html, text }) => {
   return result;
 };
 
-const createSmtpTransporter = () =>
-  nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
+const createSmtpTransporter = async () => {
+  const smtpHost = await resolveSmtpHost();
+
+  return nodemailer.createTransport({
+    host: smtpHost.host,
     port: Number(process.env.SMTP_PORT || 465),
     secure: String(process.env.SMTP_SECURE || "true") === "true",
     family: getSmtpFamily(),
@@ -54,7 +71,11 @@ const createSmtpTransporter = () =>
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
+    tls: {
+      servername: smtpHost.servername,
+    },
   });
+};
 
 const verifyEmailTransport = async () => {
   if (!isEmailConfigured) {
@@ -74,7 +95,8 @@ const verifyEmailTransport = async () => {
     };
   }
 
-  await createSmtpTransporter().verify();
+  const transporter = await createSmtpTransporter();
+  await transporter.verify();
 
   return {
     ok: true,
