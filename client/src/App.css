@@ -1489,6 +1489,24 @@ body {
   box-shadow: 0 10px 24px rgba(41, 255, 122, 0.2);
 }
 
+.member-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.member-actions select {
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--text);
+  font: inherit;
+}
+
 .danger-btn,
 .invitation-actions button:last-child {
   background: #7f1020;

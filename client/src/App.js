@@ -98,6 +98,7 @@ const normalizePlayer = (player, index = 0) => ({
   name: player.name || "Joueur FootLink",
   club: player.team_name || player.club || "Sans club",
   position: player.position || "Joueur",
+  club_role: player.club_role || "Joueur",
   goals: Number(player.goals) || 0,
   assists: Number(player.assists) || 0,
   matches: Number(player.matches) || 0,
@@ -128,6 +129,9 @@ const normalizeClub = (club) => ({
   colors: club.colors || "Rouge / Blanc",
 });
 
+const getRandomClubs = (items, count = 3) =>
+  [...items].sort(() => Math.random() - 0.5).slice(0, count);
+
 function Home() {
   const navigate = useNavigate();
   const [players, setPlayers] = useState(topScorers);
@@ -146,7 +150,7 @@ function Home() {
         const apiClubs = (clubsRes.data || []).map(normalizeClub);
 
         if (apiPlayers.length > 0) setPlayers(apiPlayers);
-        if (apiClubs.length > 0) setHomeClubs(apiClubs);
+        if (apiClubs.length > 0) setHomeClubs(getRandomClubs(apiClubs, 3));
       } catch (err) {
         console.log(err);
       }
@@ -184,11 +188,7 @@ function Home() {
 
                   <button
                     className="team-btn"
-                    onClick={() =>
-                      document
-                        .getElementById("clubs")
-                        ?.scrollIntoView({ behavior: "smooth" })
-                    }
+                    onClick={() => navigate("/clubs")}
                   >
                     Voir les clubs
                   </button>
@@ -272,8 +272,13 @@ function Home() {
 
         <section className="home-section clubs-section" id="clubs">
           <div className="section-heading">
-            <p className="home-kicker">Clubs inscrits</p>
-            <h2>Equipes actives</h2>
+            <div>
+              <p className="home-kicker">Clubs inscrits</p>
+              <h2>Clubs a decouvrir</h2>
+            </div>
+            <Link className="team-btn nav-link-btn" to="/clubs">
+              Voir tous les clubs
+            </Link>
           </div>
 
           <div className="club-grid">
@@ -312,6 +317,77 @@ function Home() {
         </section>
       </main>
     </div>
+  );
+}
+
+function ClubsList() {
+  const [allClubs, setAllClubs] = useState(clubs.map(normalizeClub));
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadClubs = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/api/team/list`);
+        const apiClubs = (res.data || []).map(normalizeClub);
+        if (apiClubs.length > 0) setAllClubs(apiClubs);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadClubs();
+  }, []);
+
+  return (
+    <PublicShell>
+      <section className="home-section clubs-list-page">
+        <div className="section-heading">
+          <div>
+            <p className="home-kicker">{loading ? "Chargement" : "Clubs inscrits"}</p>
+            <h2>Tous les clubs FootLink</h2>
+          </div>
+          <Link className="player-btn nav-link-btn" to="/register/team">
+            Inscrire mon club
+          </Link>
+        </div>
+
+        <div className="club-grid clubs-list-grid">
+          {allClubs.map((club) => (
+            <Link className="club-card" key={club.id || club.name} to={clubLink(club)}>
+              <div className="club-badge">
+                {club.logo_photo ? (
+                  <img src={getMediaUrl(club.logo_photo)} alt={club.name} />
+                ) : (
+                  club.name.slice(0, 3)
+                )}
+              </div>
+              <h3>{club.name}</h3>
+              <p>{club.city} - {club.level}</p>
+              <div className="club-card-stats">
+                <span>
+                  <strong>{club.players}</strong>
+                  Joueurs
+                </span>
+                <span>
+                  <strong>{club.goals}</strong>
+                  Buts
+                </span>
+                <span>
+                  <strong>{club.assists}</strong>
+                  Passes
+                </span>
+              </div>
+              <div className="club-card-leaders">
+                <p>Buteur: {club.top_scorer || "A definir"}</p>
+                <p>Passeur: {club.top_assister || "A definir"}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+    </PublicShell>
   );
 }
 
@@ -583,7 +659,8 @@ function PublicClub() {
                           <span className="rank-number">{index + 1}</span>
                           <div>
                             <strong>{player.name}</strong>
-                            <p>{player.position || "Poste inconnu"}</p>
+                        <p>{player.position || "Poste inconnu"}</p>
+                        <p>{player.club_role || "Joueur"}</p>
                           </div>
                           <strong>
                             {Number(player[group.field] || 0)} {group.suffix}
@@ -660,7 +737,7 @@ function PublicClub() {
                       <div>
                         <h4>{player.name}</h4>
                         <p>
-                          {player.position} - {player.goals} buts - {player.assists} passes
+                          {player.club_role || "Joueur"} - {player.position} - {player.goals} buts - {player.assists} passes
                         </p>
                       </div>
                     </div>
@@ -715,7 +792,7 @@ function PublicNav({ showBack = false }) {
       <div className="nav-menu" aria-label="Navigation principale">
         <Link to="/">Accueil</Link>
         <a href="/#players">Joueurs</a>
-        <a href="/#clubs">Clubs</a>
+        <Link to="/clubs">Clubs</Link>
       </div>
 
       <div className="nav-buttons">
@@ -766,6 +843,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/players/:slug" element={<PublicPlayer />} />
+        <Route path="/clubs" element={<ClubsList />} />
         <Route path="/clubs/:slug" element={<PublicClub />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

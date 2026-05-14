@@ -7,9 +7,12 @@ import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
 import getMediaUrl from "../utils/mediaUrl";
 
+const clubRoles = ["Joueur", "Coach", "Assistant coach", "Manager", "Staff"];
+
 function TeamDashboard() {
   const [team, setTeam] = useState(null);
   const [players, setPlayers] = useState([]);
+  const [formerMembers, setFormerMembers] = useState([]);
   const [invitations, setInvitations] = useState([]);
   const [matches, setMatches] = useState([]);
   const [matchForm, setMatchForm] = useState({
@@ -49,6 +52,7 @@ function TeamDashboard() {
     { id: "profil", target: "profil", label: "Club", icon: "C" },
     { id: "classements", target: "classements", label: "Stats", icon: "S" },
     { id: "joueurs", target: "joueurs", label: "Joueurs", icon: "J" },
+    { id: "anciens", target: "anciens", label: "Anciens", icon: "A" },
     { id: "matchs", target: "matchs", label: "Matchs", icon: "M" },
     { id: "compte", target: "compte", label: "Compte", icon: "!" },
   ];
@@ -92,6 +96,7 @@ function TeamDashboard() {
         <p>
           {player.position || "Poste inconnu"} - {player.city || "Ville inconnue"}
         </p>
+        <p>Role club : {player.club_role || "Joueur"}</p>
         <p>Club actuel : {player.team_name || "Aucun"}</p>
       </div>
     </div>
@@ -120,16 +125,18 @@ function TeamDashboard() {
         authorization: token,
       };
 
-      const [playersRes, invitationsRes, matchesRes] = await Promise.all([
+      const [playersRes, invitationsRes, matchesRes, formerMembersRes] = await Promise.all([
         axios.get(`${API_URL}/api/team/players`, { headers }),
         axios.get(`${API_URL}/api/team/invitations`, { headers }),
         axios.get(`${API_URL}/api/team/matches`, { headers }),
+        axios.get(`${API_URL}/api/team/former-members`, { headers }),
       ]);
 
       setTeam(playersRes.data.team);
       setPlayers(playersRes.data.players);
       setInvitations(invitationsRes.data);
       setMatches(matchesRes.data);
+      setFormerMembers(formerMembersRes.data);
     } catch (err) {
       console.log(err);
       setError(err.response?.data?.message || "Impossible de charger l'équipe.");
@@ -275,12 +282,40 @@ function TeamDashboard() {
       setPlayers((currentPlayers) =>
         currentPlayers.filter((player) => player.id !== playerId)
       );
+      fetchPlayers();
       showNotice("success", "Joueur retiré de l'équipe.");
     } catch (err) {
       console.log(err);
       showNotice(
         "error",
         err.response?.data?.message || "Impossible de retirer le joueur."
+      );
+    }
+  };
+
+  const handleRoleChange = async (playerId, clubRole) => {
+    try {
+      await axios.put(
+        `${API_URL}/api/team/players/${playerId}/role`,
+        { club_role: clubRole },
+        {
+          headers: {
+            authorization: token,
+          },
+        }
+      );
+
+      setPlayers((currentPlayers) =>
+        currentPlayers.map((player) =>
+          player.id === playerId ? { ...player, club_role: clubRole } : player
+        )
+      );
+      showNotice("success", "Role mis a jour.");
+    } catch (err) {
+      console.log(err);
+      showNotice(
+        "error",
+        err.response?.data?.message || "Impossible de mettre a jour le role."
       );
     }
   };
@@ -408,6 +443,9 @@ function TeamDashboard() {
           </button>
           <button type="button" onClick={() => scrollToSection("joueurs")}>
             Joueurs
+          </button>
+          <button type="button" onClick={() => scrollToSection("anciens")}>
+            Anciens
           </button>
           <button type="button" onClick={() => scrollToSection("matchs")}>
             Matchs
@@ -648,6 +686,7 @@ function TeamDashboard() {
                             {player.position || "Poste inconnu"} -{" "}
                             {player.city || "Ville inconnue"}
                           </p>
+                          <p>Role club : {player.club_role || "Joueur"}</p>
                         <p>
                           Buts {player.goals || 0} - Passes{" "}
                           {player.assists || 0} - Cartons {player.cards || 0}
@@ -655,9 +694,63 @@ function TeamDashboard() {
                         </div>
                       </div>
 
-                      <button onClick={() => handleRemovePlayer(player.id)}>
-                        Retirer
-                      </button>
+                      <div className="member-actions">
+                        <select
+                          value={player.club_role || "Joueur"}
+                          onChange={(e) => handleRoleChange(player.id, e.target.value)}
+                          aria-label={`Role club de ${player.name}`}
+                        >
+                          {clubRoles.map((role) => (
+                            <option key={role} value={role}>
+                              {role}
+                            </option>
+                          ))}
+                        </select>
+                        <button onClick={() => handleRemovePlayer(player.id)}>
+                          Retirer
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="profile-panel" id="anciens">
+              <h3>Anciens membres</h3>
+
+              {formerMembers.length === 0 ? (
+                <p className="dashboard-message">
+                  Aucun ancien membre avec stats enregistrees pour ce club.
+                </p>
+              ) : (
+                <div className="team-player-list">
+                  {formerMembers.map((member) => (
+                    <div className="team-player-card" key={member.id}>
+                      <div className="player-card-main">
+                        <div className="mini-avatar">
+                          {member.profile_photo ? (
+                            <img
+                              src={getMediaUrl(member.profile_photo)}
+                              alt={member.name || "Ancien membre"}
+                            />
+                          ) : (
+                            <span>{(member.name || "A").charAt(0)}</span>
+                          )}
+                        </div>
+
+                        <div>
+                          <h4>{member.name}</h4>
+                          <p>
+                            {member.club_role || "Ancien membre"} -{" "}
+                            {member.position || "Poste inconnu"}
+                          </p>
+                          <p>
+                            Matchs {member.matches || 0} - Buts {member.goals || 0} -{" "}
+                            Passes {member.assists || 0} - Cartons {member.cards || 0}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>

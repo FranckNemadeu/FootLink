@@ -185,6 +185,7 @@ const ensurePlayerTeamColumns = (callback) => {
   const columns = [
     ["team_name", "VARCHAR(100)"],
     ["no_team", "TINYINT(1) DEFAULT 0"],
+    ["club_role", "VARCHAR(50) DEFAULT 'Joueur'"],
   ];
 
   const runNext = (index) => {
@@ -361,8 +362,8 @@ router.post("/register/player", (req, res) => {
       const createPlayerProfile = (user, verificationToken) => {
         const playerSql = `
           INSERT INTO players
-          (user_id, position, age, city, height, preferred_foot, team_name, no_team, bio)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          (user_id, position, age, city, height, preferred_foot, team_name, no_team, club_role, bio)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         db.query(
@@ -376,6 +377,7 @@ router.post("/register/player", (req, res) => {
             preferred_foot || null,
             null,
             1,
+            "Joueur",
             bioText || null,
           ],
           (playerErr, playerResult) => {

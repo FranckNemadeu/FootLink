@@ -12,6 +12,13 @@ const {
 const verifyToken = require("../middlewares/authMiddleware");
 
 const uploadsDir = path.join(__dirname, "..", "uploads");
+const CLUB_ROLES = new Set([
+  "Joueur",
+  "Coach",
+  "Assistant coach",
+  "Manager",
+  "Staff",
+]);
 
 if (shouldUseLocalUploads && !fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -77,6 +84,8 @@ const ensurePlayerTeamColumns = (callback) => {
   const columns = [
     ["team_name", "VARCHAR(100)"],
     ["no_team", "TINYINT(1) DEFAULT 0"],
+    ["club_role", "VARCHAR(50) DEFAULT 'Joueur'"],
+    ["profile_photo", "VARCHAR(255)"],
   ];
 
   const runNext = (index) => {
@@ -433,48 +442,59 @@ router.get("/public/:teamId", (req, res) => {
       }
 
       const team = teamResult[0];
-      ensureColumn("players", "profile_photo", "VARCHAR(255)", (photoErr) => {
-        if (photoErr) {
-          return sendDbError(res, photoErr, "Impossible de preparer les photos");
+      ensurePlayerTeamColumns((playerColumnErr) => {
+        if (playerColumnErr) {
+          return sendDbError(
+            res,
+            playerColumnErr,
+            "Impossible de preparer les joueurs"
+          );
         }
 
-        const playersSql = `
-          SELECT
-            p.id,
-            p.position,
-            p.city,
-            p.profile_photo,
-            u.name,
-            COALESCE(SUM(ms.goals), 0) AS goals,
-            COALESCE(SUM(ms.assists), 0) AS assists,
-            COALESCE(SUM(ms.yellow_cards), 0) + COALESCE(SUM(ms.red_cards), 0) AS cards
-          FROM players p
-          JOIN users u ON u.id = p.user_id
-          LEFT JOIN match_stats ms ON ms.player_id = p.id
-          WHERE LOWER(p.team_name) = LOWER(?)
-          GROUP BY p.id, p.position, p.city, p.profile_photo, u.name
-          ORDER BY goals DESC, u.name
-        `;
-
-        db.query(playersSql, [team.team_name], (playersErr, players) => {
-          if (playersErr) {
-            return sendDbError(res, playersErr, "Impossible de charger les joueurs");
+        ensureColumn("players", "profile_photo", "VARCHAR(255)", (photoErr) => {
+          if (photoErr) {
+            return sendDbError(res, photoErr, "Impossible de preparer les photos");
           }
 
-          const matchesSql = `
-            SELECT id, type, match_date, created_at
-            FROM matches
-            WHERE team_id = ?
-            ORDER BY match_date DESC, id DESC
-            LIMIT 8
+          const playersSql = `
+            SELECT
+              p.id,
+              p.position,
+              p.city,
+              p.profile_photo,
+              p.club_role,
+              u.name,
+              COALESCE(SUM(ms.goals), 0) AS goals,
+              COALESCE(SUM(ms.assists), 0) AS assists,
+              COALESCE(SUM(ms.yellow_cards), 0) + COALESCE(SUM(ms.red_cards), 0) AS cards
+            FROM players p
+            JOIN users u ON u.id = p.user_id
+            LEFT JOIN match_stats ms ON ms.player_id = p.id
+            WHERE LOWER(p.team_name) = LOWER(?)
+            GROUP BY p.id, p.position, p.city, p.profile_photo, p.club_role, u.name
+            ORDER BY goals DESC, u.name
           `;
 
-          db.query(matchesSql, [team.id], (matchesErr, matches) => {
-            if (matchesErr) {
-              return sendDbError(res, matchesErr, "Impossible de charger les matchs");
+          db.query(playersSql, [team.team_name], (playersErr, players) => {
+            if (playersErr) {
+              return sendDbError(res, playersErr, "Impossible de charger les joueurs");
             }
 
-            res.json({ team, players, matches });
+            const matchesSql = `
+              SELECT id, type, match_date, created_at
+              FROM matches
+              WHERE team_id = ?
+              ORDER BY match_date DESC, id DESC
+              LIMIT 8
+            `;
+
+            db.query(matchesSql, [team.id], (matchesErr, matches) => {
+              if (matchesErr) {
+                return sendDbError(res, matchesErr, "Impossible de charger les matchs");
+              }
+
+              res.json({ team, players, matches });
+            });
           });
         });
       });
@@ -640,6 +660,58 @@ router.get("/matches", verifyToken, (req, res) => {
   });
 });
 
+router.get("/former-members", verifyToken, (req, res) => {
+  if (req.user.role !== "team") {
+    return res.status(403).json({ message: "Acces reserve aux equipes" });
+  }
+
+  ensurePlayerTeamColumns((columnErr) => {
+    if (columnErr) {
+      return sendDbError(res, columnErr, "Impossible de preparer les joueurs");
+    }
+
+    getTeamForUser(req.user.id, (teamErr, team) => {
+      if (teamErr) {
+        return sendDbError(res, teamErr, "Impossible de charger l'equipe");
+      }
+
+      if (!team) {
+        return res.status(404).json({ message: "Equipe introuvable" });
+      }
+
+      const sql = `
+        SELECT
+          p.id,
+          p.position,
+          p.city,
+          p.profile_photo,
+          p.club_role,
+          u.name,
+          COUNT(DISTINCT ms.match_id) AS matches,
+          COALESCE(SUM(ms.goals), 0) AS goals,
+          COALESCE(SUM(ms.assists), 0) AS assists,
+          COALESCE(SUM(ms.yellow_cards), 0) + COALESCE(SUM(ms.red_cards), 0) AS cards
+        FROM match_stats ms
+        JOIN matches m ON m.id = ms.match_id
+        JOIN players p ON p.id = ms.player_id
+        JOIN users u ON u.id = p.user_id
+        WHERE m.team_id = ?
+          AND (p.team_name IS NULL OR LOWER(p.team_name) <> LOWER(?))
+        GROUP BY p.id, p.position, p.city, p.profile_photo, p.club_role, u.name
+        ORDER BY goals DESC, assists DESC, u.name
+      `;
+
+      db.query(sql, [team.id, team.team_name], (err, formerMembers) => {
+        if (err) {
+          return sendDbError(res, err, "Impossible de charger les anciens membres");
+        }
+
+        res.json(formerMembers);
+      });
+    });
+  });
+});
+
 router.post("/matches", verifyToken, (req, res) => {
   if (req.user.role !== "team") {
     return res.status(403).json({ message: "Acces reserve aux equipes" });
@@ -718,7 +790,7 @@ router.post("/invitations/:invitationId/accept", verifyToken, (req, res) => {
         const invitation = result[0];
         const updatePlayerSql = `
           UPDATE players
-          SET team_name = ?, no_team = 0
+          SET team_name = ?, no_team = 0, club_role = 'Joueur'
           WHERE id = ?
         `;
 
@@ -846,6 +918,51 @@ router.delete("/players/:playerId", verifyToken, (req, res) => {
         }
 
         res.json({ message: "Joueur retire de l'equipe" });
+      });
+    });
+  });
+});
+
+router.put("/players/:playerId/role", verifyToken, (req, res) => {
+  if (req.user.role !== "team") {
+    return res.status(403).json({ message: "Acces reserve aux equipes" });
+  }
+
+  const { club_role } = req.body;
+  if (!CLUB_ROLES.has(club_role)) {
+    return res.status(400).json({ message: "Role invalide" });
+  }
+
+  ensurePlayerTeamColumns((columnErr) => {
+    if (columnErr) {
+      return sendDbError(res, columnErr, "Impossible de preparer les roles");
+    }
+
+    getTeamForUser(req.user.id, (teamErr, team) => {
+      if (teamErr) {
+        return sendDbError(res, teamErr, "Impossible de charger l'equipe");
+      }
+
+      if (!team) {
+        return res.status(404).json({ message: "Equipe introuvable" });
+      }
+
+      const sql = `
+        UPDATE players
+        SET club_role = ?
+        WHERE id = ? AND LOWER(team_name) = LOWER(?)
+      `;
+
+      db.query(sql, [club_role, req.params.playerId, team.team_name], (err, result) => {
+        if (err) {
+          return sendDbError(res, err, "Impossible de mettre a jour le role");
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "Membre introuvable dans ce club" });
+        }
+
+        res.json({ message: "Role mis a jour", club_role });
       });
     });
   });

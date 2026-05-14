@@ -45,6 +45,7 @@ const ensureCoreTables = async () => {
       preferred_foot VARCHAR(50),
       team_name VARCHAR(100),
       no_team TINYINT(1) DEFAULT 0,
+      club_role VARCHAR(50) DEFAULT 'Joueur',
       bio TEXT,
       profile_photo VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -106,6 +107,7 @@ const ensureCoreTables = async () => {
   await ensureColumn("users", "email_verification_expires", "DATETIME");
   await ensureColumn("players", "team_name", "VARCHAR(100)");
   await ensureColumn("players", "no_team", "TINYINT(1) DEFAULT 0");
+  await ensureColumn("players", "club_role", "VARCHAR(50) DEFAULT 'Joueur'");
   await ensureColumn("players", "profile_photo", "VARCHAR(255)");
   await ensureColumn("teams", "player_count", "INT DEFAULT 0");
   await ensureColumn("teams", "logo_photo", "VARCHAR(255)");

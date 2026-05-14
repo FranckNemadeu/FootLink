@@ -24,6 +24,26 @@ const ensureProfilePhotoColumn = (callback) => {
   });
 };
 
+const ensurePlayerClubRoleColumn = (callback) => {
+  const checkSql = `
+    SELECT COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'players'
+      AND COLUMN_NAME = 'club_role'
+  `;
+
+  db.query(checkSql, (checkErr, result) => {
+    if (checkErr) return callback(checkErr);
+    if (result.length > 0) return callback(null);
+
+    db.query(
+      "ALTER TABLE players ADD COLUMN club_role VARCHAR(50) DEFAULT 'Joueur'",
+      callback
+    );
+  });
+};
+
 const sendDbError = (res, err, fallbackMessage) => {
   console.log(err);
 
@@ -575,13 +595,19 @@ exports.acceptTeamInvitation = (req, res) => {
         }
 
         const invitation = result[0];
-        const updatePlayerSql = `
-          UPDATE players
-          SET team_name = ?, no_team = 0
-          WHERE id = ?
-        `;
 
-        db.query(updatePlayerSql, [invitation.team_name, player.id], (updateErr) => {
+        ensurePlayerClubRoleColumn((roleColumnErr) => {
+          if (roleColumnErr) {
+            return sendDbError(res, roleColumnErr, "Impossible de preparer le role");
+          }
+
+          const updatePlayerSql = `
+            UPDATE players
+            SET team_name = ?, no_team = 0, club_role = 'Joueur'
+            WHERE id = ?
+          `;
+
+          db.query(updatePlayerSql, [invitation.team_name, player.id], (updateErr) => {
           if (updateErr) {
             return sendDbError(res, updateErr, "Impossible de changer le club");
           }
@@ -624,6 +650,7 @@ exports.acceptTeamInvitation = (req, res) => {
               });
             }
           );
+          });
         });
       });
     });
