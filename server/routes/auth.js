@@ -200,6 +200,30 @@ const ensurePlayerTeamColumns = (callback) => {
   runNext(0);
 };
 
+const ensureTeamInvitationsTable = (callback) => {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS team_invitations (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      team_id INT NOT NULL,
+      player_id INT NOT NULL,
+      requested_by VARCHAR(20) DEFAULT 'team',
+      status VARCHAR(20) DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
+
+  db.query(sql, (err) => {
+    if (err) return callback(err);
+
+    ensureColumn(
+      "team_invitations",
+      "requested_by",
+      "VARCHAR(20) DEFAULT 'team'",
+      callback
+    );
+  });
+};
+
 const checkTeamExists = (teamName, callback) => {
   const sql = `SELECT * FROM teams WHERE LOWER(team_name) = LOWER(?) LIMIT 1`;
   db.query(sql, [teamName], (err, result) => {
@@ -332,6 +356,7 @@ router.post("/register/player", (req, res) => {
       }
 
       const finalTeamName = no_team ? null : cleanText(team_name);
+      let selectedTeam = null;
 
       const createPlayerProfile = (user, verificationToken) => {
         const playerSql = `
@@ -349,11 +374,11 @@ router.post("/register/player", (req, res) => {
             city,
             numericHeight,
             preferred_foot || null,
-            finalTeamName,
-            no_team ? 1 : 0,
+            null,
+            1,
             bioText || null,
           ],
-          (playerErr) => {
+          (playerErr, playerResult) => {
             if (playerErr) {
               return sendDbError(
                 res,
@@ -362,20 +387,54 @@ router.post("/register/player", (req, res) => {
               );
             }
 
-            sendEmailVerificationEmail(user, verificationToken)
-              .then(() =>
-                res.json({
-                  message:
-                    "Compte joueur cree. Verifie ton adresse email avant de te connecter.",
-                })
-              )
-              .catch((mailErr) => {
-                console.log("Email verification non envoye", mailErr);
-                res.status(502).json({
-                  message:
-                    "Compte cree, mais l'email de verification n'a pas pu etre envoye. Reessaie depuis la page de connexion.",
+            const finishRegistration = () => {
+              sendEmailVerificationEmail(user, verificationToken)
+                .then(() =>
+                  res.json({
+                    message: selectedTeam
+                      ? "Compte joueur cree. Ta demande a ete envoyee au club. Verifie ton adresse email avant de te connecter."
+                      : "Compte joueur cree. Verifie ton adresse email avant de te connecter.",
+                  })
+                )
+                .catch((mailErr) => {
+                  console.log("Email verification non envoye", mailErr);
+                  res.status(502).json({
+                    message:
+                      "Compte cree, mais l'email de verification n'a pas pu etre envoye. Reessaie depuis la page de connexion.",
+                  });
                 });
+            };
+
+            if (!selectedTeam) {
+              return finishRegistration();
+            }
+
+            ensureTeamInvitationsTable((inviteTableErr) => {
+              if (inviteTableErr) {
+                return sendDbError(
+                  res,
+                  inviteTableErr,
+                  "Impossible de preparer la demande au club"
+                );
+              }
+
+              const inviteSql = `
+                INSERT INTO team_invitations (team_id, player_id, requested_by, status)
+                VALUES (?, ?, 'player', 'pending')
+              `;
+
+              db.query(inviteSql, [selectedTeam.id, playerResult.insertId], (inviteErr) => {
+                if (inviteErr) {
+                  return sendDbError(
+                    res,
+                    inviteErr,
+                    "Impossible d'envoyer la demande au club"
+                  );
+                }
+
+                finishRegistration();
               });
+            });
           }
         );
       };
@@ -410,6 +469,7 @@ router.post("/register/player", (req, res) => {
             return res.status(400).json({ message: "Club introuvable ou non enregistre" });
           }
 
+          selectedTeam = team;
           processPlayerCreation();
         });
       } else {

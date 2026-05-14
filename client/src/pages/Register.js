@@ -379,7 +379,7 @@ function Register({ accountType }) {
                     onChange={(e) => handleClubSelect(Number(e.target.value))}
                     required
                   >
-                    <option value="">Sélectionne ton club</option>
+                    <option value="">Club a rejoindre sur demande</option>
                     {clubs.map((club) => (
                       <option key={club.id} value={club.id}>
                         {club.team_name} ({club.city})
@@ -389,6 +389,9 @@ function Register({ accountType }) {
                 ) : (
                   <p className="info-text">Aucun club enregistré pour le moment.</p>
                 )}
+                <p className="info-text">
+                  Le club devra accepter ta demande avant que tu rejoignes son effectif.
+                </p>
               </>
             )}
           </>
