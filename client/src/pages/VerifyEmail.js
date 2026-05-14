@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Link, useSearchParams } from "react-router-dom";
 import API_URL from "../config/api";
@@ -10,9 +10,13 @@ function VerifyEmail() {
     text: "Verification de ton adresse email...",
   });
   const token = searchParams.get("token");
+  const verificationStarted = useRef(false);
 
   useEffect(() => {
     const verifyEmail = async () => {
+      if (verificationStarted.current) return;
+      verificationStarted.current = true;
+
       if (!token) {
         setMessage({
           type: "error",
