@@ -696,10 +696,9 @@ router.post("/verify-email", (req, res) => {
       }
 
       const sql = `
-        SELECT id
+        SELECT id, email_verified, email_verification_expires
         FROM users
         WHERE email_verification_token = ?
-          AND email_verification_expires > NOW()
         LIMIT 1
       `;
 
@@ -710,15 +709,22 @@ router.post("/verify-email", (req, res) => {
           return res.status(400).json({ message: "Lien de verification invalide ou expire" });
         }
 
+        const user = result[0];
+        if (user.email_verified) {
+          return res.json({ message: "Email deja verifie. Tu peux te connecter." });
+        }
+
+        if (!user.email_verification_expires || user.email_verification_expires <= new Date()) {
+          return res.status(400).json({ message: "Lien de verification invalide ou expire" });
+        }
+
         db.query(
           `
             UPDATE users
-            SET email_verified = 1,
-                email_verification_token = NULL,
-                email_verification_expires = NULL
+            SET email_verified = 1
             WHERE id = ?
           `,
-          [result[0].id],
+          [user.id],
           (updateErr) => {
             if (updateErr) {
               return sendDbError(res, updateErr, "Impossible de confirmer l'email");
