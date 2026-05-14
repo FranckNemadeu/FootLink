@@ -51,6 +51,7 @@ Alternative sans domaine Resend: utilise SMTP avec un compte Gmail et un mot de 
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=465
 SMTP_SECURE=true
+SMTP_FAMILY=4
 SMTP_USER=ton-adresse@gmail.com
 SMTP_PASS=ton-mot-de-passe-application-gmail
 EMAIL_FROM=FootLink <ton-adresse@gmail.com>
@@ -63,6 +64,7 @@ Si l'envoi reste bloque avec le port `465`, essaye la variante TLS explicite:
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_SECURE=false
+SMTP_FAMILY=4
 SMTP_USER=ton-adresse@gmail.com
 SMTP_PASS=ton-mot-de-passe-application-gmail
 EMAIL_FROM=FootLink <ton-adresse@gmail.com>
@@ -107,7 +109,7 @@ Redeploie Render, puis teste:
 
 ## Note importante
 
-Les fichiers uploades localement dans `server/uploads` ne sont pas un stockage durable sur Render. En production, FootLink utilise Cloudinary si les variables `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` et `CLOUDINARY_API_SECRET` sont configurees dans Render. Sans ces variables, le serveur garde le mode local pour le developpement.
+Les fichiers uploades localement dans `server/uploads` ne sont pas un stockage durable sur Render. En production, FootLink utilise Cloudinary et stocke seulement l'URL finale dans la base de donnees (`players.profile_photo` ou `teams.logo_photo`). Les variables `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` et `CLOUDINARY_API_SECRET` doivent donc etre configurees dans Render. Sans ces variables, l'upload est bloque en production pour eviter de sauvegarder une photo qui disparaitrait au redeploiement. Le mode local reste disponible seulement pour le developpement.
 
 Pour les emails de mot de passe oublie, FootLink utilise SMTP si `SMTP_HOST`, `SMTP_USER` et `SMTP_PASS` sont configures. Sinon il utilise Resend si `RESEND_API_KEY` est configuree. Sans ces variables, les liens sont affiches dans les logs du serveur pour faciliter les tests locaux.
 

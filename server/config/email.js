@@ -1,4 +1,9 @@
+const dns = require("dns");
 const nodemailer = require("nodemailer");
+
+if (typeof dns.setDefaultResultOrder === "function") {
+  dns.setDefaultResultOrder("ipv4first");
+}
 
 const getEmailFrom = () =>
   process.env.EMAIL_FROM ||
@@ -16,19 +21,13 @@ const isEmailConfigured = isSmtpConfigured || isResendConfigured;
 
 const getEmailTimeoutMs = () => Number(process.env.EMAIL_TIMEOUT_MS || 12000);
 
+const getSmtpFamily = () => {
+  const family = Number(process.env.SMTP_FAMILY || 4);
+  return family === 6 ? 6 : 4;
+};
+
 const sendSmtpEmail = async ({ to, subject, html, text }) => {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 465),
-    secure: String(process.env.SMTP_SECURE || "true") === "true",
-    connectionTimeout: getEmailTimeoutMs(),
-    greetingTimeout: getEmailTimeoutMs(),
-    socketTimeout: getEmailTimeoutMs(),
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  const transporter = createSmtpTransporter();
 
   const result = await transporter.sendMail({
     from: getEmailFrom(),
@@ -40,6 +39,48 @@ const sendSmtpEmail = async ({ to, subject, html, text }) => {
 
   console.log(`[EMAIL SMTP SENT] ${subject} -> ${to}`);
   return result;
+};
+
+const createSmtpTransporter = () =>
+  nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 465),
+    secure: String(process.env.SMTP_SECURE || "true") === "true",
+    family: getSmtpFamily(),
+    connectionTimeout: getEmailTimeoutMs(),
+    greetingTimeout: getEmailTimeoutMs(),
+    socketTimeout: getEmailTimeoutMs(),
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
+const verifyEmailTransport = async () => {
+  if (!isEmailConfigured) {
+    return {
+      ok: false,
+      provider: "none",
+      message:
+        "Aucun fournisseur email configure. Ajoute SMTP_HOST, SMTP_USER et SMTP_PASS ou RESEND_API_KEY.",
+    };
+  }
+
+  if (!isSmtpConfigured) {
+    return {
+      ok: true,
+      provider: "resend",
+      message: "Resend est configure. La verification SMTP est ignoree.",
+    };
+  }
+
+  await createSmtpTransporter().verify();
+
+  return {
+    ok: true,
+    provider: "smtp",
+    message: "Connexion SMTP valide.",
+  };
 };
 
 const sendEmail = async ({ to, subject, html, text }) => {
@@ -87,4 +128,5 @@ const sendEmail = async ({ to, subject, html, text }) => {
 module.exports = {
   isEmailConfigured,
   sendEmail,
+  verifyEmailTransport,
 };

@@ -5,13 +5,13 @@ const path = require("path");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const db = require("../db");
-const { isCloudinaryConfigured } = require("../config/cloudinary");
+const { shouldUseLocalUploads } = require("../config/cloudinary");
 const playerController = require("../controllers/playerController");
 const verifyToken = require("../middlewares/authMiddleware");
 
 const uploadsDir = path.join(__dirname, "..", "uploads");
 
-if (!fs.existsSync(uploadsDir)) {
+if (shouldUseLocalUploads && !fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
@@ -26,7 +26,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({
-  storage: isCloudinaryConfigured ? multer.memoryStorage() : storage,
+  storage: shouldUseLocalUploads ? storage : multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.startsWith("image/")) {
       return cb(new Error("Le fichier doit etre une image"));

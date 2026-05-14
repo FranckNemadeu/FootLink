@@ -303,7 +303,16 @@ exports.uploadPlayerPhoto = async (req, res) => {
   try {
     photoUrl = await uploadImage(req.file, "footlink/players");
   } catch (err) {
-    return sendDbError(res, err, "Impossible de televerser la photo");
+    if (err.code === "CLOUDINARY_NOT_CONFIGURED") {
+      return res.status(500).json({ message: err.message });
+    }
+
+    return res.status(500).json({
+      message:
+        err.message ||
+        "Impossible de televerser la photo. Verifie la configuration Cloudinary.",
+      code: err.code,
+    });
   }
 
   ensureProfilePhotoColumn((columnErr) => {

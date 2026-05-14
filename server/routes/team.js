@@ -5,12 +5,15 @@ const path = require("path");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const db = require("../db");
-const { isCloudinaryConfigured, uploadImage } = require("../config/cloudinary");
+const {
+  shouldUseLocalUploads,
+  uploadImage,
+} = require("../config/cloudinary");
 const verifyToken = require("../middlewares/authMiddleware");
 
 const uploadsDir = path.join(__dirname, "..", "uploads");
 
-if (!fs.existsSync(uploadsDir)) {
+if (shouldUseLocalUploads && !fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
@@ -25,7 +28,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({
-  storage: isCloudinaryConfigured ? multer.memoryStorage() : storage,
+  storage: shouldUseLocalUploads ? storage : multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.startsWith("image/")) {
       return cb(new Error("Le fichier doit etre une image"));
@@ -305,7 +308,16 @@ router.post("/logo", verifyToken, uploadTeamLogo, async (req, res) => {
   try {
     logoUrl = await uploadImage(req.file, "footlink/teams");
   } catch (err) {
-    return sendDbError(res, err, "Impossible de televerser le logo");
+    if (err.code === "CLOUDINARY_NOT_CONFIGURED") {
+      return res.status(500).json({ message: err.message });
+    }
+
+    return res.status(500).json({
+      message:
+        err.message ||
+        "Impossible de televerser le logo. Verifie la configuration Cloudinary.",
+      code: err.code,
+    });
   }
 
   ensureTeamLogoColumn((columnErr) => {

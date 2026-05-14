@@ -546,7 +546,8 @@ router.post("/forgot-password", (req, res) => {
 
   if (!isEmailConfigured) {
     return res.status(503).json({
-      message: "L'envoi email n'est pas configure sur le serveur. Ajoute RESEND_API_KEY dans Render.",
+      message:
+        "L'envoi email n'est pas configure sur le serveur. Ajoute SMTP_HOST, SMTP_USER et SMTP_PASS ou RESEND_API_KEY dans Render.",
     });
   }
 

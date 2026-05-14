@@ -6,6 +6,16 @@ const isCloudinaryConfigured = Boolean(
     process.env.CLOUDINARY_API_SECRET
 );
 
+const isProductionLike = Boolean(
+  process.env.NODE_ENV === "production" ||
+    process.env.RENDER ||
+    process.env.RENDER_SERVICE_ID ||
+    process.env.RENDER_EXTERNAL_HOSTNAME ||
+    process.env.RENDER_EXTERNAL_URL
+);
+
+const shouldUseLocalUploads = !isProductionLike && !isCloudinaryConfigured;
+
 if (isCloudinaryConfigured) {
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -16,8 +26,16 @@ if (isCloudinaryConfigured) {
 
 const uploadImage = (file, folder) =>
   new Promise((resolve, reject) => {
-    if (!isCloudinaryConfigured) {
+    if (shouldUseLocalUploads) {
       return resolve(`/uploads/${file.filename}`);
+    }
+
+    if (!isCloudinaryConfigured) {
+      const error = new Error(
+        "Cloudinary doit etre configure pour televerser des images en production"
+      );
+      error.code = "CLOUDINARY_NOT_CONFIGURED";
+      return reject(error);
     }
 
     const stream = cloudinary.uploader.upload_stream(
@@ -36,5 +54,6 @@ const uploadImage = (file, folder) =>
 
 module.exports = {
   isCloudinaryConfigured,
+  shouldUseLocalUploads,
   uploadImage,
 };

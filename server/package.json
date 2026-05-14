@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "email:check": "node scripts/check-email.js",
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
