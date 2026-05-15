@@ -46,6 +46,19 @@ function PlayerDashboard() {
     confirmation: "",
   });
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const profileCompletion = player
+    ? [
+        player.position,
+        player.age,
+        player.city,
+        player.height,
+        player.preferred_foot,
+        player.bio,
+        player.profile_photo,
+      ].filter(Boolean).length
+    : 0;
+  const profileCompletionPercent = Math.round((profileCompletion / 7) * 100);
+  const playerRole = player?.club_role || "Joueur";
 
   useEffect(() => {
     if (!notice) return undefined;
@@ -346,16 +359,35 @@ function PlayerDashboard() {
       </nav>
 
       <main className="dashboard-content">
-        <section className="dashboard-header">
-          <div>
-            <p className="dashboard-label">Espace joueur</p>
+        <section className="dashboard-header dashboard-hero">
+          <div className="dashboard-title-block">
+            <div className="dashboard-badge-row">
+              <p className="dashboard-label">Espace joueur</p>
+              <span className="dashboard-pill">{playerRole}</span>
+            </div>
             <h2>Bienvenue {user.name || "joueur"}</h2>
+            <p>
+              Garde ton profil, tes clubs et tes performances prêts à être vus.
+            </p>
           </div>
 
-          <span className="player-status">Connecte</span>
+          <div className="dashboard-hero-aside">
+            <span className="player-status">Connecté</span>
+            <div className="dashboard-progress">
+              <span>Profil complété</span>
+              <strong>{profileCompletionPercent}%</strong>
+              <div>
+                <i style={{ width: `${profileCompletionPercent}%` }} />
+              </div>
+            </div>
+          </div>
         </section>
 
-        {loading && <p className="dashboard-message">Chargement du profil...</p>}
+        {loading && (
+          <p className="dashboard-message dashboard-loading-state">
+            Chargement du profil...
+          </p>
+        )}
 
         {error && <p className="dashboard-error">{error}</p>}
 
@@ -368,11 +400,19 @@ function PlayerDashboard() {
         {!loading && !error && (
           <div className="dashboard-grid">
             <section className="profile-panel" id="profil">
-              <h3>Infos profil</h3>
+              <div className="panel-heading">
+                <div>
+                  <span className="dashboard-label">Identité</span>
+                  <h3>Infos profil</h3>
+                </div>
+                <span className="dashboard-pill">
+                  {player?.team_name ? "En club" : "Libre"}
+                </span>
+              </div>
 
               {player ? (
                 <div>
-                  <div className="profile-photo-section">
+                  <div className="profile-photo-section dashboard-profile-card">
                     <div className="profile-photo">
                       {player.profile_photo ? (
                         <img
@@ -425,10 +465,18 @@ function PlayerDashboard() {
                         <span>Club</span>
                         {player.team_name || "Aucun"}
                       </p>
-                      <div className="club-change-section">
-                        <h4>Mes clubs</h4>
+                    <div className="club-change-section">
+                        <div className="panel-heading compact-heading">
+                          <div>
+                            <span className="dashboard-label">Clubs</span>
+                            <h4>Mes clubs</h4>
+                          </div>
+                          <span className="dashboard-pill">{playerClubs.length}</span>
+                        </div>
                         {playerClubs.length === 0 ? (
-                          <p className="dashboard-message">Aucun club accepte pour le moment.</p>
+                          <p className="dashboard-message dashboard-empty-state">
+                            Aucun club accepté pour le moment.
+                          </p>
                         ) : (
                           <div className="team-player-list">
                             {playerClubs.map((club) => (
@@ -450,7 +498,12 @@ function PlayerDashboard() {
                       </p>
 
                       <div className="club-change-section" id="clubs">
-                      <h4>Demander a rejoindre un autre club</h4>
+                      <div className="panel-heading compact-heading">
+                        <div>
+                          <span className="dashboard-label">Recrutement</span>
+                          <h4>Demander à rejoindre un autre club</h4>
+                        </div>
+                      </div>
                       <div className="club-selection">
                         <select
                           value={selectedClub}
@@ -484,7 +537,12 @@ function PlayerDashboard() {
                     </div>
 
                     <form className="profile-edit-form" onSubmit={handleProfileSubmit}>
-                      <h4>Modifier mon profil</h4>
+                      <div className="panel-heading compact-heading">
+                        <div>
+                          <span className="dashboard-label">Mise à jour</span>
+                          <h4>Modifier mon profil</h4>
+                        </div>
+                      </div>
 
                       <input
                         type="text"
@@ -559,39 +617,53 @@ function PlayerDashboard() {
                   </div>
                 </div>
               ) : (
-                <p className="dashboard-message">
+                <p className="dashboard-message dashboard-empty-state">
                   Aucun profil joueur trouvé pour ce compte.
                 </p>
               )}
             </section>
 
             <section className="stats-panel" id="stats">
-              <h3>Stats</h3>
+              <div className="panel-heading">
+                <div>
+                  <span className="dashboard-label">Performance</span>
+                  <h3>Stats</h3>
+                </div>
+                <span className="dashboard-pill">Saison</span>
+              </div>
 
               <div className="stats-grid">
-                <div className="stat-card">
+                <div className="stat-card stat-card-modern">
                   <span>Matchs</span>
                   <strong>{stats.matches}</strong>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card stat-card-modern">
                   <span>Buts</span>
                   <strong>{stats.goals}</strong>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card stat-card-modern">
                   <span>Passes</span>
                   <strong>{stats.assists}</strong>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card stat-card-modern">
                   <span>Cartons</span>
                   <strong>{stats.cards}</strong>
                 </div>
               </div>
 
               <div className="invitations-panel">
-                <h3>Invitations</h3>
+                <div className="panel-heading compact-heading">
+                  <div>
+                    <span className="dashboard-label">Demandes</span>
+                    <h3>Invitations</h3>
+                  </div>
+                  <span className="dashboard-pill">{invitations.length}</span>
+                </div>
 
                 {invitations.length === 0 ? (
-                  <p className="dashboard-message">Aucune invitation en attente.</p>
+                  <p className="dashboard-message dashboard-empty-state">
+                    Aucune invitation en attente.
+                  </p>
                 ) : (
                   <div className="team-player-list">
                     {invitations.map((invitation) => (

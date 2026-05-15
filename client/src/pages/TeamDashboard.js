@@ -127,6 +127,18 @@ function TeamDashboard() {
     const field = rankingConfig[rankingTab].field;
     return Number(b[field] || 0) - Number(a[field] || 0) || a.name.localeCompare(b.name);
   });
+  const pendingInvitations = invitations.filter(
+    (invitation) => invitation.status === "pending"
+  );
+  const teamGoals = players.reduce((sum, player) => sum + Number(player.goals || 0), 0);
+  const teamAssists = players.reduce(
+    (sum, player) => sum + Number(player.assists || 0),
+    0
+  );
+  const teamMotm = players.reduce(
+    (sum, player) => sum + Number(player.motm_count || 0),
+    0
+  );
 
   const fetchPlayers = useCallback(async () => {
     if (!token) {
@@ -559,16 +571,39 @@ function TeamDashboard() {
       </nav>
 
       <main className="dashboard-content">
-        <section className="dashboard-header">
-          <div>
-            <p className="dashboard-label">Espace équipe</p>
+        <section className="dashboard-header dashboard-hero team-dashboard-hero">
+          <div className="dashboard-title-block">
+            <div className="dashboard-badge-row">
+              <p className="dashboard-label">Espace équipe</p>
+              <span className="dashboard-pill">{team?.level || "Club"}</span>
+            </div>
             <h2>{team?.team_name || user?.name || "Equipe"}</h2>
+            <p>
+              Pilote ton effectif, tes demandes, tes matchs et ta vitrine club.
+            </p>
           </div>
 
-          <span className="player-status">Connecte</span>
+          <div className="dashboard-hero-metrics">
+            <div>
+              <span>Joueurs</span>
+              <strong>{players.length}</strong>
+            </div>
+            <div>
+              <span>Demandes</span>
+              <strong>{pendingInvitations.length}</strong>
+            </div>
+            <div>
+              <span>Matchs</span>
+              <strong>{matches.length}</strong>
+            </div>
+          </div>
         </section>
 
-        {loading && <p className="dashboard-message">Chargement...</p>}
+        {loading && (
+          <p className="dashboard-message dashboard-loading-state">
+            Chargement...
+          </p>
+        )}
         {error && <p className="dashboard-error">{error}</p>}
 
         {notice && (
@@ -580,9 +615,15 @@ function TeamDashboard() {
         {!loading && !error && (
           <div className="dashboard-grid">
             <section className="profile-panel" id="profil">
-              <h3>Identité du club</h3>
+              <div className="panel-heading">
+                <div>
+                  <span className="dashboard-label">Clubhouse</span>
+                  <h3>Identité du club</h3>
+                </div>
+                <span className="dashboard-pill">{team?.city || "Ville"}</span>
+              </div>
 
-              <div className="profile-photo-section">
+              <div className="profile-photo-section dashboard-profile-card">
                 <div className="profile-photo club-logo-photo">
                   {team?.logo_photo ? (
                     <img src={getMediaUrl(team.logo_photo)} alt="Logo du club" />
@@ -609,8 +650,13 @@ function TeamDashboard() {
             </section>
 
             <section className="profile-panel" id="galerie">
-              <h3>Galerie du club</h3>
-              <p className="dashboard-message">Photos {gallery.length}/30</p>
+              <div className="panel-heading">
+                <div>
+                  <span className="dashboard-label">Vitrine</span>
+                  <h3>Galerie du club</h3>
+                </div>
+                <span className="dashboard-pill">Photos {gallery.length}/30</span>
+              </div>
 
               <div className="gallery-upload-panel">
                 <input
@@ -633,7 +679,7 @@ function TeamDashboard() {
               </div>
 
               {gallery.length === 0 ? (
-                <p className="dashboard-message">
+                <p className="dashboard-message dashboard-empty-state">
                   Aucune photo dans la galerie pour le moment.
                 </p>
               ) : (
@@ -687,7 +733,28 @@ function TeamDashboard() {
             </section>
 
             <section className="profile-panel" id="classements">
-              <h3>Classements du club</h3>
+              <div className="panel-heading">
+                <div>
+                  <span className="dashboard-label">Leaders</span>
+                  <h3>Classements du club</h3>
+                </div>
+                <span className="dashboard-pill">{seasonYear === "all" ? "Toutes saisons" : seasonYear}</span>
+              </div>
+
+              <div className="dashboard-mini-stats">
+                <span>
+                  <strong>{teamGoals}</strong>
+                  Buts
+                </span>
+                <span>
+                  <strong>{teamAssists}</strong>
+                  Passes
+                </span>
+                <span>
+                  <strong>{teamMotm}</strong>
+                  Hommes du match
+                </span>
+              </div>
 
               <div className="season-filter">
                 <label htmlFor="team-season-filter">Saison</label>
@@ -749,14 +816,20 @@ function TeamDashboard() {
                   )}
                 </div>
               ) : (
-                <p className="dashboard-message">
+                <p className="dashboard-message dashboard-empty-state">
                   Aucun joueur dans l'effectif pour établir un classement.
                 </p>
               )}
             </section>
 
             <section className="profile-panel" id="recherche">
-              <h3>Rechercher des joueurs</h3>
+              <div className="panel-heading">
+                <div>
+                  <span className="dashboard-label">Scouting</span>
+                  <h3>Rechercher des joueurs</h3>
+                </div>
+                <span className="dashboard-pill">Recrutement</span>
+              </div>
 
               <form className="team-search-form" onSubmit={handleSearch}>
                 <input
@@ -822,15 +895,21 @@ function TeamDashboard() {
             </section>
 
             <section className="profile-panel" id="demandes">
-              <h3>Demandes recues</h3>
+              <div className="panel-heading">
+                <div>
+                  <span className="dashboard-label">Inbox</span>
+                  <h3>Demandes reçues</h3>
+                </div>
+                <span className="dashboard-pill">{pendingInvitations.length}</span>
+              </div>
 
-              {invitations.filter((invitation) => invitation.status === "pending").length === 0 ? (
-                <p className="dashboard-message">Aucune demande en attente.</p>
+              {pendingInvitations.length === 0 ? (
+                <p className="dashboard-message dashboard-empty-state">
+                  Aucune demande en attente.
+                </p>
               ) : (
                 <div className="team-player-list">
-                  {invitations
-                    .filter((invitation) => invitation.status === "pending")
-                    .map((invitation) => (
+                  {pendingInvitations.map((invitation) => (
                       <div className="team-player-card" key={invitation.id}>
                         <div className="player-card-main">
                           <div className="mini-avatar">
@@ -886,10 +965,16 @@ function TeamDashboard() {
             </section>
 
             <section className="profile-panel" id="joueurs">
-              <h3>Joueurs de l'équipe</h3>
+              <div className="panel-heading">
+                <div>
+                  <span className="dashboard-label">Effectif</span>
+                  <h3>Joueurs de l'équipe</h3>
+                </div>
+                <span className="dashboard-pill">{players.length}</span>
+              </div>
 
               {players.length === 0 ? (
-                <p className="dashboard-message">
+                <p className="dashboard-message dashboard-empty-state">
                   Aucun joueur n'a encore indiqué cette équipe.
                 </p>
               ) : (
@@ -946,10 +1031,16 @@ function TeamDashboard() {
             </section>
 
             <section className="profile-panel" id="anciens">
-              <h3>Anciens membres</h3>
+              <div className="panel-heading">
+                <div>
+                  <span className="dashboard-label">Historique</span>
+                  <h3>Anciens membres</h3>
+                </div>
+                <span className="dashboard-pill">{formerMembers.length}</span>
+              </div>
 
               {formerMembers.length === 0 ? (
-                <p className="dashboard-message">
+                <p className="dashboard-message dashboard-empty-state">
                   Aucun ancien membre avec stats enregistrees pour ce club.
                 </p>
               ) : (
@@ -987,7 +1078,13 @@ function TeamDashboard() {
             </section>
 
             <section className="stats-panel" id="matchs">
-              <h3>Créer un match</h3>
+              <div className="panel-heading">
+                <div>
+                  <span className="dashboard-label">Match center</span>
+                  <h3>Créer un match</h3>
+                </div>
+                <span className="dashboard-pill">{matches.length} matchs</span>
+              </div>
 
               <form className="team-stats-form" onSubmit={handleCreateMatch}>
                 <select
@@ -1012,7 +1109,12 @@ function TeamDashboard() {
                 <button type="submit">Créer match</button>
               </form>
 
-              <h3>Ajuster stats</h3>
+              <div className="panel-heading compact-heading">
+                <div>
+                  <span className="dashboard-label">Feuille de match</span>
+                  <h3>Ajuster stats</h3>
+                </div>
+              </div>
 
               <form className="team-stats-form" onSubmit={handleStatsSubmit}>
                 <select
