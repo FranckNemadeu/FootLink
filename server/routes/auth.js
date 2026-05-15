@@ -389,13 +389,18 @@ router.post("/register/player", (req, res) => {
               );
             }
 
-            const finishRegistration = () => {
+            const finishRegistration = (requestState = selectedTeam ? "sent" : "none") => {
+              const message =
+                requestState === "sent"
+                  ? "Compte joueur cree. Ta demande a ete envoyee au club. Verifie ton adresse email avant de te connecter."
+                  : requestState === "skipped"
+                    ? "Compte joueur cree. La demande au club n'a pas pu etre envoyee automatiquement. Tu pourras la refaire depuis ton espace joueur."
+                    : "Compte joueur cree. Verifie ton adresse email avant de te connecter.";
+
               sendEmailVerificationEmail(user, verificationToken)
                 .then(() =>
                   res.json({
-                    message: selectedTeam
-                      ? "Compte joueur cree. Ta demande a ete envoyee au club. Verifie ton adresse email avant de te connecter."
-                      : "Compte joueur cree. Verifie ton adresse email avant de te connecter.",
+                    message,
                   })
                 )
                 .catch((mailErr) => {
@@ -413,11 +418,8 @@ router.post("/register/player", (req, res) => {
 
             ensureTeamInvitationsTable((inviteTableErr) => {
               if (inviteTableErr) {
-                return sendDbError(
-                  res,
-                  inviteTableErr,
-                  "Impossible de preparer la demande au club"
-                );
+                console.log("Demande club non preparee", inviteTableErr);
+                return finishRegistration("skipped");
               }
 
               const inviteSql = `
@@ -427,14 +429,11 @@ router.post("/register/player", (req, res) => {
 
               db.query(inviteSql, [selectedTeam.id, playerResult.insertId], (inviteErr) => {
                 if (inviteErr) {
-                  return sendDbError(
-                    res,
-                    inviteErr,
-                    "Impossible d'envoyer la demande au club"
-                  );
+                  console.log("Demande club non envoyee", inviteErr);
+                  return finishRegistration("skipped");
                 }
 
-                finishRegistration();
+                finishRegistration("sent");
               });
             });
           }
@@ -468,7 +467,8 @@ router.post("/register/player", (req, res) => {
           }
 
           if (!team) {
-            return res.status(400).json({ message: "Club introuvable ou non enregistre" });
+            selectedTeam = null;
+            return processPlayerCreation();
           }
 
           selectedTeam = team;
