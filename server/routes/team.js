@@ -19,6 +19,13 @@ const CLUB_ROLES = new Set([
   "Manager",
   "Staff",
 ]);
+const MAX_GALLERY_PHOTOS = 30;
+
+const parseSeasonYear = (value) => {
+  const year = Number(value);
+  if (!Number.isInteger(year) || year < 1900 || year > 2100) return null;
+  return year;
+};
 
 if (shouldUseLocalUploads && !fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -131,6 +138,10 @@ const ensureTeamPlayerCountColumn = (callback) => {
 
 const ensureTeamLogoColumn = (callback) => {
   ensureColumn("teams", "logo_photo", "VARCHAR(255)", callback);
+};
+
+const ensureMatchManOfMatchColumn = (callback) => {
+  ensureColumn("matches", "man_of_match_player_id", "INT NULL", callback);
 };
 
 const ensureTeamPublicColumns = (callback) => {
@@ -287,23 +298,49 @@ router.get("/players", verifyToken, (req, res) => {
         return res.status(404).json({ message: "Equipe introuvable" });
       }
 
+      ensureMatchManOfMatchColumn((motmColumnErr) => {
+        if (motmColumnErr) {
+          return sendDbError(
+            res,
+            motmColumnErr,
+            "Impossible de preparer les hommes du match"
+          );
+        }
+
+      const seasonYear = parseSeasonYear(req.query.year);
+      const statsWhere = seasonYear
+        ? "WHERE m.team_id = ? AND YEAR(m.match_date) = ?"
+        : "WHERE m.team_id = ?";
+      const statsValues = seasonYear ? [team.id, seasonYear] : [team.id];
       const sql = `
         SELECT
           p.*,
           u.name,
           u.email,
-          COALESCE(SUM(ms.goals), 0) AS goals,
-          COALESCE(SUM(ms.assists), 0) AS assists,
-          COALESCE(SUM(ms.yellow_cards), 0) + COALESCE(SUM(ms.red_cards), 0) AS cards
+          COALESCE(s.goals, 0) AS goals,
+          COALESCE(s.assists, 0) AS assists,
+          COALESCE(s.yellow_cards, 0) + COALESCE(s.red_cards, 0) AS cards,
+          COALESCE(s.motm_count, 0) AS motm_count
         FROM players p
         JOIN users u ON u.id = p.user_id
-        LEFT JOIN match_stats ms ON ms.player_id = p.id
+        LEFT JOIN (
+          SELECT
+            ms.player_id,
+            COALESCE(SUM(ms.goals), 0) AS goals,
+            COALESCE(SUM(ms.assists), 0) AS assists,
+            COALESCE(SUM(ms.yellow_cards), 0) AS yellow_cards,
+            COALESCE(SUM(ms.red_cards), 0) AS red_cards,
+            COUNT(DISTINCT CASE WHEN m.man_of_match_player_id = ms.player_id THEN m.id END) AS motm_count
+          FROM match_stats ms
+          JOIN matches m ON m.id = ms.match_id
+          ${statsWhere}
+          GROUP BY ms.player_id
+        ) s ON s.player_id = p.id
         WHERE LOWER(p.team_name) = LOWER(?)
-        GROUP BY p.id, u.name, u.email
         ORDER BY u.name
       `;
 
-      db.query(sql, [team.team_name], (playersErr, players) => {
+      db.query(sql, [...statsValues, team.team_name], (playersErr, players) => {
         if (playersErr) {
           return sendDbError(res, playersErr, "Impossible de charger les joueurs");
         }
@@ -329,9 +366,9 @@ router.get("/players", verifyToken, (req, res) => {
           });
         });
       });
+      });
     });
   });
-});
 
 router.post("/logo", verifyToken, uploadTeamLogo, async (req, res) => {
   if (req.user.role !== "team") {
@@ -485,6 +522,20 @@ router.get("/public/:teamId", (req, res) => {
             return sendDbError(res, photoErr, "Impossible de preparer les photos");
           }
 
+          ensureMatchManOfMatchColumn((motmColumnErr) => {
+            if (motmColumnErr) {
+              return sendDbError(
+                res,
+                motmColumnErr,
+                "Impossible de preparer les hommes du match"
+              );
+            }
+
+          const seasonYear = parseSeasonYear(req.query.year);
+          const statsWhere = seasonYear
+            ? "WHERE m.team_id = ? AND YEAR(m.match_date) = ?"
+            : "WHERE m.team_id = ?";
+          const statsValues = seasonYear ? [team.id, seasonYear] : [team.id];
           const playersSql = `
             SELECT
               p.id,
@@ -493,34 +544,54 @@ router.get("/public/:teamId", (req, res) => {
               p.profile_photo,
               p.club_role,
               u.name,
-              COALESCE(SUM(ms.goals), 0) AS goals,
-              COALESCE(SUM(ms.assists), 0) AS assists,
-              COALESCE(SUM(ms.yellow_cards), 0) + COALESCE(SUM(ms.red_cards), 0) AS cards
+              COALESCE(s.goals, 0) AS goals,
+              COALESCE(s.assists, 0) AS assists,
+              COALESCE(s.yellow_cards, 0) + COALESCE(s.red_cards, 0) AS cards,
+              COALESCE(s.motm_count, 0) AS motm_count
             FROM players p
             JOIN users u ON u.id = p.user_id
-            LEFT JOIN match_stats ms ON ms.player_id = p.id
+            LEFT JOIN (
+              SELECT
+                ms.player_id,
+                COALESCE(SUM(ms.goals), 0) AS goals,
+                COALESCE(SUM(ms.assists), 0) AS assists,
+                COALESCE(SUM(ms.yellow_cards), 0) AS yellow_cards,
+                COALESCE(SUM(ms.red_cards), 0) AS red_cards,
+                COUNT(DISTINCT CASE WHEN m.man_of_match_player_id = ms.player_id THEN m.id END) AS motm_count
+              FROM match_stats ms
+              JOIN matches m ON m.id = ms.match_id
+              ${statsWhere}
+              GROUP BY ms.player_id
+            ) s ON s.player_id = p.id
             WHERE LOWER(p.team_name) = LOWER(?)
-            GROUP BY p.id, p.position, p.city, p.profile_photo, p.club_role, u.name
             ORDER BY goals DESC, u.name
           `;
 
-          db.query(playersSql, [team.team_name], (playersErr, players) => {
+          db.query(playersSql, [...statsValues, team.team_name], (playersErr, players) => {
             if (playersErr) {
               return sendDbError(res, playersErr, "Impossible de charger les joueurs");
             }
 
-            const matchesSql = `
-              SELECT id, type, match_date, created_at
-              FROM matches
-              WHERE team_id = ?
-              ORDER BY match_date DESC, id DESC
-              LIMIT 8
-            `;
+              const matchesSql = `
+                SELECT
+                  m.id,
+                  m.type,
+                  m.match_date,
+                  m.man_of_match_player_id,
+                  m.created_at,
+                  u.name AS man_of_match_name
+                FROM matches m
+                LEFT JOIN players p ON p.id = m.man_of_match_player_id
+                LEFT JOIN users u ON u.id = p.user_id
+                WHERE m.team_id = ?
+                ORDER BY m.match_date DESC, m.id DESC
+                LIMIT 8
+              `;
 
-            db.query(matchesSql, [team.id], (matchesErr, matches) => {
-              if (matchesErr) {
-                return sendDbError(res, matchesErr, "Impossible de charger les matchs");
-              }
+              db.query(matchesSql, [team.id], (matchesErr, matches) => {
+                if (matchesErr) {
+                  return sendDbError(res, matchesErr, "Impossible de charger les matchs");
+                }
 
               ensureTeamGalleryTable((galleryTableErr) => {
                 if (galleryTableErr) {
@@ -550,7 +621,9 @@ router.get("/public/:teamId", (req, res) => {
                   res.json({ team, players, matches, gallery });
                 });
               });
+              });
             });
+          });
           });
         });
       });
@@ -699,22 +772,32 @@ router.get("/matches", verifyToken, (req, res) => {
       return res.status(404).json({ message: "Equipe introuvable" });
     }
 
-    const sql = `
-      SELECT *
-      FROM matches
-      WHERE team_id = ?
-      ORDER BY match_date DESC, id DESC
-    `;
+      ensureMatchManOfMatchColumn((columnErr) => {
+        if (columnErr) {
+          return sendDbError(res, columnErr, "Impossible de preparer les matchs");
+        }
 
-    db.query(sql, [team.id], (err, matches) => {
-      if (err) {
-        return sendDbError(res, err, "Impossible de charger les matchs");
-      }
+        const sql = `
+          SELECT
+            m.*,
+            u.name AS man_of_match_name
+          FROM matches m
+          LEFT JOIN players p ON p.id = m.man_of_match_player_id
+          LEFT JOIN users u ON u.id = p.user_id
+          WHERE m.team_id = ?
+          ORDER BY m.match_date DESC, m.id DESC
+        `;
 
-      res.json(matches);
+        db.query(sql, [team.id], (err, matches) => {
+          if (err) {
+            return sendDbError(res, err, "Impossible de charger les matchs");
+          }
+
+          res.json(matches);
+        });
+      });
     });
   });
-});
 
 router.get("/gallery", verifyToken, (req, res) => {
   if (req.user.role !== "team") {
@@ -792,6 +875,20 @@ router.post("/gallery", verifyToken, uploadGalleryPhoto, async (req, res) => {
         return res.status(404).json({ message: "Equipe introuvable" });
       }
 
+      db.query(
+        "SELECT COUNT(*) AS total FROM team_gallery WHERE team_id = ?",
+        [team.id],
+        (countErr, countResult) => {
+          if (countErr) {
+            return sendDbError(res, countErr, "Impossible de verifier la galerie");
+          }
+
+          if (Number(countResult[0]?.total || 0) >= MAX_GALLERY_PHOTOS) {
+            return res.status(400).json({
+              message: `La galerie est limitee a ${MAX_GALLERY_PHOTOS} photos par club.`,
+            });
+          }
+
       const caption =
         typeof req.body.caption === "string"
           ? req.body.caption.trim().slice(0, 160)
@@ -816,6 +913,8 @@ router.post("/gallery", verifyToken, uploadGalleryPhoto, async (req, res) => {
           },
         });
       });
+        }
+      );
     });
   });
 });
@@ -1197,6 +1296,7 @@ router.post("/players/:playerId/stats", verifyToken, (req, res) => {
     assists = 0,
     yellow_cards = 0,
     red_cards = 0,
+    man_of_match_player_id,
   } = req.body;
 
   if (!match_id) {
@@ -1213,12 +1313,18 @@ router.post("/players/:playerId/stats", verifyToken, (req, res) => {
     }
 
     const checkSql = `
-      SELECT id
-      FROM players
-      WHERE id = ? AND LOWER(team_name) = LOWER(?)
+      SELECT p.id
+      FROM players p
+      JOIN matches m ON m.id = ?
+      WHERE p.id = ?
+        AND LOWER(p.team_name) = LOWER(?)
+        AND m.team_id = ?
     `;
 
-    db.query(checkSql, [req.params.playerId, team.team_name], (checkErr, result) => {
+    db.query(
+      checkSql,
+      [match_id, req.params.playerId, team.team_name, team.id],
+      (checkErr, result) => {
       if (checkErr) {
         return sendDbError(res, checkErr, "Impossible de verifier le joueur");
       }
@@ -1227,31 +1333,82 @@ router.post("/players/:playerId/stats", verifyToken, (req, res) => {
         return res.status(404).json({ message: "Joueur introuvable dans cette equipe" });
       }
 
-      const insertSql = `
-        INSERT INTO match_stats
-        (match_id, player_id, goals, assists, yellow_cards, red_cards)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `;
+      const saveStats = () => {
+        const insertSql = `
+          INSERT INTO match_stats
+          (match_id, player_id, goals, assists, yellow_cards, red_cards)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `;
 
-      db.query(
-        insertSql,
-        [
-          match_id,
-          req.params.playerId,
-          goals,
-          assists,
-          yellow_cards,
-          red_cards,
-        ],
-        (insertErr) => {
-          if (insertErr) {
-            return sendDbError(res, insertErr, "Impossible d'ajouter les stats");
+        db.query(
+          insertSql,
+          [
+            match_id,
+            req.params.playerId,
+            goals,
+            assists,
+            yellow_cards,
+            red_cards,
+          ],
+          (insertErr) => {
+            if (insertErr) {
+              return sendDbError(res, insertErr, "Impossible d'ajouter les stats");
+            }
+
+            res.json({ message: "Stats ajoutees" });
+          }
+        );
+      };
+
+      const motmPlayerId = Number(man_of_match_player_id);
+      if (!motmPlayerId) {
+        return saveStats();
+      }
+
+      ensureMatchManOfMatchColumn((columnErr) => {
+        if (columnErr) {
+          return sendDbError(
+            res,
+            columnErr,
+            "Impossible de preparer l'homme du match"
+          );
+        }
+
+        const motmSql = `
+          SELECT id
+          FROM players
+          WHERE id = ? AND LOWER(team_name) = LOWER(?)
+          LIMIT 1
+        `;
+
+        db.query(motmSql, [motmPlayerId, team.team_name], (motmErr, motmResult) => {
+          if (motmErr) {
+            return sendDbError(res, motmErr, "Impossible de verifier l'homme du match");
           }
 
-          res.json({ message: "Stats ajoutees" });
-        }
-      );
-    });
+          if (motmResult.length === 0) {
+            return res.status(400).json({ message: "Homme du match invalide" });
+          }
+
+          db.query(
+            "UPDATE matches SET man_of_match_player_id = ? WHERE id = ? AND team_id = ?",
+            [motmPlayerId, match_id, team.id],
+            (updateErr) => {
+              if (updateErr) {
+                return sendDbError(
+                  res,
+                  updateErr,
+                  "Impossible de mettre a jour l'homme du match"
+                );
+              }
+
+              saveStats();
+            }
+          );
+        });
+      });
+    }
+    );
   });
 });
 

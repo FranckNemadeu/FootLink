@@ -73,6 +73,7 @@ const ensureCoreTables = async () => {
       team_id INT NULL,
       type VARCHAR(50),
       match_date DATE,
+      man_of_match_player_id INT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -119,6 +120,7 @@ const ensureCoreTables = async () => {
   await ensureColumn("players", "no_team", "TINYINT(1) DEFAULT 0");
   await ensureColumn("players", "club_role", "VARCHAR(50) DEFAULT 'Joueur'");
   await ensureColumn("players", "profile_photo", "VARCHAR(255)");
+  await ensureColumn("matches", "man_of_match_player_id", "INT NULL");
   await ensureColumn("teams", "player_count", "INT DEFAULT 0");
   await ensureColumn("teams", "logo_photo", "VARCHAR(255)");
   await ensureColumn("team_invitations", "requested_by", "VARCHAR(20) DEFAULT 'team'");

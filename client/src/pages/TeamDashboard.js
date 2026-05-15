@@ -29,6 +29,7 @@ function TeamDashboard() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [rankingTab, setRankingTab] = useState("goals");
+  const [seasonYear, setSeasonYear] = useState("all");
   const [loading, setLoading] = useState(true);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
@@ -47,6 +48,7 @@ function TeamDashboard() {
     assists: 0,
     yellowCards: 0,
     redCards: 0,
+    motmPlayerId: "",
   });
 
   const { user, token, logout } = useAuth();
@@ -109,8 +111,17 @@ function TeamDashboard() {
   const rankingConfig = {
     goals: { label: "Buteurs", valueLabel: "buts", field: "goals" },
     assists: { label: "Passeurs", valueLabel: "passes", field: "assists" },
+    motm: { label: "Meilleurs joueurs", valueLabel: "fois homme du match", field: "motm_count" },
     cards: { label: "Cartons", valueLabel: "cartons", field: "cards" },
   };
+
+  const seasonYears = [
+    ...new Set(
+      matches
+        .map((match) => match.match_date?.slice(0, 4))
+        .filter(Boolean)
+    ),
+  ].sort((a, b) => Number(b) - Number(a));
 
   const rankingPlayers = [...players].sort((a, b) => {
     const field = rankingConfig[rankingTab].field;
@@ -136,7 +147,10 @@ function TeamDashboard() {
         formerMembersRes,
         galleryRes,
       ] = await Promise.all([
-        axios.get(`${API_URL}/api/team/players`, { headers }),
+        axios.get(`${API_URL}/api/team/players`, {
+          headers,
+          params: seasonYear === "all" ? {} : { year: seasonYear },
+        }),
         axios.get(`${API_URL}/api/team/invitations`, { headers }),
         axios.get(`${API_URL}/api/team/matches`, { headers }),
         axios.get(`${API_URL}/api/team/former-members`, { headers }),
@@ -155,7 +169,7 @@ function TeamDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [seasonYear, token]);
 
   useEffect(() => {
     fetchPlayers();
@@ -412,6 +426,7 @@ function TeamDashboard() {
           assists: statsForm.assists,
           yellow_cards: statsForm.yellowCards,
           red_cards: statsForm.redCards,
+          man_of_match_player_id: statsForm.motmPlayerId || null,
         },
         {
           headers: {
@@ -421,6 +436,14 @@ function TeamDashboard() {
       );
 
       showNotice("success", "Stats ajoutees.");
+      setStatsForm((currentForm) => ({
+        ...currentForm,
+        goals: 0,
+        assists: 0,
+        yellowCards: 0,
+        redCards: 0,
+        motmPlayerId: "",
+      }));
       fetchPlayers();
     } catch (err) {
       console.log(err);
@@ -587,6 +610,7 @@ function TeamDashboard() {
 
             <section className="profile-panel" id="galerie">
               <h3>Galerie du club</h3>
+              <p className="dashboard-message">Photos {gallery.length}/30</p>
 
               <div className="gallery-upload-panel">
                 <input
@@ -637,6 +661,22 @@ function TeamDashboard() {
 
             <section className="profile-panel" id="classements">
               <h3>Classements du club</h3>
+
+              <div className="season-filter">
+                <label htmlFor="team-season-filter">Saison</label>
+                <select
+                  id="team-season-filter"
+                  value={seasonYear}
+                  onChange={(e) => setSeasonYear(e.target.value)}
+                >
+                  <option value="all">Toutes les annees</option>
+                  {seasonYears.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <div className="ranking-tabs">
                 {Object.entries(rankingConfig).map(([key, config]) => (
@@ -817,7 +857,8 @@ function TeamDashboard() {
                           <p>Role club : {player.club_role || "Joueur"}</p>
                         <p>
                           Buts {player.goals || 0} - Passes{" "}
-                          {player.assists || 0} - Cartons {player.cards || 0}
+                          {player.assists || 0} - Hommes du match{" "}
+                          {player.motm_count || 0} - Cartons {player.cards || 0}
                         </p>
                         </div>
                       </div>
@@ -940,6 +981,23 @@ function TeamDashboard() {
                   {matches.map((match) => (
                     <option key={match.id} value={match.id}>
                       #{match.id} - {match.type} - {match.match_date?.slice(0, 10)}
+                      {match.man_of_match_name
+                        ? ` - HDM: ${match.man_of_match_name}`
+                        : ""}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={statsForm.motmPlayerId}
+                  onChange={(e) =>
+                    setStatsForm({ ...statsForm, motmPlayerId: e.target.value })
+                  }
+                >
+                  <option value="">Homme du match</option>
+                  {players.map((player) => (
+                    <option key={player.id} value={player.id}>
+                      {player.name}
                     </option>
                   ))}
                 </select>

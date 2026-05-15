@@ -103,6 +103,7 @@ const normalizePlayer = (player, index = 0) => ({
   assists: Number(player.assists) || 0,
   matches: Number(player.matches) || 0,
   cards: Number(player.cards) || 0,
+  motm_count: Number(player.motm_count) || 0,
   city: player.city || "Ville inconnue",
   profile_photo: player.profile_photo,
   bio: player.bio,
@@ -487,6 +488,7 @@ function PublicClub() {
   const [clubMatches, setClubMatches] = useState([]);
   const [clubGallery, setClubGallery] = useState([]);
   const [activeTab, setActiveTab] = useState("classements");
+  const [seasonYear, setSeasonYear] = useState("all");
   const [loading, setLoading] = useState(Boolean(Number(slug)));
   const { dashboardPath, isAuthenticated } = useAuth();
 
@@ -496,7 +498,9 @@ function PublicClub() {
     const loadClub = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${API_URL}/api/team/public/${slug}`);
+        const res = await axios.get(`${API_URL}/api/team/public/${slug}`, {
+          params: seasonYear === "all" ? {} : { year: seasonYear },
+        });
         setClub(normalizeClub(res.data.team));
         setClubPlayers((res.data.players || []).map(normalizePlayer));
         setClubMatches(res.data.matches || []);
@@ -509,7 +513,7 @@ function PublicClub() {
     };
 
     loadClub();
-  }, [slug]);
+  }, [seasonYear, slug]);
 
   const topScorer = [...clubPlayers].sort(
     (a, b) => b.goals - a.goals || a.name.localeCompare(b.name)
@@ -517,6 +521,16 @@ function PublicClub() {
   const topAssister = [...clubPlayers].sort(
     (a, b) => b.assists - a.assists || a.name.localeCompare(b.name)
   )[0];
+  const topMotm = [...clubPlayers].sort(
+    (a, b) => b.motm_count - a.motm_count || a.name.localeCompare(b.name)
+  )[0];
+  const seasonYears = [
+    ...new Set(
+      clubMatches
+        .map((match) => match.match_date?.slice(0, 4))
+        .filter(Boolean)
+    ),
+  ].sort((a, b) => Number(b) - Number(a));
   const rankingGroups = [
     {
       title: "Meilleurs buteurs",
@@ -532,6 +546,14 @@ function PublicClub() {
       suffix: "passes",
       players: [...clubPlayers].sort(
         (a, b) => b.assists - a.assists || a.name.localeCompare(b.name)
+      ),
+    },
+    {
+      title: "Meilleurs joueurs",
+      field: "motm_count",
+      suffix: "HDM",
+      players: [...clubPlayers].sort(
+        (a, b) => b.motm_count - a.motm_count || a.name.localeCompare(b.name)
       ),
     },
     {
@@ -606,6 +628,11 @@ function PublicClub() {
               <strong>{topAssister?.name || club.top_assister || "À définir"}</strong>
               <p>{topAssister?.assists ?? club.top_assister_assists} passes</p>
             </div>
+            <div>
+              <span>Meilleur joueur</span>
+              <strong>{topMotm?.name || "A definir"}</strong>
+              <p>{topMotm?.motm_count || 0} hommes du match</p>
+            </div>
           </div>
 
           <div className="public-bio-card">
@@ -645,6 +672,22 @@ function PublicClub() {
                 <p className="home-kicker">Stats publiques</p>
                 <h2>Classements du club</h2>
               </div>
+            </div>
+
+            <div className="season-filter">
+              <label htmlFor="public-season-filter">Saison</label>
+              <select
+                id="public-season-filter"
+                value={seasonYear}
+                onChange={(e) => setSeasonYear(e.target.value)}
+              >
+                <option value="all">Toutes les annees</option>
+                {seasonYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {clubPlayers.length > 0 ? (
@@ -699,6 +742,9 @@ function PublicClub() {
                     <div>
                       <h4>{match.type || "Match"}</h4>
                       <p>{match.match_date?.slice(0, 10) || "Date à définir"}</p>
+                      {match.man_of_match_name && (
+                        <p>Homme du match: {match.man_of_match_name}</p>
+                      )}
                     </div>
                   </div>
                 ))}
