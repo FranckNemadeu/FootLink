@@ -696,7 +696,7 @@ function PublicClub() {
                   <div className="public-ranking-card" key={group.field}>
                     <h3>{group.title}</h3>
                     <div className="ranking-list">
-                      {group.players.map((player, index) => (
+                      {group.players.slice(0, 2).map((player, index) => (
                         <Link
                           className="ranking-row public-ranking-row"
                           key={player.id}
@@ -714,6 +714,29 @@ function PublicClub() {
                         </Link>
                       ))}
                     </div>
+                    {group.players.length > 2 && (
+                      <details className="ranking-more">
+                        <summary>Voir le reste</summary>
+                        <div className="ranking-list">
+                          {group.players.slice(2).map((player, extraIndex) => (
+                            <Link
+                              className="ranking-row public-ranking-row"
+                              key={player.id}
+                              to={playerLink(player)}
+                            >
+                              <span className="rank-number">{extraIndex + 3}</span>
+                              <div>
+                                <strong>{player.name}</strong>
+                                <p>{player.position || "Poste inconnu"}</p>
+                              </div>
+                              <strong>
+                                {Number(player[group.field] || 0)} {group.suffix}
+                              </strong>
+                            </Link>
+                          ))}
+                        </div>
+                      </details>
+                    )}
                   </div>
                 ))}
               </div>

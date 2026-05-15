@@ -693,7 +693,7 @@ function TeamDashboard() {
 
               {rankingPlayers.length > 0 ? (
                 <div className="ranking-list">
-                  {rankingPlayers.map((player, index) => (
+                  {rankingPlayers.slice(0, 2).map((player, index) => (
                     <div className="ranking-row" key={player.id}>
                       <span className="rank-number">{index + 1}</span>
                       {renderPlayerIdentity(player)}
@@ -703,6 +703,23 @@ function TeamDashboard() {
                       </strong>
                     </div>
                   ))}
+                  {rankingPlayers.length > 2 && (
+                    <details className="ranking-more">
+                      <summary>Voir le reste du classement</summary>
+                      <div className="ranking-list">
+                        {rankingPlayers.slice(2).map((player, extraIndex) => (
+                          <div className="ranking-row" key={player.id}>
+                            <span className="rank-number">{extraIndex + 3}</span>
+                            {renderPlayerIdentity(player)}
+                            <strong>
+                              {Number(player[rankingConfig[rankingTab].field] || 0)}{" "}
+                              {rankingConfig[rankingTab].valueLabel}
+                            </strong>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
                 </div>
               ) : (
                 <p className="dashboard-message">
