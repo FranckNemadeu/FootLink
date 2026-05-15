@@ -24,6 +24,7 @@ function PlayerDashboard() {
     cards: 0,
   });
   const [clubs, setClubs] = useState([]);
+  const [playerClubs, setPlayerClubs] = useState([]);
   const [invitations, setInvitations] = useState([]);
   const [selectedClub, setSelectedClub] = useState("");
   const [clubLoading, setClubLoading] = useState(false);
@@ -80,11 +81,12 @@ function PlayerDashboard() {
           authorization: token,
         };
 
-        const [profileRes, statsRes, clubsRes, invitationsRes] = await Promise.all([
+        const [profileRes, statsRes, clubsRes, invitationsRes, playerClubsRes] = await Promise.all([
           axios.get(`${API_URL}/api/player`, { headers }),
           axios.get(`${API_URL}/api/player/stats`, { headers }),
           axios.get(`${API_URL}/api/team/list`),
           axios.get(`${API_URL}/api/player/invitations`, { headers }),
+          axios.get(`${API_URL}/api/player/clubs`, { headers }),
         ]);
 
         if (profileRes.data.message) {
@@ -110,6 +112,7 @@ function PlayerDashboard() {
 
         setClubs(clubsRes.data || []);
         setInvitations(invitationsRes.data || []);
+        setPlayerClubs(playerClubsRes.data || []);
       } catch (err) {
         console.log(err);
         setError("Impossible de charger le profil joueur.");
@@ -418,17 +421,36 @@ function PlayerDashboard() {
                       <span>Pied fort</span>
                       {player.preferred_foot || "Non renseigné"}
                     </p>
-                    <p>
-                      <span>Club</span>
-                      {player.team_name || "Aucun"}
-                    </p>
-                    <p className="profile-bio">
-                      <span>Bio</span>
-                      {player.bio || "Aucune bio pour le moment."}
-                    </p>
+                      <p>
+                        <span>Club</span>
+                        {player.team_name || "Aucun"}
+                      </p>
+                      <div className="club-change-section">
+                        <h4>Mes clubs</h4>
+                        {playerClubs.length === 0 ? (
+                          <p className="dashboard-message">Aucun club accepte pour le moment.</p>
+                        ) : (
+                          <div className="team-player-list">
+                            {playerClubs.map((club) => (
+                              <div className="team-player-card" key={club.id}>
+                                <div>
+                                  <h4>{club.team_name}</h4>
+                                  <p>
+                                    {club.city || "Ville inconnue"} - {club.club_role || "Joueur"}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <p className="profile-bio">
+                        <span>Bio</span>
+                        {player.bio || "Aucune bio pour le moment."}
+                      </p>
 
-                    <div className="club-change-section" id="clubs">
-                      <h4>Changer de club</h4>
+                      <div className="club-change-section" id="clubs">
+                      <h4>Demander a rejoindre un autre club</h4>
                       <div className="club-selection">
                         <select
                           value={selectedClub}

@@ -64,6 +64,8 @@ router.get("/search", verifyToken, playerController.searchPlayers);
 // récupérer profil joueur
 router.get("/stats", verifyToken, playerController.getPlayerStats);
 
+router.get("/clubs", verifyToken, playerController.getPlayerClubs);
+
 router.post(
   "/photo",
   verifyToken,

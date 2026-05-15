@@ -112,6 +112,19 @@ const ensureCoreTables = async () => {
     )
   `);
 
+  await runQuery(`
+    CREATE TABLE IF NOT EXISTS player_team_memberships (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      player_id INT NOT NULL,
+      team_id INT NOT NULL,
+      club_role VARCHAR(50) DEFAULT 'Joueur',
+      active TINYINT(1) DEFAULT 1,
+      joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      left_at DATETIME NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   await ensureColumn("users", "role", "VARCHAR(20) DEFAULT 'player'");
   await ensureColumn("users", "email_verified", "TINYINT(1) DEFAULT 1");
   await ensureColumn("users", "email_verification_token", "VARCHAR(128)");
@@ -125,6 +138,10 @@ const ensureCoreTables = async () => {
   await ensureColumn("teams", "logo_photo", "VARCHAR(255)");
   await ensureColumn("team_invitations", "requested_by", "VARCHAR(20) DEFAULT 'team'");
   await ensureColumn("team_gallery", "caption", "VARCHAR(160)");
+  await ensureColumn("player_team_memberships", "club_role", "VARCHAR(50) DEFAULT 'Joueur'");
+  await ensureColumn("player_team_memberships", "active", "TINYINT(1) DEFAULT 1");
+  await ensureColumn("player_team_memberships", "joined_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+  await ensureColumn("player_team_memberships", "left_at", "DATETIME NULL");
 };
 
 module.exports = {

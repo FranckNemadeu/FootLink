@@ -89,6 +89,79 @@ const ensureTeamInvitationsTable = (callback) => {
   });
 };
 
+const ensurePlayerTeamMembershipsTable = (callback) => {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS player_team_memberships (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      player_id INT NOT NULL,
+      team_id INT NOT NULL,
+      club_role VARCHAR(50) DEFAULT 'Joueur',
+      active TINYINT(1) DEFAULT 1,
+      joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      left_at DATETIME NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
+
+  db.query(sql, (err) => {
+    if (err) return callback(err);
+
+    const syncSql = `
+      INSERT INTO player_team_memberships (player_id, team_id, club_role, active)
+      SELECT p.id, t.id, COALESCE(p.club_role, 'Joueur'), 1
+      FROM players p
+      JOIN teams t ON LOWER(t.team_name) = LOWER(p.team_name)
+      WHERE p.team_name IS NOT NULL
+        AND p.team_name <> ''
+        AND NOT EXISTS (
+          SELECT 1
+          FROM player_team_memberships ptm
+          WHERE ptm.player_id = p.id AND ptm.team_id = t.id
+        )
+    `;
+
+    db.query(syncSql, callback);
+  });
+};
+
+const addPlayerMembership = (teamId, playerId, clubRole, callback) => {
+  ensurePlayerTeamMembershipsTable((tableErr) => {
+    if (tableErr) return callback(tableErr);
+
+    const existingSql = `
+      SELECT id
+      FROM player_team_memberships
+      WHERE team_id = ? AND player_id = ?
+      LIMIT 1
+    `;
+
+    db.query(existingSql, [teamId, playerId], (existingErr, result) => {
+      if (existingErr) return callback(existingErr);
+
+      if (result.length > 0) {
+        return db.query(
+          `
+            UPDATE player_team_memberships
+            SET active = 1, club_role = ?, left_at = NULL
+            WHERE id = ?
+          `,
+          [clubRole || "Joueur", result[0].id],
+          callback
+        );
+      }
+
+      db.query(
+        `
+          INSERT INTO player_team_memberships (team_id, player_id, club_role, active)
+          VALUES (?, ?, ?, 1)
+        `,
+        [teamId, playerId, clubRole || "Joueur"],
+        callback
+      );
+    });
+  });
+};
+
 const ensureTeamPlayerCountColumn = (callback) => {
   const checkSql = `
     SELECT COLUMN_NAME
@@ -116,13 +189,16 @@ const refreshTeamPlayerCounts = (callback) => {
     const sql = `
       UPDATE teams t
       SET player_count = (
-        SELECT COUNT(*)
-        FROM players p
-        WHERE LOWER(p.team_name) = LOWER(t.team_name)
+        SELECT COUNT(DISTINCT ptm.player_id)
+        FROM player_team_memberships ptm
+        WHERE ptm.team_id = t.id AND ptm.active = 1
       )
     `;
 
-    db.query(sql, callback);
+    ensurePlayerTeamMembershipsTable((membershipErr) => {
+      if (membershipErr) return callback(membershipErr);
+      db.query(sql, callback);
+    });
   });
 };
 
@@ -270,6 +346,47 @@ exports.getPlayer = (req, res) => {
     }
 
     res.json(result[0]);
+  });
+};
+
+exports.getPlayerClubs = (req, res) => {
+  getPlayerForUser(req.user.id, (playerErr, player) => {
+    if (playerErr) {
+      return sendDbError(res, playerErr, "Impossible de charger le joueur");
+    }
+
+    if (!player) {
+      return res.status(404).json({ message: "Profil joueur introuvable" });
+    }
+
+    ensurePlayerTeamMembershipsTable((tableErr) => {
+      if (tableErr) {
+        return sendDbError(res, tableErr, "Impossible de preparer tes clubs");
+      }
+
+      const sql = `
+        SELECT
+          t.id,
+          t.team_name,
+          t.city,
+          t.level,
+          t.category,
+          ptm.club_role,
+          ptm.joined_at
+        FROM player_team_memberships ptm
+        JOIN teams t ON t.id = ptm.team_id
+        WHERE ptm.player_id = ? AND ptm.active = 1
+        ORDER BY ptm.joined_at DESC, t.team_name
+      `;
+
+      db.query(sql, [player.id], (err, clubs) => {
+        if (err) {
+          return sendDbError(res, err, "Impossible de charger tes clubs");
+        }
+
+        res.json(clubs);
+      });
+    });
   });
 };
 
@@ -474,17 +591,35 @@ exports.changePlayerTeam = (req, res) => {
         return res.status(404).json({ message: "Profil joueur introuvable" });
       }
 
-      if (
-        player.team_name &&
-        player.team_name.toLowerCase() === team.team_name.toLowerCase()
-      ) {
-        return res.status(400).json({ message: "Tu es deja dans ce club" });
-      }
-
       ensureTeamInvitationsTable((tableErr) => {
         if (tableErr) {
           return sendDbError(res, tableErr, "Impossible de preparer les demandes");
         }
+
+        ensurePlayerTeamMembershipsTable((membershipTableErr) => {
+          if (membershipTableErr) {
+            return sendDbError(
+              res,
+              membershipTableErr,
+              "Impossible de verifier tes clubs"
+            );
+          }
+
+        const membershipSql = `
+          SELECT id
+          FROM player_team_memberships
+          WHERE team_id = ? AND player_id = ? AND active = 1
+          LIMIT 1
+        `;
+
+        db.query(membershipSql, [team.id, player.id], (membershipErr, memberships) => {
+          if (membershipErr) {
+            return sendDbError(res, membershipErr, "Impossible de verifier tes clubs");
+          }
+
+          if (memberships.length > 0) {
+            return res.status(400).json({ message: "Tu es deja dans ce club" });
+          }
 
         const existingSql = `
           SELECT id
@@ -517,6 +652,8 @@ exports.changePlayerTeam = (req, res) => {
               team_name: team.team_name,
             });
           });
+        });
+        });
         });
       });
     });
@@ -601,11 +738,20 @@ exports.acceptTeamInvitation = (req, res) => {
             return sendDbError(res, roleColumnErr, "Impossible de preparer le role");
           }
 
-          const updatePlayerSql = `
-            UPDATE players
-            SET team_name = ?, no_team = 0, club_role = 'Joueur'
-            WHERE id = ?
-          `;
+          addPlayerMembership(invitation.team_id, player.id, "Joueur", (membershipErr) => {
+            if (membershipErr) {
+              return sendDbError(res, membershipErr, "Impossible de rejoindre le club");
+            }
+
+            const updatePlayerSql = `
+              UPDATE players
+              SET team_name = CASE
+                    WHEN team_name IS NULL OR team_name = '' THEN ?
+                    ELSE team_name
+                  END,
+                  no_team = 0
+              WHERE id = ?
+            `;
 
           db.query(updatePlayerSql, [invitation.team_name, player.id], (updateErr) => {
           if (updateErr) {
@@ -650,6 +796,7 @@ exports.acceptTeamInvitation = (req, res) => {
               });
             }
           );
+          });
           });
         });
       });

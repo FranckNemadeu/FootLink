@@ -132,6 +132,89 @@ const ensureTeamInvitationsTable = (callback) => {
   });
 };
 
+const ensurePlayerTeamMembershipsTable = (callback) => {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS player_team_memberships (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      player_id INT NOT NULL,
+      team_id INT NOT NULL,
+      club_role VARCHAR(50) DEFAULT 'Joueur',
+      active TINYINT(1) DEFAULT 1,
+      joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      left_at DATETIME NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
+
+  db.query(sql, (err) => {
+    if (err) return callback(err);
+
+    ensureColumn("player_team_memberships", "club_role", "VARCHAR(50) DEFAULT 'Joueur'", (roleErr) => {
+      if (roleErr) return callback(roleErr);
+      ensureColumn("player_team_memberships", "active", "TINYINT(1) DEFAULT 1", (activeErr) => {
+        if (activeErr) return callback(activeErr);
+        ensureColumn("player_team_memberships", "left_at", "DATETIME NULL", (leftErr) => {
+          if (leftErr) return callback(leftErr);
+
+          const syncSql = `
+            INSERT INTO player_team_memberships (player_id, team_id, club_role, active)
+            SELECT p.id, t.id, COALESCE(p.club_role, 'Joueur'), 1
+            FROM players p
+            JOIN teams t ON LOWER(t.team_name) = LOWER(p.team_name)
+            WHERE p.team_name IS NOT NULL
+              AND p.team_name <> ''
+              AND NOT EXISTS (
+                SELECT 1
+                FROM player_team_memberships ptm
+                WHERE ptm.player_id = p.id AND ptm.team_id = t.id
+              )
+          `;
+
+          db.query(syncSql, callback);
+        });
+      });
+    });
+  });
+};
+
+const addPlayerMembership = (teamId, playerId, clubRole, callback) => {
+  ensurePlayerTeamMembershipsTable((tableErr) => {
+    if (tableErr) return callback(tableErr);
+
+    const existingSql = `
+      SELECT id, active
+      FROM player_team_memberships
+      WHERE team_id = ? AND player_id = ?
+      LIMIT 1
+    `;
+
+    db.query(existingSql, [teamId, playerId], (existingErr, result) => {
+      if (existingErr) return callback(existingErr);
+
+      if (result.length > 0) {
+        return db.query(
+          `
+            UPDATE player_team_memberships
+            SET active = 1, club_role = ?, left_at = NULL
+            WHERE id = ?
+          `,
+          [clubRole || "Joueur", result[0].id],
+          callback
+        );
+      }
+
+      db.query(
+        `
+          INSERT INTO player_team_memberships (team_id, player_id, club_role, active)
+          VALUES (?, ?, ?, 1)
+        `,
+        [teamId, playerId, clubRole || "Joueur"],
+        callback
+      );
+    });
+  });
+};
+
 const ensureTeamPlayerCountColumn = (callback) => {
   ensureColumn("teams", "player_count", "INT DEFAULT 0", callback);
 };
@@ -150,7 +233,10 @@ const ensureTeamPublicColumns = (callback) => {
 
     ensureTeamLogoColumn((logoErr) => {
       if (logoErr) return callback(logoErr);
-      refreshTeamPlayerCounts(callback);
+      ensurePlayerTeamMembershipsTable((membershipErr) => {
+        if (membershipErr) return callback(membershipErr);
+        refreshTeamPlayerCounts(callback);
+      });
     });
   });
 };
@@ -200,16 +286,20 @@ const refreshTeamPlayerCounts = (callback) => {
   ensureTeamPlayerCountColumn((columnErr) => {
     if (columnErr) return callback(columnErr);
 
-    const sql = `
-      UPDATE teams t
-      SET player_count = (
-        SELECT COUNT(*)
-        FROM players p
-        WHERE LOWER(p.team_name) = LOWER(t.team_name)
-      )
-    `;
+    ensurePlayerTeamMembershipsTable((membershipErr) => {
+      if (membershipErr) return callback(membershipErr);
 
-    db.query(sql, callback);
+      const sql = `
+        UPDATE teams t
+        SET player_count = (
+          SELECT COUNT(DISTINCT ptm.player_id)
+          FROM player_team_memberships ptm
+          WHERE ptm.team_id = t.id AND ptm.active = 1
+        )
+      `;
+
+      db.query(sql, callback);
+    });
   });
 };
 
@@ -237,29 +327,32 @@ const teamPublicSelect = `
     COUNT(DISTINCT ms.match_id) AS matches,
     (
       SELECT u2.name
-      FROM players p2
-      JOIN users u2 ON u2.id = p2.user_id
-      LEFT JOIN match_stats ms2 ON ms2.player_id = p2.id
-      WHERE LOWER(p2.team_name) = LOWER(t.team_name)
+          FROM player_team_memberships ptm2
+          JOIN players p2 ON p2.id = ptm2.player_id
+          JOIN users u2 ON u2.id = p2.user_id
+          LEFT JOIN match_stats ms2 ON ms2.player_id = p2.id
+          WHERE ptm2.team_id = t.id AND ptm2.active = 1
       GROUP BY p2.id, u2.name
       ORDER BY COALESCE(SUM(ms2.goals), 0) DESC, u2.name
       LIMIT 1
     ) AS top_scorer,
     (
       SELECT COALESCE(SUM(ms2.goals), 0)
-      FROM players p2
+      FROM player_team_memberships ptm2
+      JOIN players p2 ON p2.id = ptm2.player_id
       LEFT JOIN match_stats ms2 ON ms2.player_id = p2.id
-      WHERE LOWER(p2.team_name) = LOWER(t.team_name)
+      WHERE ptm2.team_id = t.id AND ptm2.active = 1
       GROUP BY p2.id
       ORDER BY COALESCE(SUM(ms2.goals), 0) DESC, p2.id
       LIMIT 1
     ) AS top_scorer_goals,
     (
       SELECT u3.name
-      FROM players p3
+      FROM player_team_memberships ptm3
+      JOIN players p3 ON p3.id = ptm3.player_id
       JOIN users u3 ON u3.id = p3.user_id
       LEFT JOIN match_stats ms3 ON ms3.player_id = p3.id
-      WHERE LOWER(p3.team_name) = LOWER(t.team_name)
+      WHERE ptm3.team_id = t.id AND ptm3.active = 1
       GROUP BY p3.id, u3.name
       ORDER BY COALESCE(SUM(ms3.assists), 0) DESC, u3.name
       LIMIT 1
@@ -267,15 +360,17 @@ const teamPublicSelect = `
     ,
     (
       SELECT COALESCE(SUM(ms3.assists), 0)
-      FROM players p3
+      FROM player_team_memberships ptm3
+      JOIN players p3 ON p3.id = ptm3.player_id
       LEFT JOIN match_stats ms3 ON ms3.player_id = p3.id
-      WHERE LOWER(p3.team_name) = LOWER(t.team_name)
+      WHERE ptm3.team_id = t.id AND ptm3.active = 1
       GROUP BY p3.id
       ORDER BY COALESCE(SUM(ms3.assists), 0) DESC, p3.id
       LIMIT 1
     ) AS top_assister_assists
   FROM teams t
-  LEFT JOIN players p ON LOWER(p.team_name) = LOWER(t.team_name)
+  LEFT JOIN player_team_memberships ptm ON ptm.team_id = t.id AND ptm.active = 1
+  LEFT JOIN players p ON p.id = ptm.player_id
   LEFT JOIN match_stats ms ON ms.player_id = p.id
 `;
 
@@ -307,6 +402,15 @@ router.get("/players", verifyToken, (req, res) => {
           );
         }
 
+      ensurePlayerTeamMembershipsTable((membershipTableErr) => {
+        if (membershipTableErr) {
+          return sendDbError(
+            res,
+            membershipTableErr,
+            "Impossible de preparer les clubs du joueur"
+          );
+        }
+
       const seasonYear = parseSeasonYear(req.query.year);
       const statsWhere = seasonYear
         ? "WHERE m.team_id = ? AND YEAR(m.match_date) = ?"
@@ -320,8 +424,10 @@ router.get("/players", verifyToken, (req, res) => {
           COALESCE(s.goals, 0) AS goals,
           COALESCE(s.assists, 0) AS assists,
           COALESCE(s.yellow_cards, 0) + COALESCE(s.red_cards, 0) AS cards,
-          COALESCE(s.motm_count, 0) AS motm_count
-        FROM players p
+            COALESCE(s.motm_count, 0) AS motm_count,
+            ptm.club_role AS club_role
+        FROM player_team_memberships ptm
+        JOIN players p ON p.id = ptm.player_id
         JOIN users u ON u.id = p.user_id
         LEFT JOIN (
           SELECT
@@ -336,11 +442,11 @@ router.get("/players", verifyToken, (req, res) => {
           ${statsWhere}
           GROUP BY ms.player_id
         ) s ON s.player_id = p.id
-        WHERE LOWER(p.team_name) = LOWER(?)
+        WHERE ptm.team_id = ? AND ptm.active = 1
         ORDER BY u.name
       `;
 
-      db.query(sql, [...statsValues, team.team_name], (playersErr, players) => {
+      db.query(sql, [...statsValues, team.id], (playersErr, players) => {
         if (playersErr) {
           return sendDbError(res, playersErr, "Impossible de charger les joueurs");
         }
@@ -542,13 +648,14 @@ router.get("/public/:teamId", (req, res) => {
               p.position,
               p.city,
               p.profile_photo,
-              p.club_role,
+              COALESCE(ptm.club_role, p.club_role) AS club_role,
               u.name,
               COALESCE(s.goals, 0) AS goals,
               COALESCE(s.assists, 0) AS assists,
               COALESCE(s.yellow_cards, 0) + COALESCE(s.red_cards, 0) AS cards,
               COALESCE(s.motm_count, 0) AS motm_count
-            FROM players p
+            FROM player_team_memberships ptm
+            JOIN players p ON p.id = ptm.player_id
             JOIN users u ON u.id = p.user_id
             LEFT JOIN (
               SELECT
@@ -563,11 +670,11 @@ router.get("/public/:teamId", (req, res) => {
               ${statsWhere}
               GROUP BY ms.player_id
             ) s ON s.player_id = p.id
-            WHERE LOWER(p.team_name) = LOWER(?)
+            WHERE ptm.team_id = ? AND ptm.active = 1
             ORDER BY goals DESC, u.name
           `;
 
-          db.query(playersSql, [...statsValues, team.team_name], (playersErr, players) => {
+          db.query(playersSql, [...statsValues, team.id], (playersErr, players) => {
             if (playersErr) {
               return sendDbError(res, playersErr, "Impossible de charger les joueurs");
             }
@@ -650,8 +757,27 @@ router.post("/players/:playerId/invite", verifyToken, (req, res) => {
         return res.status(404).json({ message: "Equipe introuvable" });
       }
 
-      const checkPlayerSql = "SELECT id, team_name FROM players WHERE id = ? LIMIT 1";
-      db.query(checkPlayerSql, [req.params.playerId], (playerErr, playerResult) => {
+      ensurePlayerTeamMembershipsTable((membershipTableErr) => {
+        if (membershipTableErr) {
+          return sendDbError(
+            res,
+            membershipTableErr,
+            "Impossible de verifier les clubs du joueur"
+          );
+        }
+
+      const checkPlayerSql = `
+        SELECT
+          p.id,
+          p.team_name,
+          ptm.id AS membership_id
+        FROM players p
+        LEFT JOIN player_team_memberships ptm
+          ON ptm.player_id = p.id AND ptm.team_id = ? AND ptm.active = 1
+        WHERE p.id = ?
+        LIMIT 1
+      `;
+      db.query(checkPlayerSql, [team.id, req.params.playerId], (playerErr, playerResult) => {
         if (playerErr) {
           return sendDbError(res, playerErr, "Impossible de verifier le joueur");
         }
@@ -660,10 +786,7 @@ router.post("/players/:playerId/invite", verifyToken, (req, res) => {
           return res.status(404).json({ message: "Joueur introuvable" });
         }
 
-        if (
-          playerResult[0].team_name &&
-          playerResult[0].team_name.toLowerCase() === team.team_name.toLowerCase()
-        ) {
+        if (playerResult[0].membership_id) {
           return res.status(400).json({ message: "Ce joueur est deja dans ton equipe" });
         }
 
@@ -708,6 +831,7 @@ router.post("/players/:playerId/invite", verifyToken, (req, res) => {
             });
           }
         );
+      });
       });
     });
   });
@@ -1013,12 +1137,16 @@ router.get("/former-members", verifyToken, (req, res) => {
         JOIN players p ON p.id = ms.player_id
         JOIN users u ON u.id = p.user_id
         WHERE m.team_id = ?
-          AND (p.team_name IS NULL OR LOWER(p.team_name) <> LOWER(?))
+          AND NOT EXISTS (
+            SELECT 1
+            FROM player_team_memberships ptm
+            WHERE ptm.player_id = p.id AND ptm.team_id = ? AND ptm.active = 1
+          )
         GROUP BY p.id, p.position, p.city, p.profile_photo, p.club_role, u.name
         ORDER BY goals DESC, assists DESC, u.name
       `;
 
-      db.query(sql, [team.id, team.team_name], (err, formerMembers) => {
+      db.query(sql, [team.id, team.id], (err, formerMembers) => {
         if (err) {
           return sendDbError(res, err, "Impossible de charger les anciens membres");
         }
@@ -1105,16 +1233,25 @@ router.post("/invitations/:invitationId/accept", verifyToken, (req, res) => {
         }
 
         const invitation = result[0];
-        const updatePlayerSql = `
-          UPDATE players
-          SET team_name = ?, no_team = 0, club_role = 'Joueur'
-          WHERE id = ?
-        `;
-
-        db.query(updatePlayerSql, [team.team_name, invitation.player_id], (playerErr) => {
-          if (playerErr) {
-            return sendDbError(res, playerErr, "Impossible d'ajouter le joueur");
+        addPlayerMembership(team.id, invitation.player_id, "Joueur", (membershipErr) => {
+          if (membershipErr) {
+            return sendDbError(res, membershipErr, "Impossible d'ajouter le joueur");
           }
+
+          const updatePlayerSql = `
+            UPDATE players
+            SET team_name = CASE
+                  WHEN team_name IS NULL OR team_name = '' THEN ?
+                  ELSE team_name
+                END,
+                no_team = 0
+            WHERE id = ?
+          `;
+
+          db.query(updatePlayerSql, [team.team_name, invitation.player_id], (playerErr) => {
+            if (playerErr) {
+              return sendDbError(res, playerErr, "Impossible de mettre a jour le joueur");
+            }
 
           const updateInviteSql = `
             UPDATE team_invitations
@@ -1156,6 +1293,7 @@ router.post("/invitations/:invitationId/accept", verifyToken, (req, res) => {
               });
             }
           );
+          });
         });
       });
     });
@@ -1210,13 +1348,13 @@ router.delete("/players/:playerId", verifyToken, (req, res) => {
       return res.status(404).json({ message: "Equipe introuvable" });
     }
 
-    const sql = `
-      UPDATE players
-      SET team_name = NULL, no_team = 1
-      WHERE id = ? AND LOWER(team_name) = LOWER(?)
-    `;
+      const sql = `
+        UPDATE player_team_memberships
+        SET active = 0, left_at = NOW()
+        WHERE player_id = ? AND team_id = ? AND active = 1
+      `;
 
-    db.query(sql, [req.params.playerId, team.team_name], (err, result) => {
+    db.query(sql, [req.params.playerId, team.id], (err, result) => {
       if (err) {
         return sendDbError(res, err, "Impossible de retirer le joueur");
       }
@@ -1224,6 +1362,29 @@ router.delete("/players/:playerId", verifyToken, (req, res) => {
       if (result.affectedRows === 0) {
         return res.status(404).json({ message: "Joueur introuvable dans cette equipe" });
       }
+
+      const clearLegacySql = `
+        UPDATE players p
+        SET p.team_name = (
+              SELECT t.team_name
+              FROM player_team_memberships ptm
+              JOIN teams t ON t.id = ptm.team_id
+              WHERE ptm.player_id = p.id AND ptm.active = 1
+              ORDER BY ptm.joined_at ASC, ptm.id ASC
+              LIMIT 1
+            ),
+            p.no_team = NOT EXISTS (
+              SELECT 1
+              FROM player_team_memberships ptm2
+              WHERE ptm2.player_id = p.id AND ptm2.active = 1
+            )
+        WHERE p.id = ?
+      `;
+
+      db.query(clearLegacySql, [req.params.playerId], (legacyErr) => {
+        if (legacyErr) {
+          return sendDbError(res, legacyErr, "Impossible de mettre a jour le joueur");
+        }
 
       refreshTeamPlayerCounts((countErr) => {
         if (countErr) {
@@ -1235,6 +1396,8 @@ router.delete("/players/:playerId", verifyToken, (req, res) => {
         }
 
         res.json({ message: "Joueur retire de l'equipe" });
+      });
+      });
       });
     });
   });
@@ -1265,12 +1428,12 @@ router.put("/players/:playerId/role", verifyToken, (req, res) => {
       }
 
       const sql = `
-        UPDATE players
+        UPDATE player_team_memberships
         SET club_role = ?
-        WHERE id = ? AND LOWER(team_name) = LOWER(?)
+        WHERE player_id = ? AND team_id = ? AND active = 1
       `;
 
-      db.query(sql, [club_role, req.params.playerId, team.team_name], (err, result) => {
+      db.query(sql, [club_role, req.params.playerId, team.id], (err, result) => {
         if (err) {
           return sendDbError(res, err, "Impossible de mettre a jour le role");
         }
@@ -1314,16 +1477,18 @@ router.post("/players/:playerId/stats", verifyToken, (req, res) => {
 
     const checkSql = `
       SELECT p.id
-      FROM players p
+      FROM player_team_memberships ptm
+      JOIN players p ON p.id = ptm.player_id
       JOIN matches m ON m.id = ?
-      WHERE p.id = ?
-        AND LOWER(p.team_name) = LOWER(?)
+      WHERE ptm.player_id = ?
+        AND ptm.team_id = ?
+        AND ptm.active = 1
         AND m.team_id = ?
     `;
 
     db.query(
       checkSql,
-      [match_id, req.params.playerId, team.team_name, team.id],
+      [match_id, req.params.playerId, team.id, team.id],
       (checkErr, result) => {
       if (checkErr) {
         return sendDbError(res, checkErr, "Impossible de verifier le joueur");
@@ -1375,13 +1540,13 @@ router.post("/players/:playerId/stats", verifyToken, (req, res) => {
         }
 
         const motmSql = `
-          SELECT id
-          FROM players
-          WHERE id = ? AND LOWER(team_name) = LOWER(?)
+          SELECT player_id AS id
+          FROM player_team_memberships
+          WHERE player_id = ? AND team_id = ? AND active = 1
           LIMIT 1
         `;
 
-        db.query(motmSql, [motmPlayerId, team.team_name], (motmErr, motmResult) => {
+        db.query(motmSql, [motmPlayerId, team.id], (motmErr, motmResult) => {
           if (motmErr) {
             return sendDbError(res, motmErr, "Impossible de verifier l'homme du match");
           }
@@ -1461,6 +1626,9 @@ router.delete("/account", verifyToken, (req, res) => {
           db.rollback(() => res.status(500).json({ message }));
         };
 
+        db.query("DELETE FROM player_team_memberships WHERE team_id = ?", [team.id], (membershipErr) => {
+          if (membershipErr) return rollback("Impossible de supprimer les appartenances");
+
         db.query("DELETE FROM team_gallery WHERE team_id = ?", [team.id], (galleryErr) => {
           if (galleryErr) return rollback("Impossible de supprimer la galerie");
 
@@ -1509,6 +1677,7 @@ router.delete("/account", verifyToken, (req, res) => {
               });
             }
           );
+        });
         });
         });
       });
