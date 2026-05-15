@@ -3138,3 +3138,607 @@ button:hover,
     transition: none;
   }
 }
+
+/* FootLink design system - dark sport premium */
+:root {
+  --bg: #050608;
+  --panel: rgba(15, 17, 23, 0.92);
+  --panel-strong: #11131a;
+  --line: rgba(255, 255, 255, 0.1);
+  --text: #f7f8fb;
+  --muted: #a8afba;
+  --green: #ef233c;
+  --green-soft: rgba(239, 35, 60, 0.12);
+  --blue: #dce2ea;
+  --blue-soft: rgba(255, 255, 255, 0.08);
+  --gold: #ef233c;
+  --danger: #ff4d64;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+  --ft-red: #ef233c;
+  --ft-red-dark: #9f1028;
+  --ft-red-soft: rgba(239, 35, 60, 0.14);
+  --ft-white-soft: rgba(255, 255, 255, 0.075);
+  --ft-card: rgba(16, 18, 24, 0.88);
+  --ft-card-hover: rgba(20, 23, 31, 0.94);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background:
+    radial-gradient(circle at 16% 10%, rgba(239, 35, 60, 0.16), transparent 28%),
+    linear-gradient(180deg, #06070a 0%, #0b0d12 48%, #050608 100%);
+  color: var(--text);
+  font-family: var(--font-main);
+}
+
+.home,
+.dashboard-page,
+.login-page {
+  background:
+    radial-gradient(circle at 78% 8%, rgba(239, 35, 60, 0.12), transparent 30%),
+    linear-gradient(180deg, #07080d 0%, #0d0f15 52%, #050608 100%);
+}
+
+.home::before,
+.dashboard-page::before,
+.login-page::before {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: 0.34;
+}
+
+.navbar,
+.dashboard-navbar {
+  border-bottom: 1px solid var(--line);
+  background: rgba(5, 6, 8, 0.9);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(18px);
+}
+
+.dashboard-navbar {
+  border-radius: 0 0 8px 8px;
+}
+
+.nav-menu,
+.public-club-tabs,
+.ranking-tabs,
+.dashboard-nav-links {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.nav-menu a,
+.dashboard-nav-links a,
+.dashboard-nav-links button,
+.public-club-tabs button,
+.ranking-tabs button {
+  border-radius: 8px;
+  color: #dfe4ea;
+  font-weight: 800;
+  transition: transform 0.22s, background 0.22s, color 0.22s, border-color 0.22s;
+}
+
+.nav-menu a:hover,
+.dashboard-nav-links a:hover,
+.dashboard-nav-links button:hover,
+.public-club-tabs button:hover,
+.ranking-tabs button:hover {
+  background: var(--ft-red-soft);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.brand-link,
+.dashboard-navbar h1,
+.home-kicker,
+.dashboard-label {
+  color: #ffffff;
+}
+
+.home-kicker,
+.dashboard-label,
+.feature-label,
+.live-pill,
+.hero-trust-row span,
+.step-card span,
+.audience-card span {
+  letter-spacing: 0.08em;
+}
+
+.brand-logo-image {
+  filter: drop-shadow(0 12px 20px rgba(239, 35, 60, 0.16));
+}
+
+.home-hero-copy h1,
+.home-hero-copy h2,
+.section-heading h2,
+.dashboard-header h2,
+.public-detail h2,
+.login-form h2,
+.profile-panel h3,
+.stats-panel h3,
+.public-bio-card h3,
+.public-ranking-card h3,
+.team-player-card h4,
+.club-card h3,
+.experience-card h3,
+.step-card h3,
+.audience-card h3,
+.stats-command-card h2,
+.scouting-card h2 {
+  color: var(--text);
+  letter-spacing: 0;
+}
+
+.home-hero-copy > p:not(.home-kicker),
+.public-detail p,
+.public-lead,
+.club-card p,
+.team-player-card p,
+.profile-identity p,
+.profile-info span,
+.dashboard-message,
+.experience-card p,
+.step-card p,
+.audience-card p,
+.scouting-row small,
+.hero-player-chip small,
+.club-card-leaders p,
+.public-ranking-row p,
+.public-match-row p {
+  color: var(--muted);
+}
+
+.login-btn,
+.register-btn,
+.player-btn,
+.team-btn,
+.nav-link-btn,
+.photo-upload-btn,
+.club-selection button,
+.profile-edit-form button,
+.team-player-card button,
+.team-stats-form button,
+.team-search-form button,
+.dashboard-nav-links button,
+.dashboard-nav-links a,
+.invitation-actions button,
+.danger-zone button,
+.login-form button {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-weight: 900;
+  letter-spacing: 0;
+  transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s, background 0.22s, color 0.22s;
+}
+
+.player-btn,
+.register-btn,
+.login-form button,
+.photo-upload-btn,
+.club-selection button,
+.profile-edit-form button,
+.team-player-card button,
+.team-stats-form button,
+.team-search-form button,
+.dashboard-nav-links button:last-child,
+.audience-card strong {
+  background: linear-gradient(135deg, #ff304c, var(--ft-red-dark));
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  box-shadow: 0 16px 34px rgba(239, 35, 60, 0.22);
+}
+
+.team-btn,
+.login-btn,
+.nav-link-btn,
+.dashboard-nav-links button,
+.dashboard-nav-links a,
+.audience-club strong {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: var(--line);
+  color: #f5f7fb;
+  box-shadow: none;
+}
+
+.nav-primary {
+  border-color: rgba(239, 35, 60, 0.42);
+  background: var(--ft-red-soft);
+}
+
+button:hover,
+.player-btn:hover,
+.team-btn:hover,
+.login-btn:hover,
+.nav-link-btn:hover,
+.photo-upload-btn:hover,
+.club-selection button:hover,
+.profile-edit-form button:hover,
+.team-player-card button:hover,
+.team-stats-form button:hover,
+.team-search-form button:hover,
+.dashboard-nav-links button:hover,
+.dashboard-nav-links a:hover,
+.audience-card:hover strong {
+  transform: translateY(-2px);
+  border-color: rgba(239, 35, 60, 0.5);
+  box-shadow: 0 18px 38px rgba(239, 35, 60, 0.18);
+}
+
+.danger-btn,
+.danger-zone button,
+.invitation-actions button:last-child {
+  background: rgba(255, 77, 100, 0.12);
+  border-color: rgba(255, 77, 100, 0.45);
+  color: #ffdbe1;
+  box-shadow: none;
+}
+
+.login-form,
+.profile-panel,
+.stats-panel,
+.public-visual-panel,
+.public-copy-panel,
+.public-bio-card,
+.public-ranking-card,
+.public-match-row,
+.club-card,
+.team-player-card,
+.club-change-section,
+.profile-edit-form,
+.dashboard-message,
+.dashboard-error,
+.stat-card,
+.public-stats span,
+.club-card-stats span,
+.hero-visual,
+.hero-score-card,
+.hero-scout-card,
+.home-stat-tile,
+.experience-card,
+.step-card,
+.audience-card,
+.stats-command-card,
+.scouting-card,
+.club-gallery-item,
+.ranking-row,
+.public-ranking-row {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.055), rgba(239, 35, 60, 0.035)),
+    var(--ft-card);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+
+.login-form,
+.profile-panel,
+.stats-panel,
+.public-copy-panel,
+.public-visual-panel,
+.public-bio-card,
+.stats-command-card,
+.scouting-card {
+  padding: clamp(22px, 4vw, 34px);
+}
+
+.club-card,
+.team-player-card,
+.stat-card,
+.home-stat-tile,
+.experience-card,
+.step-card,
+.audience-card,
+.public-ranking-card,
+.public-match-row,
+.club-gallery-item {
+  transition: transform 0.24s, border-color 0.24s, box-shadow 0.24s, background 0.24s;
+}
+
+.club-card:hover,
+.team-player-card:hover,
+.stat-card:hover,
+.home-stat-tile:hover,
+.experience-card:hover,
+.step-card:hover,
+.audience-card:hover,
+.public-ranking-card:hover,
+.public-match-row:hover,
+.club-gallery-item:hover,
+.player-poster:hover,
+.scorer-row:hover,
+.hero-player-chip:hover,
+.scouting-row:hover {
+  transform: translateY(-4px);
+  border-color: rgba(239, 35, 60, 0.42);
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.07), rgba(239, 35, 60, 0.06)),
+    var(--ft-card-hover);
+  box-shadow: 0 28px 76px rgba(0, 0, 0, 0.46);
+}
+
+.login-form input,
+.login-form select,
+.login-form textarea,
+.gallery-upload-panel input,
+.club-selection select,
+.profile-edit-form input,
+.profile-edit-form select,
+.profile-edit-form textarea,
+.team-search-form input,
+.team-stats-form input,
+.team-stats-form select,
+.team-stats-form textarea,
+.member-actions select,
+.season-filter select,
+.danger-zone input {
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font: inherit;
+  outline: none;
+  transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
+}
+
+.login-form input:focus,
+.login-form select:focus,
+.login-form textarea:focus,
+.gallery-upload-panel input:focus,
+.club-selection select:focus,
+.profile-edit-form input:focus,
+.profile-edit-form select:focus,
+.profile-edit-form textarea:focus,
+.team-search-form input:focus,
+.team-stats-form input:focus,
+.team-stats-form select:focus,
+.team-stats-form textarea:focus,
+.member-actions select:focus,
+.season-filter select:focus,
+.danger-zone input:focus {
+  border-color: rgba(239, 35, 60, 0.62);
+  background: rgba(255, 255, 255, 0.085);
+  box-shadow: 0 0 0 4px rgba(239, 35, 60, 0.12);
+}
+
+.login-form input::placeholder,
+.login-form textarea::placeholder,
+.gallery-upload-panel input::placeholder,
+.team-search-form input::placeholder,
+.team-stats-form input::placeholder,
+.profile-edit-form input::placeholder,
+.profile-edit-form textarea::placeholder,
+.danger-zone input::placeholder {
+  color: rgba(248, 250, 252, 0.46);
+}
+
+.dashboard-content {
+  width: min(1240px, calc(100% - 40px));
+  padding: clamp(22px, 4vw, 42px) 0 96px;
+}
+
+.dashboard-header {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: clamp(20px, 4vw, 30px);
+  background:
+    linear-gradient(120deg, rgba(239, 35, 60, 0.12), rgba(255, 255, 255, 0.035)),
+    rgba(12, 14, 20, 0.82);
+  box-shadow: var(--shadow);
+}
+
+.dashboard-grid {
+  gap: clamp(16px, 2.6vw, 24px);
+  align-items: start;
+}
+
+.profile-info p,
+.stat-card,
+.public-stats span,
+.club-card-stats span,
+.command-metrics div,
+.hero-mini-stats span {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.profile-photo,
+.mini-avatar,
+.public-avatar,
+.club-badge,
+.public-club-badge {
+  border: 1px solid rgba(239, 35, 60, 0.38);
+  background:
+    linear-gradient(145deg, rgba(239, 35, 60, 0.18), rgba(255, 255, 255, 0.05)),
+    #11131a;
+  color: #ffffff;
+}
+
+.rank-number,
+.player-status,
+.public-club-tabs button.active,
+.ranking-tabs button.active,
+.scouting-row b {
+  background: linear-gradient(135deg, #ff304c, var(--ft-red-dark));
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(239, 35, 60, 0.2);
+}
+
+.home-stat-tile strong,
+.club-card strong,
+.stat-card strong,
+.scorer-row strong,
+.poster-content strong,
+.public-stat-grid strong,
+.public-bio-card h3,
+.public-ranking-card h3,
+.club-leaders-panel span,
+.command-metrics strong,
+.hero-mini-stats strong,
+.hero-score-card b,
+.experience-card strong {
+  color: #ffffff;
+}
+
+.live-pill,
+.feature-label,
+.hero-trust-row span {
+  border-color: rgba(239, 35, 60, 0.32);
+  background: var(--ft-red-soft);
+  color: #ffffff;
+}
+
+.hero-visual::before {
+  background:
+    linear-gradient(180deg, rgba(5, 6, 8, 0.12), rgba(5, 6, 8, 0.9)),
+    linear-gradient(110deg, rgba(5, 6, 8, 0.86), transparent 58%);
+}
+
+.poster-red,
+.poster-green,
+.poster-gold,
+.poster-blue,
+.club-card {
+  background:
+    linear-gradient(155deg, rgba(239, 35, 60, 0.12), rgba(255, 255, 255, 0.045)),
+    var(--ft-card);
+}
+
+.dashboard-notice,
+.auth-notice {
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-notice-success,
+.auth-notice-success {
+  border-color: rgba(239, 35, 60, 0.3);
+  background: rgba(239, 35, 60, 0.1);
+  color: #ffffff;
+}
+
+.dashboard-notice-error,
+.auth-notice-error,
+.dashboard-error {
+  border-color: rgba(255, 77, 100, 0.4);
+  background: rgba(255, 77, 100, 0.1);
+  color: #ffdbe1;
+}
+
+.dashboard-bottom-nav {
+  border-top: 1px solid var(--line);
+  background: rgba(5, 6, 8, 0.92);
+  box-shadow: 0 -18px 42px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(18px);
+}
+
+.dashboard-bottom-nav button {
+  color: #dfe4ea;
+}
+
+.dashboard-bottom-nav button.active,
+.dashboard-bottom-nav button:hover {
+  color: #ffffff;
+  background: var(--ft-red-soft);
+}
+
+.login-form .back-btn,
+.login-form .secondary-auth-btn {
+  width: fit-content;
+  min-height: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #f5f7fb;
+  box-shadow: none;
+}
+
+.login-form .secondary-auth-btn {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.login-form .back-btn:hover,
+.auth-text-link:hover {
+  color: #ffffff;
+  text-shadow: 0 0 18px rgba(239, 35, 60, 0.4);
+}
+
+.auth-text-link,
+.info-text {
+  color: var(--muted);
+}
+
+.checkbox-row {
+  color: #dfe4ea;
+}
+
+.checkbox-row input {
+  accent-color: var(--ft-red);
+}
+
+.invitation-actions button:first-child {
+  background: linear-gradient(135deg, #ff304c, var(--ft-red-dark));
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+button:disabled,
+.login-form button:disabled,
+.photo-upload-btn:has(input:disabled),
+.danger-zone .danger-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+
+select option {
+  background: #101218;
+  color: var(--text);
+}
+
+@media (max-width: 800px) {
+  .dashboard-content,
+  .home main {
+    width: min(100% - 28px, 1240px);
+  }
+
+  .navbar,
+  .dashboard-navbar {
+    gap: 14px;
+  }
+
+  .nav-menu,
+  .dashboard-nav-links {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .login-form,
+  .profile-panel,
+  .stats-panel,
+  .public-copy-panel,
+  .public-visual-panel,
+  .public-bio-card,
+  .stats-command-card,
+  .scouting-card {
+    padding: 22px;
+  }
+}
