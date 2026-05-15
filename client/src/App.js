@@ -834,17 +834,36 @@ function PublicClub() {
             </div>
 
             {clubGallery.length > 0 ? (
-              <div className="club-gallery-grid">
-                {clubGallery.map((photo) => (
-                  <div className="club-gallery-item" key={photo.id}>
-                    <img
-                      src={getMediaUrl(photo.image_url)}
-                      alt={photo.caption || `Photo de ${club.name}`}
-                    />
-                    <p>{photo.caption || club.name}</p>
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className="club-gallery-grid">
+                  {clubGallery.slice(0, 2).map((photo) => (
+                    <div className="club-gallery-item" key={photo.id}>
+                      <img
+                        src={getMediaUrl(photo.image_url)}
+                        alt={photo.caption || `Photo de ${club.name}`}
+                      />
+                      <p>{photo.caption || club.name}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {clubGallery.length > 2 && (
+                  <details className="ranking-more">
+                    <summary>Voir le reste de la galerie</summary>
+                    <div className="club-gallery-grid">
+                      {clubGallery.slice(2).map((photo) => (
+                        <div className="club-gallery-item" key={photo.id}>
+                          <img
+                            src={getMediaUrl(photo.image_url)}
+                            alt={photo.caption || `Photo de ${club.name}`}
+                          />
+                          <p>{photo.caption || club.name}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+              </>
             ) : (
               <p className="dashboard-message">
                 Ce club n'a pas encore ajoute de photos.

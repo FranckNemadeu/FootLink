@@ -637,25 +637,52 @@ function TeamDashboard() {
                   Aucune photo dans la galerie pour le moment.
                 </p>
               ) : (
-                <div className="club-gallery-grid dashboard-gallery-grid">
-                  {gallery.map((photo) => (
-                    <div className="club-gallery-item" key={photo.id}>
-                      <img
-                        src={getMediaUrl(photo.image_url)}
-                        alt={photo.caption || "Photo du club"}
-                      />
-                      <div>
-                        <p>{photo.caption || "Photo du club"}</p>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteGalleryPhoto(photo.id)}
-                        >
-                          Supprimer
-                        </button>
+                <>
+                  <div className="club-gallery-grid dashboard-gallery-grid">
+                    {gallery.slice(0, 2).map((photo) => (
+                      <div className="club-gallery-item" key={photo.id}>
+                        <img
+                          src={getMediaUrl(photo.image_url)}
+                          alt={photo.caption || "Photo du club"}
+                        />
+                        <div>
+                          <p>{photo.caption || "Photo du club"}</p>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteGalleryPhoto(photo.id)}
+                          >
+                            Supprimer
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+
+                  {gallery.length > 2 && (
+                    <details className="ranking-more">
+                      <summary>Voir le reste de la galerie</summary>
+                      <div className="club-gallery-grid dashboard-gallery-grid">
+                        {gallery.slice(2).map((photo) => (
+                          <div className="club-gallery-item" key={photo.id}>
+                            <img
+                              src={getMediaUrl(photo.image_url)}
+                              alt={photo.caption || "Photo du club"}
+                            />
+                            <div>
+                              <p>{photo.caption || "Photo du club"}</p>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteGalleryPhoto(photo.id)}
+                              >
+                                Supprimer
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </>
               )}
             </section>
 
@@ -765,7 +792,7 @@ function TeamDashboard() {
 
               {searchResults.length > 0 && (
                 <div className="team-player-list">
-                  {searchResults.map((player) => (
+                  {searchResults.slice(0, 4).map((player) => (
                     <div className="team-player-card" key={player.id}>
                       {renderPlayerIdentity(player)}
 
@@ -774,6 +801,22 @@ function TeamDashboard() {
                       </button>
                     </div>
                   ))}
+                  {searchResults.length > 4 && (
+                    <details className="ranking-more">
+                      <summary>Voir le reste des joueurs</summary>
+                      <div className="team-player-list">
+                        {searchResults.slice(4).map((player) => (
+                          <div className="team-player-card" key={player.id}>
+                            {renderPlayerIdentity(player)}
+
+                            <button onClick={() => handleInvitePlayer(player.id)}>
+                              Inviter
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
                 </div>
               )}
             </section>
