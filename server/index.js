@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -11,6 +12,8 @@ const normalizeOrigin = (origin) => origin.replace(/\/+$/, "");
 const allowedOrigins = [
   "http://localhost:3000",
   "https://foot-link.vercel.app",
+  "https://footlink.ca",
+  "https://www.footlink.ca",
   ...(process.env.FRONTEND_URL || "").split(","),
 ]
   .map((origin) => normalizeOrigin(origin.trim()))
@@ -59,7 +62,7 @@ app.get("/", (req, res) => {
 http://localhost:5000
 req = requête (ce que le client envoie)
 res = réponse (ce que tu renvoies) */
-require("dotenv").config();
+// dotenv est charge en haut du fichier pour que FRONTEND_URL soit disponible pour CORS.
 /* dotenv → lire les variables d’environnement dans .env
 /require("dotenv").config() → charge les variables d’environnement depuis le fichier .env
 /Ça permet d’accéder à process.env.DB_HOST, process.env.DB_USER, etc. dans ton code
