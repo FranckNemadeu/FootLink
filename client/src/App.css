@@ -2422,3 +2422,719 @@ button:hover,
     font-size: clamp(36px, 11vw, 46px);
   }
 }
+
+/* Homepage premium refresh */
+.home main {
+  width: min(1240px, calc(100% - 40px));
+}
+
+.landing-hero {
+  min-height: 760px;
+  grid-template-columns: minmax(0, 0.95fr) minmax(420px, 1.05fr);
+  gap: clamp(28px, 5vw, 70px);
+  padding: clamp(42px, 7vw, 86px) 0 34px;
+}
+
+.home-hero-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.home-hero-copy h1 {
+  max-width: 760px;
+  margin-bottom: 22px;
+  color: #f8fbfb;
+  font-size: clamp(48px, 6.6vw, 86px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.home-hero-copy > p:not(.home-kicker) {
+  max-width: 590px;
+  color: #c9d4d1;
+  font-size: clamp(18px, 2vw, 22px);
+  line-height: 1.45;
+}
+
+.hero-badge-row,
+.hero-trust-row,
+.hero-buttons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.hero-badge-row {
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.hero-badge-row .home-kicker {
+  margin-bottom: 0;
+}
+
+.live-pill,
+.hero-trust-row span,
+.feature-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 11px;
+  border: 1px solid rgba(216, 181, 104, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #e9f2ef;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.live-pill {
+  color: var(--green);
+  border-color: rgba(72, 214, 138, 0.34);
+}
+
+.hero-buttons {
+  gap: 14px;
+  margin-top: 32px;
+}
+
+.hero-buttons .player-btn,
+.hero-buttons .team-btn,
+.section-heading .nav-link-btn {
+  min-width: 180px;
+  min-height: 50px;
+  border-radius: 8px;
+  font-weight: 900;
+}
+
+.hero-buttons .player-btn:hover,
+.hero-buttons .team-btn:hover,
+.section-heading .nav-link-btn:hover,
+.experience-card:hover,
+.home-stat-tile:hover,
+.stats-command-card:hover,
+.scouting-card:hover {
+  transform: translateY(-4px);
+}
+
+.hero-buttons .player-btn:hover {
+  box-shadow: 0 18px 42px rgba(72, 214, 138, 0.28);
+}
+
+.hero-buttons .team-btn:hover,
+.section-heading .nav-link-btn:hover {
+  border-color: rgba(216, 181, 104, 0.82);
+  box-shadow: 0 18px 42px rgba(216, 181, 104, 0.14);
+}
+
+.hero-trust-row {
+  gap: 9px;
+  margin-top: 24px;
+}
+
+.hero-trust-row span {
+  min-height: 28px;
+  padding: 5px 10px;
+  color: #b8c7c3;
+  font-size: 11px;
+}
+
+.hero-visual {
+  min-height: 640px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(216, 181, 104, 0.22);
+  border-radius: 8px;
+  background: #0c111c;
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.42);
+  isolation: isolate;
+}
+
+.hero-stadium-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.03);
+  filter: saturate(1.08) contrast(1.06);
+}
+
+.hero-visual::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(5, 7, 12, 0.16), rgba(5, 7, 12, 0.86)),
+    linear-gradient(110deg, rgba(5, 7, 12, 0.86), transparent 58%);
+}
+
+.hero-visual::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.hero-score-card,
+.hero-scout-card {
+  position: absolute;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(8, 12, 18, 0.76);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+}
+
+.hero-score-card {
+  top: 28px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 18px;
+}
+
+.hero-score-card span,
+.scout-card-head span,
+.home-stat-tile span,
+.command-metrics span,
+.season-preview span,
+.scouting-row small {
+  color: #aebbb8;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.hero-score-card strong,
+.scout-card-head strong,
+.hero-player-chip strong,
+.scouting-row strong {
+  display: block;
+  color: #ffffff;
+}
+
+.hero-score-card b {
+  color: var(--gold);
+  font-size: 24px;
+}
+
+.hero-scout-card {
+  left: 28px;
+  right: 28px;
+  bottom: 28px;
+  padding: 22px;
+}
+
+.scout-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.hero-player-stack,
+.scouting-list {
+  display: grid;
+  gap: 10px;
+}
+
+.hero-player-chip,
+.scouting-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.hero-player-chip {
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+  transition: transform 0.22s, border-color 0.22s, background 0.22s;
+}
+
+.hero-player-chip:hover,
+.scouting-row:hover {
+  transform: translateX(4px);
+  border-color: rgba(72, 214, 138, 0.38);
+  background: rgba(72, 214, 138, 0.08);
+}
+
+.hero-player-chip small {
+  color: #c3ceca;
+  font-size: 12px;
+}
+
+.hero-mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.hero-mini-stats span {
+  min-height: 68px;
+  padding: 12px;
+  border: 1px solid rgba(216, 181, 104, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #bfcac6;
+  font-size: 12px;
+}
+
+.hero-mini-stats strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--gold);
+  font-size: 24px;
+}
+
+.home-stat-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.home-stat-tile,
+.experience-card,
+.stats-command-card,
+.scouting-card {
+  border: 1px solid rgba(216, 181, 104, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(155deg, rgba(216, 181, 104, 0.08), rgba(138, 164, 200, 0.06)),
+    rgba(13, 18, 28, 0.88);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  transition: transform 0.24s, border-color 0.24s, box-shadow 0.24s;
+}
+
+.home-stat-tile {
+  min-height: 118px;
+  padding: 22px;
+}
+
+.home-stat-tile strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #ffffff;
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1;
+}
+
+.home-stat-tile:hover,
+.experience-card:hover,
+.stats-command-card:hover,
+.scouting-card:hover {
+  border-color: rgba(72, 214, 138, 0.32);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+}
+
+.section-heading-centered {
+  display: grid;
+  justify-content: center;
+  text-align: center;
+}
+
+.section-heading-centered h2 {
+  max-width: 740px;
+}
+
+.guidance-section {
+  padding-top: clamp(34px, 6vw, 64px);
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.step-card,
+.audience-card {
+  border: 1px solid rgba(216, 181, 104, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.065), rgba(72, 214, 138, 0.035)),
+    rgba(12, 17, 27, 0.9);
+  box-shadow: var(--shadow);
+  transition: transform 0.24s, border-color 0.24s, box-shadow 0.24s, background 0.24s;
+}
+
+.step-card {
+  min-height: 190px;
+  padding: 22px;
+}
+
+.step-card span,
+.audience-card span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.step-card h3,
+.audience-card h3 {
+  margin: 16px 0 10px;
+  color: #f8fbfb;
+  font-size: 24px;
+  line-height: 1.12;
+}
+
+.step-card p,
+.audience-card p {
+  color: #b6c2bf;
+  line-height: 1.45;
+}
+
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.audience-card {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.audience-card strong {
+  width: fit-content;
+  margin-top: auto;
+  padding: 11px 14px;
+  border-radius: 8px;
+  background: var(--green);
+  color: #06110c;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.audience-club strong {
+  border: 1px solid rgba(216, 181, 104, 0.58);
+  background: transparent;
+  color: var(--text);
+}
+
+.step-card:hover,
+.audience-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(72, 214, 138, 0.32);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+}
+
+.audience-card:hover strong {
+  box-shadow: 0 14px 34px rgba(72, 214, 138, 0.16);
+}
+
+.experience-section,
+.players-section,
+.intelligence-section,
+.clubs-section {
+  padding-top: clamp(44px, 7vw, 78px);
+}
+
+.experience-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.experience-card {
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+}
+
+.experience-card h3 {
+  color: #f8fbfb;
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.experience-card p {
+  color: #b6c2bf;
+  line-height: 1.45;
+}
+
+.experience-card strong {
+  margin-top: auto;
+  color: var(--gold);
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.player-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.player-showcase-grid .player-poster,
+.player-showcase-grid .player-poster:nth-child(2) {
+  min-height: 420px;
+}
+
+.player-feature-card .poster-player-art {
+  inset: 18px 18px 118px;
+}
+
+.player-feature-card .poster-content h3 {
+  font-size: 26px;
+}
+
+.compact-leaderboard {
+  margin-top: 16px;
+}
+
+.compact-leaderboard .scorer-row {
+  min-height: 88px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(216, 181, 104, 0.055)),
+    rgba(12, 17, 27, 0.92);
+}
+
+.intelligence-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+  gap: 16px;
+}
+
+.stats-command-card,
+.scouting-card {
+  padding: clamp(22px, 4vw, 32px);
+}
+
+.stats-command-card .section-heading,
+.scouting-card .section-heading {
+  margin-bottom: 18px;
+}
+
+.command-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.command-metrics div {
+  min-height: 132px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.command-metrics strong {
+  display: block;
+  margin-top: 12px;
+  color: var(--gold);
+  font-size: clamp(34px, 5vw, 64px);
+  line-height: 0.95;
+}
+
+.season-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(72, 214, 138, 0.18);
+  border-radius: 8px;
+  background: rgba(72, 214, 138, 0.07);
+}
+
+.season-preview strong,
+.season-preview small {
+  display: block;
+  text-align: right;
+}
+
+.season-preview strong {
+  color: #ffffff;
+}
+
+.season-preview small {
+  margin-top: 3px;
+  color: #b8c7c3;
+}
+
+.scouting-card {
+  overflow: hidden;
+}
+
+.scouting-row {
+  grid-template-columns: auto 1fr auto;
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  transition: transform 0.22s, border-color 0.22s, background 0.22s;
+}
+
+.scouting-row small {
+  display: block;
+  margin-top: 4px;
+  text-transform: none;
+}
+
+.scouting-row b {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--gold);
+  color: #11100a;
+}
+
+.clubs-section .club-card {
+  min-height: 300px;
+}
+
+.clubs-section .club-card:hover,
+.player-showcase-grid .player-poster:hover,
+.compact-leaderboard .scorer-row:hover {
+  border-color: rgba(216, 181, 104, 0.42);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+}
+
+@media (max-width: 1080px) {
+  .landing-hero,
+  .intelligence-section {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-visual {
+    min-height: 560px;
+  }
+
+  .experience-grid,
+  .steps-grid,
+  .home-stat-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .scorer-board.compact-leaderboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .home main {
+    width: min(100% - 28px, 1240px);
+  }
+
+  .landing-hero {
+    min-height: auto;
+    padding: 34px 0 16px;
+  }
+
+  .home-hero-copy h1 {
+    font-size: clamp(38px, 12vw, 54px);
+  }
+
+  .hero-buttons .player-btn,
+  .hero-buttons .team-btn,
+  .section-heading .nav-link-btn {
+    width: 100%;
+  }
+
+  .hero-trust-row {
+    gap: 8px;
+  }
+
+  .hero-visual {
+    min-height: 520px;
+  }
+
+  .hero-score-card {
+    top: 18px;
+    right: 18px;
+    left: 18px;
+    justify-content: space-between;
+  }
+
+  .hero-scout-card {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    padding: 16px;
+  }
+
+  .hero-mini-stats,
+  .home-stat-strip,
+  .experience-grid,
+  .steps-grid,
+  .audience-grid,
+  .player-showcase-grid,
+  .command-metrics,
+  .scorer-board.compact-leaderboard {
+    grid-template-columns: 1fr;
+  }
+
+  .home-stat-tile {
+    min-height: 96px;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+  }
+
+  .section-heading-centered {
+    text-align: left;
+    justify-content: start;
+  }
+
+  .player-showcase-grid .player-poster,
+  .player-showcase-grid .player-poster:nth-child(2) {
+    min-height: 360px;
+  }
+
+  .season-preview {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .season-preview strong,
+  .season-preview small {
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-buttons .player-btn,
+  .hero-buttons .team-btn,
+  .section-heading .nav-link-btn,
+  .experience-card,
+  .step-card,
+  .audience-card,
+  .home-stat-tile,
+  .stats-command-card,
+  .scouting-card,
+  .hero-player-chip,
+  .scouting-row {
+    transition: none;
+  }
+}

@@ -161,20 +161,88 @@ function Home() {
   }, []);
 
   const featuredHomePlayers = players.slice(0, 3);
+  const leaderboardPlayers = players.slice(0, 4);
+  const heroPlayer = featuredHomePlayers[0] || topScorers[0];
+  const heroClub = homeClubs[0] || clubs[0];
   const getLeaderName = (name) => name || "À définir";
+  const totalClubPlayers = homeClubs.reduce((sum, club) => sum + club.players, 0);
+  const totalGoals =
+    homeClubs.reduce((sum, club) => sum + club.goals, 0) ||
+    players.reduce((sum, player) => sum + player.goals, 0);
+  const totalAssists =
+    homeClubs.reduce((sum, club) => sum + club.assists, 0) ||
+    players.reduce((sum, player) => sum + player.assists, 0);
+  const totalMatches =
+    homeClubs.reduce((sum, club) => sum + club.matches, 0) ||
+    players.reduce((sum, player) => sum + player.matches, 0);
+  const heroImage =
+    "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1400&q=80";
+  const platformStats = [
+    { label: "Clubs affichés", value: homeClubs.length || 3 },
+    { label: "Joueurs visibles", value: totalClubPlayers || players.length },
+    { label: "Buts enregistrés", value: totalGoals },
+    { label: "Matchs suivis", value: totalMatches || totalAssists },
+  ];
+  const onboardingSteps = [
+    {
+      step: "01",
+      title: "Choisis ton rôle",
+      text: "Joueur ou club, tu arrives directement sur le bon espace.",
+    },
+    {
+      step: "02",
+      title: "Complète ton profil",
+      text: "Ajoute photo, poste, équipe, galerie et infos importantes.",
+    },
+    {
+      step: "03",
+      title: "Suis les performances",
+      text: "Les stats, leaders et hommes du match restent faciles à lire.",
+    },
+  ];
+  const experienceCards = [
+    {
+      label: "Joueurs",
+      title: "Profil clair, stats lisibles",
+      text: "Crée ton profil, montre ton poste et garde tes clubs au même endroit.",
+      metric: `${players.length}+ profils`,
+    },
+    {
+      label: "Équipes",
+      title: "Clubhouse moderne",
+      text: "Gère effectif, galerie, anciens membres et demandes d'adhésion.",
+      metric: `${homeClubs.length} clubs`,
+    },
+    {
+      label: "Stats",
+      title: "Saisons, leaders, homme du match",
+      text: "Ajoute les matchs, compare les saisons et garde les leaders visibles.",
+      metric: `${totalGoals} buts`,
+    },
+    {
+      label: "Scouting",
+      title: "Repérer les bons profils",
+      text: "Compare rapidement les profils sans noyer la page d'informations.",
+      metric: "Live board",
+    },
+  ];
 
   return (
     <div className="home">
       <PublicNav />
 
       <main>
-        <section className="home-hero">
+        <section className="home-hero landing-hero">
           <div className="home-hero-copy">
-            <p className="home-kicker">Recrutement local - stats - clubs</p>
-            <h2>La vitrine des joueurs et équipes de ton quartier.</h2>
+            <div className="hero-badge-row">
+              <p className="home-kicker">FootLink performance hub</p>
+              <span className="live-pill">Stats live</span>
+            </div>
+
+            <h1>Le terrain local, version professionnelle.</h1>
             <p>
-              Crée ton profil, rejoins un club enregistré et laisse tes stats
-              parler sur le terrain.
+              Trouve un club, présente ton profil ou gère ton équipe depuis une
+              plateforme claire.
             </p>
 
             <div className="hero-buttons">
@@ -184,7 +252,7 @@ function Home() {
                     className="player-btn"
                     onClick={() => navigate(dashboardPath)}
                   >
-                    Ouvrir mon espace
+                    Aller à mon espace
                   </button>
 
                   <button
@@ -200,25 +268,170 @@ function Home() {
                     className="player-btn"
                     onClick={() => navigate("/register/player")}
                   >
-                    Je suis un joueur
+                    Créer mon profil joueur
                   </button>
 
                   <button
                     className="team-btn"
                     onClick={() => navigate("/register/team")}
                   >
-                    Je suis une équipe
+                    Inscrire mon club
                   </button>
                 </>
               )}
             </div>
+
+            <div className="hero-trust-row" aria-label="Points forts">
+              <span>Profils publics</span>
+              <span>Clubs vérifiés</span>
+              <span>Stats par saison</span>
+            </div>
           </div>
 
-          <div className="hero-posters" aria-label="Joueurs a la une">
-            {featuredHomePlayers.map((player, index) => (
+          <div className="hero-visual" aria-label="Aperçu FootLink">
+            <img className="hero-stadium-image" src={heroImage} alt="" />
+
+            <div className="hero-score-card">
+              <div>
+                <span>Spotlight</span>
+                <strong>{heroPlayer.name}</strong>
+              </div>
+              <b>{heroPlayer.goals} buts</b>
+            </div>
+
+            <div className="hero-scout-card">
+              <div className="scout-card-head">
+                <span>Scouting board</span>
+                <strong>{heroClub.name}</strong>
+              </div>
+
+              <div className="hero-player-stack">
+                {featuredHomePlayers.map((player) => (
+                  <Link
+                    className="hero-player-chip"
+                    key={player.id || player.slug || player.name}
+                    to={playerLink(player)}
+                  >
+                    <span className="mini-avatar">
+                      {player.profile_photo ? (
+                        <img
+                          src={getMediaUrl(player.profile_photo)}
+                          alt={player.name}
+                        />
+                      ) : (
+                        player.name.charAt(0)
+                      )}
+                    </span>
+                    <span>
+                      <strong>{player.name}</strong>
+                      <small>
+                        {player.position} · {player.goals} buts
+                      </small>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="hero-mini-stats">
+                <span>
+                  <strong>{heroClub.players}</strong>
+                  Joueurs
+                </span>
+                <span>
+                  <strong>{heroClub.goals}</strong>
+                  Buts
+                </span>
+                <span>
+                  <strong>{heroClub.assists}</strong>
+                  Passes
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="home-section home-stat-strip" aria-label="Statistiques FootLink">
+          {platformStats.map((stat) => (
+            <div className="home-stat-tile" key={stat.label}>
+              <strong>{stat.value}</strong>
+              <span>{stat.label}</span>
+            </div>
+          ))}
+        </section>
+
+        <section className="home-section guidance-section" id="how-it-works">
+          <div className="section-heading section-heading-centered">
+            <p className="home-kicker">Comment ça marche</p>
+            <h2>Commencer sans se perdre</h2>
+          </div>
+
+          <div className="steps-grid">
+            {onboardingSteps.map((item) => (
+              <article className="step-card" key={item.step}>
+                <span>{item.step}</span>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="audience-grid">
+            <Link
+              className="audience-card audience-player"
+              to={isAuthenticated ? dashboardPath : "/register/player"}
+            >
+              <span>Pour joueurs</span>
+              <h3>Je veux être visible</h3>
+              <p>Crée ton profil, demande à rejoindre un club et garde tes stats.</p>
+              <strong>{isAuthenticated ? "Ouvrir mon espace" : "Créer mon profil"}</strong>
+            </Link>
+
+            <Link
+              className="audience-card audience-club"
+              to={isAuthenticated ? "/clubs" : "/register/team"}
+            >
+              <span>Pour clubs</span>
+              <h3>Je veux gérer mon équipe</h3>
+              <p>Ajoute ton club, valide les demandes et présente ton effectif.</p>
+              <strong>{isAuthenticated ? "Explorer les clubs" : "Inscrire mon club"}</strong>
+            </Link>
+          </div>
+        </section>
+
+        <section className="home-section experience-section">
+          <div className="section-heading section-heading-centered">
+            <p className="home-kicker">Plateforme sportive</p>
+            <h2>Les outils importants, sans surcharge</h2>
+          </div>
+
+          <div className="experience-grid">
+            {experienceCards.map((card) => (
+              <article className="experience-card" key={card.label}>
+                <span className="feature-label">{card.label}</span>
+                <h3>{card.title}</h3>
+                <p>{card.text}</p>
+                <strong>{card.metric}</strong>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="home-section players-section" id="players">
+          <div className="section-heading">
+            <div>
+              <p className="home-kicker">Joueurs</p>
+              <h2>Les profils qui montent</h2>
+            </div>
+            <Link className="team-btn nav-link-btn" to="/clubs">
+              Voir les clubs
+            </Link>
+          </div>
+
+          <div className="player-showcase-grid">
+            {featuredHomePlayers.map((player) => (
               <Link
-                className={`player-poster poster-${player.tone}`}
-                key={player.name}
+                className={`player-poster player-feature-card poster-${player.tone}`}
+                key={player.id || player.slug || player.name}
                 to={playerLink(player)}
               >
                 <div className="poster-player-art">
@@ -240,16 +453,9 @@ function Home() {
               </Link>
             ))}
           </div>
-        </section>
 
-        <section className="home-section" id="players">
-          <div className="section-heading">
-            <p className="home-kicker">A la une</p>
-            <h2>Meilleurs buteurs</h2>
-          </div>
-
-          <div className="scorer-board">
-            {players.map((player, index) => (
+          <div className="scorer-board compact-leaderboard">
+            {leaderboardPlayers.map((player, index) => (
               <Link className="scorer-row" key={`${player.name}-${index}`} to={playerLink(player)}>
                 <span className="rank-number">{index + 1}</span>
                 <div className="scorer-player">
@@ -271,11 +477,79 @@ function Home() {
           </div>
         </section>
 
+        <section className="home-section intelligence-section" id="stats">
+          <div className="stats-command-card">
+            <div className="section-heading">
+              <div>
+                <p className="home-kicker">Stats</p>
+                <h2>Performance lisible</h2>
+              </div>
+            </div>
+
+            <div className="command-metrics">
+              <div>
+                <span>Buts</span>
+                <strong>{totalGoals}</strong>
+              </div>
+              <div>
+                <span>Passes</span>
+                <strong>{totalAssists}</strong>
+              </div>
+              <div>
+                <span>Matchs</span>
+                <strong>{totalMatches}</strong>
+              </div>
+            </div>
+
+            <div className="season-preview">
+              <span>Saison en cours</span>
+              <div>
+                <strong>{getLeaderName(heroClub.top_scorer)}</strong>
+                <small>Leader offensif</small>
+              </div>
+            </div>
+          </div>
+
+          <div className="scouting-card" id="scouting">
+            <div className="section-heading">
+              <div>
+                <p className="home-kicker">Scouting</p>
+                <h2>Décider plus vite</h2>
+              </div>
+            </div>
+
+            <div className="scouting-list">
+              {featuredHomePlayers.map((player) => (
+                <Link
+                  className="scouting-row"
+                  key={`scout-${player.id || player.slug || player.name}`}
+                  to={playerLink(player)}
+                >
+                  <span className="mini-avatar">
+                    {player.profile_photo ? (
+                      <img src={getMediaUrl(player.profile_photo)} alt={player.name} />
+                    ) : (
+                      player.name.charAt(0)
+                    )}
+                  </span>
+                  <div>
+                    <strong>{player.name}</strong>
+                    <small>
+                      {player.club} · {player.position}
+                    </small>
+                  </div>
+                  <b>{player.goals + player.assists}</b>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section className="home-section clubs-section" id="clubs">
           <div className="section-heading">
             <div>
-              <p className="home-kicker">Clubs inscrits</p>
-              <h2>Clubs a decouvrir</h2>
+              <p className="home-kicker">Équipes</p>
+              <h2>Clubs à découvrir</h2>
             </div>
             <Link className="team-btn nav-link-btn" to="/clubs">
               Voir tous les clubs
@@ -911,8 +1185,10 @@ function PublicNav({ showBack = false }) {
 
       <div className="nav-menu" aria-label="Navigation principale">
         <Link to="/">Accueil</Link>
+        <a href="/#how-it-works">Guide</a>
         <a href="/#players">Joueurs</a>
         <Link to="/clubs">Clubs</Link>
+        <a href="/#stats">Stats</a>
       </div>
 
       <div className="nav-buttons">
