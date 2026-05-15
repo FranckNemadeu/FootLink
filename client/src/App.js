@@ -485,6 +485,7 @@ function PublicClub() {
   const [club, setClub] = useState(normalizeClub(fallbackClub));
   const [clubPlayers, setClubPlayers] = useState([]);
   const [clubMatches, setClubMatches] = useState([]);
+  const [clubGallery, setClubGallery] = useState([]);
   const [activeTab, setActiveTab] = useState("classements");
   const [loading, setLoading] = useState(Boolean(Number(slug)));
   const { dashboardPath, isAuthenticated } = useAuth();
@@ -499,6 +500,7 @@ function PublicClub() {
         setClub(normalizeClub(res.data.team));
         setClubPlayers((res.data.players || []).map(normalizePlayer));
         setClubMatches(res.data.matches || []);
+        setClubGallery(res.data.gallery || []);
       } catch (err) {
         console.log(err);
       } finally {
@@ -545,6 +547,7 @@ function PublicClub() {
     { id: "classements", label: "Classements" },
     { id: "matchs", label: "Matchs" },
     { id: "effectif", label: "Effectif" },
+    { id: "galerie", label: "Galerie" },
     { id: "infos", label: "Infos" },
   ];
 
@@ -747,6 +750,35 @@ function PublicClub() {
             ) : (
               <p className="dashboard-message">
                 Aucun joueur public n'est encore rattaché à ce club.
+              </p>
+            )}
+          </div>
+        )}
+
+        {activeTab === "galerie" && (
+          <div className="public-tab-panel">
+            <div className="section-heading">
+              <div>
+                <p className="home-kicker">Photos du club</p>
+                <h2>Galerie</h2>
+              </div>
+            </div>
+
+            {clubGallery.length > 0 ? (
+              <div className="club-gallery-grid">
+                {clubGallery.map((photo) => (
+                  <div className="club-gallery-item" key={photo.id}>
+                    <img
+                      src={getMediaUrl(photo.image_url)}
+                      alt={photo.caption || `Photo de ${club.name}`}
+                    />
+                    <p>{photo.caption || club.name}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="dashboard-message">
+                Ce club n'a pas encore ajoute de photos.
               </p>
             )}
           </div>

@@ -15,6 +15,7 @@ function TeamDashboard() {
   const [formerMembers, setFormerMembers] = useState([]);
   const [invitations, setInvitations] = useState([]);
   const [matches, setMatches] = useState([]);
+  const [gallery, setGallery] = useState([]);
   const [matchForm, setMatchForm] = useState({
     type: "local",
     matchDate: "",
@@ -30,6 +31,8 @@ function TeamDashboard() {
   const [rankingTab, setRankingTab] = useState("goals");
   const [loading, setLoading] = useState(true);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [galleryCaption, setGalleryCaption] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState(null);
   const [deleteForm, setDeleteForm] = useState({
@@ -50,6 +53,7 @@ function TeamDashboard() {
   const navigate = useNavigate();
   const mobileNavItems = [
     { id: "profil", target: "profil", label: "Club", icon: "C" },
+    { id: "galerie", target: "galerie", label: "Galerie", icon: "G" },
     { id: "classements", target: "classements", label: "Stats", icon: "S" },
     { id: "joueurs", target: "joueurs", label: "Joueurs", icon: "J" },
     { id: "anciens", target: "anciens", label: "Anciens", icon: "A" },
@@ -125,11 +129,18 @@ function TeamDashboard() {
         authorization: token,
       };
 
-      const [playersRes, invitationsRes, matchesRes, formerMembersRes] = await Promise.all([
+      const [
+        playersRes,
+        invitationsRes,
+        matchesRes,
+        formerMembersRes,
+        galleryRes,
+      ] = await Promise.all([
         axios.get(`${API_URL}/api/team/players`, { headers }),
         axios.get(`${API_URL}/api/team/invitations`, { headers }),
         axios.get(`${API_URL}/api/team/matches`, { headers }),
         axios.get(`${API_URL}/api/team/former-members`, { headers }),
+        axios.get(`${API_URL}/api/team/gallery`, { headers }),
       ]);
 
       setTeam(playersRes.data.team);
@@ -137,6 +148,7 @@ function TeamDashboard() {
       setInvitations(invitationsRes.data);
       setMatches(matchesRes.data);
       setFormerMembers(formerMembersRes.data);
+      setGallery(galleryRes.data);
     } catch (err) {
       console.log(err);
       setError(err.response?.data?.message || "Impossible de charger l'équipe.");
@@ -268,6 +280,69 @@ function TeamDashboard() {
     } finally {
       setUploadingLogo(false);
       e.target.value = "";
+    }
+  };
+
+  const handleGalleryUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      showNotice("error", "La photo doit etre une image.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showNotice("error", "La photo ne doit pas depasser 5 Mo.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("photo", file);
+    formData.append("caption", galleryCaption);
+    setUploadingGallery(true);
+
+    try {
+      const res = await axios.post(`${API_URL}/api/team/gallery`, formData, {
+        headers: {
+          authorization: token,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      setGallery((currentGallery) => [res.data.photo, ...currentGallery]);
+      setGalleryCaption("");
+      showNotice("success", res.data.message || "Photo ajoutee a la galerie.");
+    } catch (err) {
+      console.log(err);
+      showNotice(
+        "error",
+        err.response?.data?.message || "Impossible d'ajouter la photo."
+      );
+    } finally {
+      setUploadingGallery(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleDeleteGalleryPhoto = async (photoId) => {
+    try {
+      await axios.delete(`${API_URL}/api/team/gallery/${photoId}`, {
+        headers: {
+          authorization: token,
+        },
+      });
+
+      setGallery((currentGallery) =>
+        currentGallery.filter((photo) => photo.id !== photoId)
+      );
+      showNotice("success", "Photo supprimee.");
+    } catch (err) {
+      console.log(err);
+      showNotice(
+        "error",
+        err.response?.data?.message || "Impossible de supprimer la photo."
+      );
     }
   };
 
@@ -441,6 +516,9 @@ function TeamDashboard() {
           <button type="button" onClick={() => scrollToSection("recherche")}>
             Recherche
           </button>
+          <button type="button" onClick={() => scrollToSection("galerie")}>
+            Galerie
+          </button>
           <button type="button" onClick={() => scrollToSection("joueurs")}>
             Joueurs
           </button>
@@ -505,6 +583,56 @@ function TeamDashboard() {
                   </label>
                 </div>
               </div>
+            </section>
+
+            <section className="profile-panel" id="galerie">
+              <h3>Galerie du club</h3>
+
+              <div className="gallery-upload-panel">
+                <input
+                  type="text"
+                  placeholder="Legende de la photo"
+                  value={galleryCaption}
+                  onChange={(e) => setGalleryCaption(e.target.value)}
+                  maxLength="160"
+                />
+
+                <label className="photo-upload-btn">
+                  {uploadingGallery ? "Televersement..." : "Ajouter une photo"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleGalleryUpload}
+                    disabled={uploadingGallery}
+                  />
+                </label>
+              </div>
+
+              {gallery.length === 0 ? (
+                <p className="dashboard-message">
+                  Aucune photo dans la galerie pour le moment.
+                </p>
+              ) : (
+                <div className="club-gallery-grid dashboard-gallery-grid">
+                  {gallery.map((photo) => (
+                    <div className="club-gallery-item" key={photo.id}>
+                      <img
+                        src={getMediaUrl(photo.image_url)}
+                        alt={photo.caption || "Photo du club"}
+                      />
+                      <div>
+                        <p>{photo.caption || "Photo du club"}</p>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteGalleryPhoto(photo.id)}
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
 
             <section className="profile-panel" id="classements">

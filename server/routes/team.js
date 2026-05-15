@@ -156,6 +156,35 @@ const uploadTeamLogo = (req, res, next) => {
   });
 };
 
+const uploadGalleryPhoto = (req, res, next) => {
+  upload.single("photo")(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({
+        message: err.message || "Erreur lors du televersement de la photo",
+      });
+    }
+
+    next();
+  });
+};
+
+const ensureTeamGalleryTable = (callback) => {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS team_gallery (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      team_id INT NOT NULL,
+      image_url VARCHAR(255) NOT NULL,
+      caption VARCHAR(160),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
+
+  db.query(sql, (err) => {
+    if (err) return callback(err);
+    ensureColumn("team_gallery", "caption", "VARCHAR(160)", callback);
+  });
+};
+
 const refreshTeamPlayerCounts = (callback) => {
   ensureTeamPlayerCountColumn((columnErr) => {
     if (columnErr) return callback(columnErr);
@@ -493,7 +522,34 @@ router.get("/public/:teamId", (req, res) => {
                 return sendDbError(res, matchesErr, "Impossible de charger les matchs");
               }
 
-              res.json({ team, players, matches });
+              ensureTeamGalleryTable((galleryTableErr) => {
+                if (galleryTableErr) {
+                  return sendDbError(
+                    res,
+                    galleryTableErr,
+                    "Impossible de preparer la galerie"
+                  );
+                }
+
+                const gallerySql = `
+                  SELECT id, image_url, caption, created_at
+                  FROM team_gallery
+                  WHERE team_id = ?
+                  ORDER BY created_at DESC, id DESC
+                `;
+
+                db.query(gallerySql, [team.id], (galleryErr, gallery) => {
+                  if (galleryErr) {
+                    return sendDbError(
+                      res,
+                      galleryErr,
+                      "Impossible de charger la galerie"
+                    );
+                  }
+
+                  res.json({ team, players, matches, gallery });
+                });
+              });
             });
           });
         });
@@ -656,6 +712,168 @@ router.get("/matches", verifyToken, (req, res) => {
       }
 
       res.json(matches);
+    });
+  });
+});
+
+router.get("/gallery", verifyToken, (req, res) => {
+  if (req.user.role !== "team") {
+    return res.status(403).json({ message: "Acces reserve aux equipes" });
+  }
+
+  ensureTeamGalleryTable((tableErr) => {
+    if (tableErr) {
+      return sendDbError(res, tableErr, "Impossible de preparer la galerie");
+    }
+
+    getTeamForUser(req.user.id, (teamErr, team) => {
+      if (teamErr) {
+        return sendDbError(res, teamErr, "Impossible de charger l'equipe");
+      }
+
+      if (!team) {
+        return res.status(404).json({ message: "Equipe introuvable" });
+      }
+
+      const sql = `
+        SELECT id, image_url, caption, created_at
+        FROM team_gallery
+        WHERE team_id = ?
+        ORDER BY created_at DESC, id DESC
+      `;
+
+      db.query(sql, [team.id], (err, gallery) => {
+        if (err) {
+          return sendDbError(res, err, "Impossible de charger la galerie");
+        }
+
+        res.json(gallery);
+      });
+    });
+  });
+});
+
+router.post("/gallery", verifyToken, uploadGalleryPhoto, async (req, res) => {
+  if (req.user.role !== "team") {
+    return res.status(403).json({ message: "Action reservee aux equipes" });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ message: "Aucune photo envoyee" });
+  }
+
+  let imageUrl;
+  try {
+    imageUrl = await uploadImage(req.file, "footlink/team-gallery");
+  } catch (err) {
+    if (err.code === "CLOUDINARY_NOT_CONFIGURED") {
+      return res.status(500).json({ message: err.message });
+    }
+
+    return res.status(500).json({
+      message:
+        err.message ||
+        "Impossible de televerser la photo. Verifie la configuration Cloudinary.",
+      code: err.code,
+    });
+  }
+
+  ensureTeamGalleryTable((tableErr) => {
+    if (tableErr) {
+      return sendDbError(res, tableErr, "Impossible de preparer la galerie");
+    }
+
+    getTeamForUser(req.user.id, (teamErr, team) => {
+      if (teamErr) {
+        return sendDbError(res, teamErr, "Impossible de charger l'equipe");
+      }
+
+      if (!team) {
+        return res.status(404).json({ message: "Equipe introuvable" });
+      }
+
+      const caption =
+        typeof req.body.caption === "string"
+          ? req.body.caption.trim().slice(0, 160)
+          : "";
+      const sql = `
+        INSERT INTO team_gallery (team_id, image_url, caption)
+        VALUES (?, ?, ?)
+      `;
+
+      db.query(sql, [team.id, imageUrl, caption || null], (err, result) => {
+        if (err) {
+          return sendDbError(res, err, "Impossible d'ajouter la photo");
+        }
+
+        res.json({
+          message: "Photo ajoutee a la galerie",
+          photo: {
+            id: result.insertId,
+            team_id: team.id,
+            image_url: imageUrl,
+            caption: caption || null,
+          },
+        });
+      });
+    });
+  });
+});
+
+router.delete("/gallery/:photoId", verifyToken, (req, res) => {
+  if (req.user.role !== "team") {
+    return res.status(403).json({ message: "Action reservee aux equipes" });
+  }
+
+  ensureTeamGalleryTable((tableErr) => {
+    if (tableErr) {
+      return sendDbError(res, tableErr, "Impossible de preparer la galerie");
+    }
+
+    getTeamForUser(req.user.id, (teamErr, team) => {
+      if (teamErr) {
+        return sendDbError(res, teamErr, "Impossible de charger l'equipe");
+      }
+
+      if (!team) {
+        return res.status(404).json({ message: "Equipe introuvable" });
+      }
+
+      const findSql = `
+        SELECT id, image_url
+        FROM team_gallery
+        WHERE id = ? AND team_id = ?
+        LIMIT 1
+      `;
+
+      db.query(findSql, [req.params.photoId, team.id], (findErr, result) => {
+        if (findErr) {
+          return sendDbError(res, findErr, "Impossible de verifier la photo");
+        }
+
+        if (result.length === 0) {
+          return res.status(404).json({ message: "Photo introuvable" });
+        }
+
+        const photo = result[0];
+        const deleteSql = "DELETE FROM team_gallery WHERE id = ? AND team_id = ?";
+        db.query(deleteSql, [photo.id, team.id], (deleteErr) => {
+          if (deleteErr) {
+            return sendDbError(res, deleteErr, "Impossible de supprimer la photo");
+          }
+
+          if (photo.image_url && photo.image_url.startsWith("/uploads/")) {
+            const imagePath = path.join(
+              __dirname,
+              "..",
+              photo.image_url.replace(/^[/\\]+/, "")
+            );
+            fs.unlink(imagePath, () => {});
+          }
+
+          res.json({ message: "Photo supprimee" });
+        });
+      });
     });
   });
 });
@@ -1072,6 +1290,11 @@ router.delete("/account", verifyToken, (req, res) => {
         return res.status(404).json({ message: "Equipe introuvable" });
       }
 
+      ensureTeamGalleryTable((galleryTableErr) => {
+        if (galleryTableErr) {
+          return sendDbError(res, galleryTableErr, "Impossible de preparer la galerie");
+        }
+
       db.beginTransaction((transactionErr) => {
         if (transactionErr) {
           return sendDbError(res, transactionErr, "Impossible de demarrer la suppression");
@@ -1080,6 +1303,9 @@ router.delete("/account", verifyToken, (req, res) => {
         const rollback = (message) => {
           db.rollback(() => res.status(500).json({ message }));
         };
+
+        db.query("DELETE FROM team_gallery WHERE team_id = ?", [team.id], (galleryErr) => {
+          if (galleryErr) return rollback("Impossible de supprimer la galerie");
 
         db.query("DELETE FROM team_invitations WHERE team_id = ?", [team.id], (inviteErr) => {
           if (inviteErr) return rollback("Impossible de supprimer les invitations");
@@ -1127,6 +1353,8 @@ router.delete("/account", verifyToken, (req, res) => {
             }
           );
         });
+        });
+      });
       });
     });
   });

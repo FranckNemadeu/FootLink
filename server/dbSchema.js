@@ -101,6 +101,16 @@ const ensureCoreTables = async () => {
     )
   `);
 
+  await runQuery(`
+    CREATE TABLE IF NOT EXISTS team_gallery (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      team_id INT NOT NULL,
+      image_url VARCHAR(255) NOT NULL,
+      caption VARCHAR(160),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   await ensureColumn("users", "role", "VARCHAR(20) DEFAULT 'player'");
   await ensureColumn("users", "email_verified", "TINYINT(1) DEFAULT 1");
   await ensureColumn("users", "email_verification_token", "VARCHAR(128)");
@@ -112,6 +122,7 @@ const ensureCoreTables = async () => {
   await ensureColumn("teams", "player_count", "INT DEFAULT 0");
   await ensureColumn("teams", "logo_photo", "VARCHAR(255)");
   await ensureColumn("team_invitations", "requested_by", "VARCHAR(20) DEFAULT 'team'");
+  await ensureColumn("team_gallery", "caption", "VARCHAR(160)");
 };
 
 module.exports = {
