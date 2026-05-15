@@ -190,12 +190,12 @@ function PlayerDashboard() {
         ...currentPlayer,
         ...profileForm,
       }));
-      showNotice("success", "Profil mis a jour.");
+      showNotice("success", "Profil mis à jour.");
     } catch (err) {
       console.log(err);
       showNotice(
         "error",
-        err.response?.data?.message || "Impossible de mettre a jour le profil."
+        err.response?.data?.message || "Impossible de mettre à jour le profil."
       );
     } finally {
       setProfileSaving(false);
@@ -256,7 +256,7 @@ function PlayerDashboard() {
         ...currentPlayer,
         profile_photo: res.data.profile_photo,
       }));
-      showNotice("success", "Photo de profil mise a jour.");
+      showNotice("success", "Photo de profil mise à jour.");
     } catch (err) {
       console.log(err);
       showNotice(
@@ -293,12 +293,12 @@ function PlayerDashboard() {
         }));
       }
 
-      showNotice("success", res.data.message || "Invitation mise a jour.");
+      showNotice("success", res.data.message || "Invitation mise à jour.");
     } catch (err) {
       console.log(err);
       showNotice(
         "error",
-        err.response?.data?.message || "Impossible de repondre a l'invitation."
+        err.response?.data?.message || "Impossible de répondre à l'invitation."
       );
     }
   };
@@ -328,7 +328,7 @@ function PlayerDashboard() {
         },
       });
 
-      logout("Ton compte joueur a ete supprime.");
+      logout("Ton compte joueur a été supprimé.");
       navigate("/", { replace: true });
     } catch (err) {
       console.log(err);
@@ -522,7 +522,7 @@ function PlayerDashboard() {
                           onClick={handleChangeClub}
                           disabled={clubLoading || !selectedClub}
                         >
-                          {clubLoading ? "Envoi..." : "Demander a rejoindre"}
+                          {clubLoading ? "Envoi..." : "Demander à rejoindre"}
                         </button>
                       </div>
                       {player.team_name && (
@@ -702,7 +702,7 @@ function PlayerDashboard() {
                 <h3>Supprimer mon compte</h3>
                 <p>
                   Cette action supprime ton compte, ton profil joueur, tes stats
-                  et tes invitations. Elle est definitive.
+                  et tes invitations. Elle est définitive.
                 </p>
 
                 <input

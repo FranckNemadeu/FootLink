@@ -103,7 +103,7 @@ function Login() {
             onClick={handleResendVerification}
             disabled={resendingVerification}
           >
-            {resendingVerification ? "Envoi..." : "Renvoyer l'email de verification"}
+            {resendingVerification ? "Envoi..." : "Renvoyer l'email de vérification"}
           </button>
         )}
 

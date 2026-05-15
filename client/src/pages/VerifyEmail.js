@@ -20,7 +20,7 @@ function VerifyEmail() {
       if (!token) {
         setMessage({
           type: "error",
-          text: "Lien de verification invalide.",
+          text: "Lien de vérification invalide.",
         });
         return;
       }
@@ -57,7 +57,7 @@ function VerifyEmail() {
         </p>
 
         <Link className="player-btn nav-link-btn" to="/login">
-          Aller a la connexion
+          Aller à la connexion
         </Link>
       </div>
     </div>

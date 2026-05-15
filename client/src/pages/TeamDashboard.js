@@ -102,7 +102,7 @@ function TeamDashboard() {
         <p>
           {player.position || "Poste inconnu"} - {player.city || "Ville inconnue"}
         </p>
-        <p>Role club : {player.club_role || "Joueur"}</p>
+        <p>Rôle club : {player.club_role || "Joueur"}</p>
         <p>Club actuel : {player.team_name || "Aucun"}</p>
       </div>
     </div>
@@ -250,13 +250,13 @@ function TeamDashboard() {
         }
       );
 
-      showNotice("success", res.data.message || "Demande mise a jour.");
+      showNotice("success", res.data.message || "Demande mise à jour.");
       fetchPlayers();
     } catch (err) {
       console.log(err);
       showNotice(
         "error",
-        err.response?.data?.message || "Impossible de repondre a la demande."
+        err.response?.data?.message || "Impossible de répondre à la demande."
       );
     }
   };
@@ -296,12 +296,12 @@ function TeamDashboard() {
         ...currentTeam,
         logo_photo: res.data.logo_photo,
       }));
-      showNotice("success", res.data.message || "Logo mis a jour.");
+      showNotice("success", res.data.message || "Logo mis à jour.");
     } catch (err) {
       console.log(err);
       showNotice(
         "error",
-        err.response?.data?.message || "Impossible de mettre a jour le logo."
+        err.response?.data?.message || "Impossible de mettre à jour le logo."
       );
     } finally {
       setUploadingLogo(false);
@@ -338,7 +338,7 @@ function TeamDashboard() {
 
       setGallery((currentGallery) => [res.data.photo, ...currentGallery]);
       setGalleryCaption("");
-      showNotice("success", res.data.message || "Photo ajoutee a la galerie.");
+      showNotice("success", res.data.message || "Photo ajoutée à la galerie.");
     } catch (err) {
       console.log(err);
       showNotice(
@@ -362,7 +362,7 @@ function TeamDashboard() {
       setGallery((currentGallery) =>
         currentGallery.filter((photo) => photo.id !== photoId)
       );
-      showNotice("success", "Photo supprimee.");
+      showNotice("success", "Photo supprimée.");
     } catch (err) {
       console.log(err);
       showNotice(
@@ -411,12 +411,12 @@ function TeamDashboard() {
           player.id === playerId ? { ...player, club_role: clubRole } : player
         )
       );
-      showNotice("success", "Role mis a jour.");
+      showNotice("success", "Rôle mis à jour.");
     } catch (err) {
       console.log(err);
       showNotice(
         "error",
-        err.response?.data?.message || "Impossible de mettre a jour le role."
+        err.response?.data?.message || "Impossible de mettre à jour le rôle."
       );
     }
   };
@@ -447,7 +447,7 @@ function TeamDashboard() {
         }
       );
 
-      showNotice("success", "Stats ajoutees.");
+      showNotice("success", "Stats ajoutées.");
       setStatsForm((currentForm) => ({
         ...currentForm,
         goals: 0,
@@ -577,7 +577,7 @@ function TeamDashboard() {
               <p className="dashboard-label">Espace équipe</p>
               <span className="dashboard-pill">{team?.level || "Club"}</span>
             </div>
-            <h2>{team?.team_name || user?.name || "Equipe"}</h2>
+            <h2>{team?.team_name || user?.name || "Équipe"}</h2>
             <p>
               Pilote ton effectif, tes demandes, tes matchs et ta vitrine club.
             </p>
@@ -661,14 +661,14 @@ function TeamDashboard() {
               <div className="gallery-upload-panel">
                 <input
                   type="text"
-                  placeholder="Legende de la photo"
+                  placeholder="Légende de la photo"
                   value={galleryCaption}
                   onChange={(e) => setGalleryCaption(e.target.value)}
                   maxLength="160"
                 />
 
                 <label className="photo-upload-btn">
-                  {uploadingGallery ? "Televersement..." : "Ajouter une photo"}
+                    {uploadingGallery ? "Téléversement..." : "Ajouter une photo"}
                   <input
                     type="file"
                     accept="image/*"
@@ -763,7 +763,7 @@ function TeamDashboard() {
                   value={seasonYear}
                   onChange={(e) => setSeasonYear(e.target.value)}
                 >
-                  <option value="all">Toutes les annees</option>
+                  <option value="all">Toutes les années</option>
                   {seasonYears.map((year) => (
                     <option key={year} value={year}>
                       {year}
@@ -927,7 +927,7 @@ function TeamDashboard() {
                             <h4>{invitation.name}</h4>
                           <p>
                             {invitation.requested_by === "player"
-                              ? "Demande a rejoindre ton club"
+                              ? "Demande à rejoindre ton club"
                               : "Invitation envoyée par ton club"}
                           </p>
                           <p>
@@ -999,7 +999,7 @@ function TeamDashboard() {
                             {player.position || "Poste inconnu"} -{" "}
                             {player.city || "Ville inconnue"}
                           </p>
-                          <p>Role club : {player.club_role || "Joueur"}</p>
+                          <p>Rôle club : {player.club_role || "Joueur"}</p>
                         <p>
                           Buts {player.goals || 0} - Passes{" "}
                           {player.assists || 0} - Hommes du match{" "}
@@ -1012,7 +1012,7 @@ function TeamDashboard() {
                         <select
                           value={player.club_role || "Joueur"}
                           onChange={(e) => handleRoleChange(player.id, e.target.value)}
-                          aria-label={`Role club de ${player.name}`}
+                          aria-label={`Rôle club de ${player.name}`}
                         >
                           {clubRoles.map((role) => (
                             <option key={role} value={role}>
@@ -1041,7 +1041,7 @@ function TeamDashboard() {
 
               {formerMembers.length === 0 ? (
                 <p className="dashboard-message dashboard-empty-state">
-                  Aucun ancien membre avec stats enregistrees pour ce club.
+                  Aucun ancien membre avec stats enregistrées pour ce club.
                 </p>
               ) : (
                 <div className="team-player-list">
@@ -1212,7 +1212,7 @@ function TeamDashboard() {
               <h3>Supprimer mon compte club</h3>
               <p>
                 Cette action supprime le compte équipe, le club, ses matchs,
-                ses invitations et detache les joueurs de l'effectif.
+                ses invitations et détache les joueurs de l'effectif.
               </p>
 
               <input

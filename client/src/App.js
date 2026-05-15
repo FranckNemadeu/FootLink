@@ -598,6 +598,7 @@ function Home() {
 function ClubsList() {
   const [allClubs, setAllClubs] = useState(clubs.map(normalizeClub));
   const [loading, setLoading] = useState(true);
+  const [clubQuery, setClubQuery] = useState("");
 
   useEffect(() => {
     const loadClubs = async () => {
@@ -615,9 +616,20 @@ function ClubsList() {
     loadClubs();
   }, []);
 
+  const filteredClubs = allClubs.filter((club) => {
+    const query = clubQuery.trim().toLowerCase();
+    if (!query) return true;
+
+    return [club.name, club.city, club.level, club.category]
+      .filter(Boolean)
+      .some((value) => value.toLowerCase().includes(query));
+  });
+  const totalPlayers = allClubs.reduce((sum, club) => sum + club.players, 0);
+  const totalGoals = allClubs.reduce((sum, club) => sum + club.goals, 0);
+
   return (
     <PublicShell>
-      <section className="home-section clubs-list-page">
+      <section className="home-section clubs-list-page club-directory-page">
         <div className="section-heading">
           <div>
             <p className="home-kicker">{loading ? "Chargement" : "Clubs inscrits"}</p>
@@ -628,8 +640,44 @@ function ClubsList() {
           </Link>
         </div>
 
-        <div className="club-grid clubs-list-grid">
-          {allClubs.map((club) => (
+        <div className="club-directory-hero">
+          <div>
+            <span className="dashboard-pill">Répertoire officiel</span>
+            <h3>Trouve un club par nom, ville ou niveau.</h3>
+            <p>
+              Une liste claire pour découvrir les équipes actives et ouvrir leur
+              vitrine publique.
+            </p>
+          </div>
+          <div className="club-directory-stats">
+            <span>
+              <strong>{allClubs.length}</strong>
+              Clubs
+            </span>
+            <span>
+              <strong>{totalPlayers}</strong>
+              Joueurs
+            </span>
+            <span>
+              <strong>{totalGoals}</strong>
+              Buts
+            </span>
+          </div>
+        </div>
+
+        <div className="directory-search-panel">
+          <input
+            type="search"
+            placeholder="Rechercher un club, une ville ou un niveau"
+            value={clubQuery}
+            onChange={(e) => setClubQuery(e.target.value)}
+          />
+          <span>{filteredClubs.length} club{filteredClubs.length > 1 ? "s" : ""} trouvé{filteredClubs.length > 1 ? "s" : ""}</span>
+        </div>
+
+        {filteredClubs.length > 0 ? (
+          <div className="club-grid clubs-list-grid">
+          {filteredClubs.map((club) => (
             <Link className="club-card" key={club.id || club.name} to={clubLink(club)}>
               <div className="club-badge">
                 {club.logo_photo ? (
@@ -655,12 +703,17 @@ function ClubsList() {
                 </span>
               </div>
               <div className="club-card-leaders">
-                <p>Buteur: {club.top_scorer || "A definir"}</p>
-                <p>Passeur: {club.top_assister || "A definir"}</p>
+                <p>Buteur : {club.top_scorer || "À définir"}</p>
+                <p>Passeur : {club.top_assister || "À définir"}</p>
               </div>
             </Link>
           ))}
-        </div>
+          </div>
+        ) : (
+          <p className="dashboard-message dashboard-empty-state">
+            Aucun club ne correspond à cette recherche.
+          </p>
+        )}
       </section>
     </PublicShell>
   );
@@ -744,7 +797,7 @@ function PublicPlayer() {
             <Link className="player-btn nav-link-btn" to={isAuthenticated ? dashboardPath : "/register/team"}>
               {isAuthenticated ? "Ouvrir mon espace" : "Recruter des joueurs"}
             </Link>
-            <Link className="team-btn nav-link-btn" to="/">
+            <Link className="team-btn nav-link-btn" to="/#players">
               Voir le classement
             </Link>
           </div>
@@ -846,11 +899,17 @@ function PublicClub() {
     { id: "galerie", label: "Galerie" },
     { id: "infos", label: "Infos" },
   ];
+  const clubBadges = [
+    club.city,
+    club.level,
+    club.category || "Catégorie ouverte",
+  ].filter(Boolean);
 
   return (
     <PublicShell>
       <section className="public-detail public-showcase club-detail">
         <div className="public-visual-panel club-visual-panel">
+          <span className="official-club-label">Vitrine club</span>
           <div className="club-badge public-club-badge">
             {club.logo_photo ? (
               <img src={getMediaUrl(club.logo_photo)} alt={club.name} />
@@ -864,15 +923,20 @@ function PublicClub() {
           </div>
         </div>
 
-        <div className="public-copy-panel">
-          <p className="home-kicker">{loading ? "Chargement" : "Club inscrit"}</p>
-          <h2>{club.name}</h2>
-          <p className="public-lead">
-            {club.name} represente {club.city} avec un effectif actif, des demandes
-            de joueurs et une presence visible sur FootLink.
-          </p>
+          <div className="public-copy-panel">
+            <p className="home-kicker">{loading ? "Chargement" : "Club inscrit"}</p>
+            <h2>{club.name}</h2>
+            <div className="official-badge-row">
+              {clubBadges.map((badge) => (
+                <span className="dashboard-pill" key={badge}>{badge}</span>
+              ))}
+            </div>
+            <p className="public-lead">
+              {club.name} représente {club.city} avec un effectif actif, des
+              demandes de joueurs et une présence visible sur FootLink.
+            </p>
 
-          <div className="public-stats public-stat-grid">
+            <div className="public-stats public-stat-grid">
             <span>
               <strong>{club.players}</strong>
               Joueurs
@@ -891,10 +955,10 @@ function PublicClub() {
             </span>
           </div>
 
-          <div className="club-leaders-panel">
-            <div>
-              <span>Meilleur buteur</span>
-              <strong>{topScorer?.name || club.top_scorer || "À définir"}</strong>
+            <div className="club-leaders-panel">
+              <div>
+                <span>Meilleur buteur</span>
+                <strong>{topScorer?.name || club.top_scorer || "À définir"}</strong>
               <p>{topScorer?.goals ?? club.top_scorer_goals} buts</p>
             </div>
             <div>
@@ -904,7 +968,7 @@ function PublicClub() {
             </div>
             <div>
               <span>Meilleur joueur</span>
-              <strong>{topMotm?.name || "A definir"}</strong>
+              <strong>{topMotm?.name || "À définir"}</strong>
               <p>{topMotm?.motm_count || 0} hommes du match</p>
             </div>
           </div>
@@ -918,7 +982,7 @@ function PublicClub() {
             <Link className="player-btn nav-link-btn" to={isAuthenticated ? dashboardPath : "/register/player"}>
               {isAuthenticated ? "Ouvrir mon espace" : "Rejoindre un club"}
             </Link>
-            <Link className="team-btn nav-link-btn" to="/">
+            <Link className="team-btn nav-link-btn" to="/clubs">
               Voir les autres clubs
             </Link>
           </div>
@@ -955,7 +1019,7 @@ function PublicClub() {
                 value={seasonYear}
                 onChange={(e) => setSeasonYear(e.target.value)}
               >
-                <option value="all">Toutes les annees</option>
+                <option value="all">Toutes les années</option>
                 {seasonYears.map((year) => (
                   <option key={year} value={year}>
                     {year}
@@ -1015,7 +1079,7 @@ function PublicClub() {
                 ))}
               </div>
             ) : (
-              <p className="dashboard-message">
+              <p className="dashboard-message dashboard-empty-state">
                 Aucun joueur public n'est encore rattaché à ce club.
               </p>
             )}
@@ -1038,16 +1102,16 @@ function PublicClub() {
                     <span>{match.type?.slice(0, 1).toUpperCase() || "M"}</span>
                     <div>
                       <h4>{match.type || "Match"}</h4>
-                      <p>{match.match_date?.slice(0, 10) || "Date à définir"}</p>
-                      {match.man_of_match_name && (
-                        <p>Homme du match: {match.man_of_match_name}</p>
+                        <p>{match.match_date?.slice(0, 10) || "Date à définir"}</p>
+                        {match.man_of_match_name && (
+                        <p>Homme du match : {match.man_of_match_name}</p>
                       )}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="dashboard-message">Aucun match public pour le moment.</p>
+              <p className="dashboard-message dashboard-empty-state">Aucun match public pour le moment.</p>
             )}
           </div>
         )}
@@ -1091,7 +1155,7 @@ function PublicClub() {
                 ))}
               </div>
             ) : (
-              <p className="dashboard-message">
+              <p className="dashboard-message dashboard-empty-state">
                 Aucun joueur public n'est encore rattaché à ce club.
               </p>
             )}
@@ -1139,8 +1203,8 @@ function PublicClub() {
                 )}
               </>
             ) : (
-              <p className="dashboard-message">
-                Ce club n'a pas encore ajoute de photos.
+              <p className="dashboard-message dashboard-empty-state">
+                Ce club n'a pas encore ajouté de photos.
               </p>
             )}
           </div>
@@ -1157,8 +1221,8 @@ function PublicClub() {
             <div className="public-bio-card">
               <h3>Stats club</h3>
               <p>{club.players} joueurs inscrits</p>
-              <p>{club.goals} buts marques</p>
-              <p>{club.assists} passes decisives</p>
+              <p>{club.goals} buts marqués</p>
+              <p>{club.assists} passes décisives</p>
             </div>
           </div>
         )}

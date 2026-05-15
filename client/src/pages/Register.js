@@ -224,6 +224,18 @@ function Register({ accountType }) {
         </button>
 
         <h2>{isTeam ? "Inscription Équipe" : "Inscription Joueur"}</h2>
+        <div className="auth-onboarding">
+          <span>{isTeam ? "Club" : "Joueur"}</span>
+          <strong>
+            {isTeam
+              ? "Crée ta vitrine club en quelques minutes."
+              : "Crée ton profil et demande à rejoindre un club."}
+          </strong>
+          <p>
+            Après l'inscription, vérifie ton email puis connecte-toi pour
+            compléter ton espace.
+          </p>
+        </div>
 
         {formMessage && (
           <p className={`auth-notice auth-notice-${formMessage.type}`}>
@@ -372,14 +384,14 @@ function Register({ accountType }) {
             {!noTeam && (
               <>
                 {loadingClubs ? (
-                  <p>Chargement des clubs...</p>
+                  <p className="info-text">Chargement des clubs...</p>
                 ) : clubs.length > 0 ? (
                   <select
                     value={playerTeamId}
                     onChange={(e) => handleClubSelect(Number(e.target.value))}
                     required
                   >
-                    <option value="">Club a rejoindre sur demande</option>
+                    <option value="">Club à rejoindre sur demande</option>
                     {clubs.map((club) => (
                       <option key={club.id} value={club.id}>
                         {club.team_name} ({club.city})
