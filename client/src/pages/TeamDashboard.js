@@ -6,6 +6,7 @@ import DashboardBottomNav from "../components/DashboardBottomNav";
 import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
 import getMediaUrl from "../utils/mediaUrl";
+import requestWithRetry from "../utils/requestWithRetry";
 
 const clubRoles = ["Joueur", "Coach", "Assistant coach", "Manager", "Staff"];
 
@@ -153,28 +154,38 @@ function TeamDashboard() {
       };
 
       const [
-        playersRes,
-        invitationsRes,
-        matchesRes,
-        formerMembersRes,
-        galleryRes,
-      ] = await Promise.all([
-        axios.get(`${API_URL}/api/team/players`, {
+        playersResult,
+        invitationsResult,
+        matchesResult,
+        formerMembersResult,
+        galleryResult,
+      ] = await Promise.allSettled([
+        requestWithRetry(() => axios.get(`${API_URL}/api/team/players`, {
           headers,
           params: seasonYear === "all" ? {} : { year: seasonYear },
-        }),
-        axios.get(`${API_URL}/api/team/invitations`, { headers }),
-        axios.get(`${API_URL}/api/team/matches`, { headers }),
-        axios.get(`${API_URL}/api/team/former-members`, { headers }),
-        axios.get(`${API_URL}/api/team/gallery`, { headers }),
+        })),
+        requestWithRetry(() => axios.get(`${API_URL}/api/team/invitations`, { headers })),
+        requestWithRetry(() => axios.get(`${API_URL}/api/team/matches`, { headers })),
+        requestWithRetry(() => axios.get(`${API_URL}/api/team/former-members`, { headers })),
+        requestWithRetry(() => axios.get(`${API_URL}/api/team/gallery`, { headers })),
       ]);
+
+      if (playersResult.status === "rejected") {
+        throw playersResult.reason;
+      }
+
+      const playersRes = playersResult.value;
 
       setTeam(playersRes.data.team);
       setPlayers(playersRes.data.players);
-      setInvitations(invitationsRes.data);
-      setMatches(matchesRes.data);
-      setFormerMembers(formerMembersRes.data);
-      setGallery(galleryRes.data);
+      setInvitations(
+        invitationsResult.status === "fulfilled" ? invitationsResult.value.data : []
+      );
+      setMatches(matchesResult.status === "fulfilled" ? matchesResult.value.data : []);
+      setFormerMembers(
+        formerMembersResult.status === "fulfilled" ? formerMembersResult.value.data : []
+      );
+      setGallery(galleryResult.status === "fulfilled" ? galleryResult.value.data : []);
     } catch (err) {
       console.log(err);
       setError(err.response?.data?.message || "Impossible de charger l'équipe.");

@@ -6,6 +6,7 @@ import DashboardBottomNav from "../components/DashboardBottomNav";
 import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
 import getMediaUrl from "../utils/mediaUrl";
+import requestWithRetry from "../utils/requestWithRetry";
 
 function PlayerDashboard() {
   const navigate = useNavigate();
@@ -94,13 +95,27 @@ function PlayerDashboard() {
           authorization: token,
         };
 
-        const [profileRes, statsRes, clubsRes, invitationsRes, playerClubsRes] = await Promise.all([
-          axios.get(`${API_URL}/api/player`, { headers }),
-          axios.get(`${API_URL}/api/player/stats`, { headers }),
-          axios.get(`${API_URL}/api/team/list`),
-          axios.get(`${API_URL}/api/player/invitations`, { headers }),
-          axios.get(`${API_URL}/api/player/clubs`, { headers }),
+        const [
+          profileResult,
+          statsResult,
+          clubsResult,
+          invitationsResult,
+          playerClubsResult,
+        ] = await Promise.allSettled([
+          requestWithRetry(() => axios.get(`${API_URL}/api/player`, { headers })),
+          requestWithRetry(() => axios.get(`${API_URL}/api/player/stats`, { headers })),
+          requestWithRetry(() => axios.get(`${API_URL}/api/team/list`)),
+          requestWithRetry(() =>
+            axios.get(`${API_URL}/api/player/invitations`, { headers })
+          ),
+          requestWithRetry(() => axios.get(`${API_URL}/api/player/clubs`, { headers })),
         ]);
+
+        if (profileResult.status === "rejected") {
+          throw profileResult.reason;
+        }
+
+        const profileRes = profileResult.value;
 
         if (profileRes.data.message) {
           setPlayer(null);
@@ -116,16 +131,27 @@ function PlayerDashboard() {
           });
         }
 
-        setStats({
-          matches: statsRes.data.matches || 0,
-          goals: statsRes.data.goals || 0,
-          assists: statsRes.data.assists || 0,
-          cards: statsRes.data.cards || 0,
-        });
+        if (statsResult.status === "fulfilled") {
+          const statsRes = statsResult.value;
+          setStats({
+            matches: statsRes.data.matches || 0,
+            goals: statsRes.data.goals || 0,
+            assists: statsRes.data.assists || 0,
+            cards: statsRes.data.cards || 0,
+          });
+        }
 
-        setClubs(clubsRes.data || []);
-        setInvitations(invitationsRes.data || []);
-        setPlayerClubs(playerClubsRes.data || []);
+        setClubs(clubsResult.status === "fulfilled" ? clubsResult.value.data || [] : []);
+        setInvitations(
+          invitationsResult.status === "fulfilled"
+            ? invitationsResult.value.data || []
+            : []
+        );
+        setPlayerClubs(
+          playerClubsResult.status === "fulfilled"
+            ? playerClubsResult.value.data || []
+            : []
+        );
       } catch (err) {
         console.log(err);
         setError("Impossible de charger le profil joueur.");

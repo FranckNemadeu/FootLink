@@ -14,6 +14,7 @@ import BrandLogo from "./components/BrandLogo";
 import PrivateRoute from "./components/PrivateRoute";
 import API_URL from "./config/api";
 import getMediaUrl from "./utils/mediaUrl";
+import requestWithRetry from "./utils/requestWithRetry";
 
 const featuredPlayers = [
   {
@@ -135,25 +136,46 @@ const getRandomClubs = (items, count = 3) =>
 
 function Home() {
   const navigate = useNavigate();
-  const [players, setPlayers] = useState(topScorers);
-  const [homeClubs, setHomeClubs] = useState(clubs);
+  const [players, setPlayers] = useState([]);
+  const [homeClubs, setHomeClubs] = useState([]);
+  const [homeLoading, setHomeLoading] = useState(true);
+  const [homeError, setHomeError] = useState("");
   const { dashboardPath, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const loadHomeData = async () => {
       try {
-        const [playersRes, clubsRes] = await Promise.all([
-          axios.get(`${API_URL}/api/player/public/featured?limit=8`),
-          axios.get(`${API_URL}/api/team/list`),
+        setHomeLoading(true);
+        setHomeError("");
+
+        const [playersResult, clubsResult] = await Promise.allSettled([
+          requestWithRetry(() =>
+            axios.get(`${API_URL}/api/player/public/featured?limit=8`)
+          ),
+          requestWithRetry(() => axios.get(`${API_URL}/api/team/list`)),
         ]);
 
-        const apiPlayers = (playersRes.data || []).map(normalizePlayer);
-        const apiClubs = (clubsRes.data || []).map(normalizeClub);
+        if (playersResult.status === "fulfilled") {
+          const apiPlayers = (playersResult.value.data || []).map(normalizePlayer);
+          setPlayers(apiPlayers);
+        }
 
-        if (apiPlayers.length > 0) setPlayers(apiPlayers);
-        if (apiClubs.length > 0) setHomeClubs(getRandomClubs(apiClubs, 3));
+        if (clubsResult.status === "fulfilled") {
+          const apiClubs = (clubsResult.value.data || []).map(normalizeClub);
+          setHomeClubs(getRandomClubs(apiClubs, 3));
+        }
+
+        if (
+          playersResult.status === "rejected" ||
+          clubsResult.status === "rejected"
+        ) {
+          setHomeError("Les données live prennent plus de temps à charger.");
+        }
       } catch (err) {
         console.log(err);
+        setHomeError("Impossible de charger les données live pour le moment.");
+      } finally {
+        setHomeLoading(false);
       }
     };
 
@@ -162,8 +184,20 @@ function Home() {
 
   const featuredHomePlayers = players.slice(0, 3);
   const leaderboardPlayers = players.slice(0, 4);
-  const heroPlayer = featuredHomePlayers[0] || topScorers[0];
-  const heroClub = homeClubs[0] || clubs[0];
+  const heroPlayer = featuredHomePlayers[0] || {
+    name: "Joueurs FootLink",
+    position: "Profils live",
+    goals: 0,
+    assists: 0,
+    club: "Clubs inscrits",
+  };
+  const heroClub = homeClubs[0] || {
+    name: "Clubs FootLink",
+    players: 0,
+    goals: 0,
+    assists: 0,
+    top_scorer: "",
+  };
   const getLeaderName = (name) => name || "À définir";
   const totalClubPlayers = homeClubs.reduce((sum, club) => sum + club.players, 0);
   const totalGoals =
@@ -306,7 +340,8 @@ function Home() {
               </div>
 
               <div className="hero-player-stack">
-                {featuredHomePlayers.map((player) => (
+                {featuredHomePlayers.length > 0 ? (
+                  featuredHomePlayers.map((player) => (
                   <Link
                     className="hero-player-chip"
                     key={player.id || player.slug || player.name}
@@ -329,7 +364,14 @@ function Home() {
                       </small>
                     </span>
                   </Link>
-                ))}
+                  ))
+                ) : (
+                  <div className="dashboard-message dashboard-empty-state">
+                    {homeLoading
+                      ? "Chargement des joueurs..."
+                      : "Les joueurs apparaitront ici dès que l'API répond."}
+                  </div>
+                )}
               </div>
 
               <div className="hero-mini-stats">
@@ -358,6 +400,12 @@ function Home() {
             </div>
           ))}
         </section>
+
+        {homeError && (
+          <p className="dashboard-message dashboard-empty-state home-api-notice">
+            {homeError}
+          </p>
+        )}
 
         <section className="home-section guidance-section" id="how-it-works">
           <div className="section-heading section-heading-centered">
@@ -428,7 +476,8 @@ function Home() {
           </div>
 
           <div className="player-showcase-grid">
-            {featuredHomePlayers.map((player) => (
+            {featuredHomePlayers.length > 0 ? (
+              featuredHomePlayers.map((player) => (
               <Link
                 className={`player-poster player-feature-card poster-${player.tone}`}
                 key={player.id || player.slug || player.name}
@@ -451,10 +500,18 @@ function Home() {
                   <strong>{player.goals} buts</strong>
                 </div>
               </Link>
-            ))}
+              ))
+            ) : (
+              <p className="dashboard-message dashboard-empty-state">
+                {homeLoading
+                  ? "Chargement des joueurs..."
+                  : "Aucun joueur public n'est disponible pour le moment."}
+              </p>
+            )}
           </div>
 
-          <div className="scorer-board compact-leaderboard">
+          {leaderboardPlayers.length > 0 && (
+            <div className="scorer-board compact-leaderboard">
             {leaderboardPlayers.map((player, index) => (
               <Link className="scorer-row" key={`${player.name}-${index}`} to={playerLink(player)}>
                 <span className="rank-number">{index + 1}</span>
@@ -474,7 +531,8 @@ function Home() {
                 <strong>{player.goals}</strong>
               </Link>
             ))}
-          </div>
+            </div>
+          )}
         </section>
 
         <section className="home-section intelligence-section" id="stats">
@@ -519,7 +577,8 @@ function Home() {
             </div>
 
             <div className="scouting-list">
-              {featuredHomePlayers.map((player) => (
+              {featuredHomePlayers.length > 0 ? (
+                featuredHomePlayers.map((player) => (
                 <Link
                   className="scouting-row"
                   key={`scout-${player.id || player.slug || player.name}`}
@@ -540,7 +599,12 @@ function Home() {
                   </div>
                   <b>{player.goals + player.assists}</b>
                 </Link>
-              ))}
+                ))
+              ) : (
+                <p className="dashboard-message dashboard-empty-state">
+                  Aucun profil à comparer pour le moment.
+                </p>
+              )}
             </div>
           </div>
         </section>
@@ -557,7 +621,8 @@ function Home() {
           </div>
 
           <div className="club-grid">
-            {homeClubs.map((club) => (
+            {homeClubs.length > 0 ? (
+              homeClubs.map((club) => (
               <Link className="club-card" key={club.name} to={clubLink(club)}>
                 <div className="club-badge">
                   {club.logo_photo ? (
@@ -587,7 +652,14 @@ function Home() {
                   <p>Passeur: {getLeaderName(club.top_assister)}</p>
                 </div>
               </Link>
-            ))}
+              ))
+            ) : (
+              <p className="dashboard-message dashboard-empty-state">
+                {homeLoading
+                  ? "Chargement des clubs..."
+                  : "Aucun club n'est disponible pour le moment."}
+              </p>
+            )}
           </div>
         </section>
       </main>
@@ -596,16 +668,16 @@ function Home() {
 }
 
 function ClubsList() {
-  const [allClubs, setAllClubs] = useState(clubs.map(normalizeClub));
+  const [allClubs, setAllClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [clubQuery, setClubQuery] = useState("");
 
   useEffect(() => {
     const loadClubs = async () => {
       try {
-        const res = await axios.get(`${API_URL}/api/team/list`);
+        const res = await requestWithRetry(() => axios.get(`${API_URL}/api/team/list`));
         const apiClubs = (res.data || []).map(normalizeClub);
-        if (apiClubs.length > 0) setAllClubs(apiClubs);
+        setAllClubs(apiClubs);
       } catch (err) {
         console.log(err);
       } finally {
@@ -675,7 +747,11 @@ function ClubsList() {
           <span>{filteredClubs.length} club{filteredClubs.length > 1 ? "s" : ""} trouvé{filteredClubs.length > 1 ? "s" : ""}</span>
         </div>
 
-        {filteredClubs.length > 0 ? (
+        {loading ? (
+          <p className="dashboard-message dashboard-loading-state">
+            Chargement des clubs...
+          </p>
+        ) : filteredClubs.length > 0 ? (
           <div className="club-grid clubs-list-grid">
           {filteredClubs.map((club) => (
             <Link className="club-card" key={club.id || club.name} to={clubLink(club)}>
