@@ -133,47 +133,6 @@ const normalizeClub = (club) => ({
   colors: club.colors || "Rouge / Blanc",
 });
 
-const buildClubsFromPlayers = (items = []) => {
-  const clubsByName = new Map();
-
-  items.forEach((player) => {
-    if (!player.club || player.club === "Sans club") return;
-
-    const club = clubsByName.get(player.club) || {
-      name: player.club,
-      city: player.city,
-      players: 0,
-      level: "Club actif",
-      goals: 0,
-      assists: 0,
-      matches: 0,
-      top_scorer: player.name,
-      top_scorer_goals: player.goals,
-      top_assister: player.name,
-      top_assister_assists: player.assists,
-    };
-
-    club.players += 1;
-    club.goals += player.goals;
-    club.assists += player.assists;
-    club.matches += player.matches;
-
-    if (player.goals > club.top_scorer_goals) {
-      club.top_scorer = player.name;
-      club.top_scorer_goals = player.goals;
-    }
-
-    if (player.assists > club.top_assister_assists) {
-      club.top_assister = player.name;
-      club.top_assister_assists = player.assists;
-    }
-
-    clubsByName.set(player.club, club);
-  });
-
-  return [...clubsByName.values()];
-};
-
 const getRandomClubs = (items, count = 3) =>
   [...items].sort(() => Math.random() - 0.5).slice(0, count);
 
@@ -210,12 +169,7 @@ function Home() {
           apiClubs = clubsResult.value.map(normalizeClub);
         }
 
-        setHomeClubs(
-          getRandomClubs(
-            apiClubs.length > 0 ? apiClubs : buildClubsFromPlayers(apiPlayers),
-            3
-          )
-        );
+        setHomeClubs(getRandomClubs(apiClubs, 3));
 
         if (
           playersResult.status === "rejected" ||
@@ -244,7 +198,7 @@ function Home() {
     club: "Clubs inscrits",
   };
   const heroClub = homeClubs[0] || {
-    name: "Clubs FootLink",
+    name: homeLoading ? "Chargement clubs" : "Aucun club actif",
     players: 0,
     goals: 0,
     assists: 0,
@@ -264,7 +218,7 @@ function Home() {
   const heroImage =
     "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1400&q=80";
   const platformStats = [
-    { label: "Clubs", value: homeClubs.length || 3 },
+    { label: "Clubs", value: homeClubs.length },
     { label: "Joueurs", value: totalClubPlayers || players.length },
     { label: "Buts", value: totalGoals },
     { label: "Matchs", value: totalMatches || totalAssists },
