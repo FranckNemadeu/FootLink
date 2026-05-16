@@ -32,6 +32,10 @@ function TeamDashboard() {
   const [rankingTab, setRankingTab] = useState("goals");
   const [seasonYear, setSeasonYear] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importYear, setImportYear] = useState(new Date().getFullYear());
+  const [importJson, setImportJson] = useState("");
+  const [importLoading, setImportLoading] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const [galleryCaption, setGalleryCaption] = useState("");
@@ -203,6 +207,51 @@ function TeamDashboard() {
       setLoading(false);
     }
   }, [seasonYear, token]);
+
+  const handleOpenImportModal = () => {
+    const yearPref = seasonYear === "all" ? new Date().getFullYear() : seasonYear;
+    setImportYear(yearPref);
+    // Prefill example JSON for convenience
+    setImportJson(
+      JSON.stringify(
+        players.map((p) => ({
+          player_id: p.id,
+          matches: 0,
+          goals: 0,
+          assists: 0,
+          yellow_cards: 0,
+          red_cards: 0,
+          motm_count: 0,
+        })),
+        null,
+        2
+      )
+    );
+    setShowImportModal(true);
+  };
+
+  const handleSubmitImport = async () => {
+    setImportLoading(true);
+    try {
+      let parsed = JSON.parse(importJson);
+      if (!Array.isArray(parsed)) throw new Error("Le JSON doit être un tableau d'objets.");
+
+      const payload = { year: Number(importYear), stats: parsed };
+
+      await axios.post(`${API_URL}/api/team/stats/season`, payload, {
+        headers: { authorization: token },
+      });
+
+      showNotice("success", "Stats importées avec succès.");
+      setShowImportModal(false);
+      fetchPlayers();
+    } catch (err) {
+      console.log(err);
+      showNotice("error", err.response?.data?.message || err.message || "Import failed");
+    } finally {
+      setImportLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchPlayers();
@@ -707,8 +756,15 @@ function TeamDashboard() {
           </button>
           <button onClick={handleLogout}>Déconnexion</button>
         </div>
-      </nav>
+              </div>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <span className="dashboard-pill">{seasonYear === "all" ? "Toutes saisons" : seasonYear}</span>
+                <button type="button" className="btn-import" onClick={handleOpenImportModal}>
+                  Importer stats
+                </button>
+              </div>
 
+              <div className="dashboard-mini-stats">
       <main className="dashboard-content">
         <section className="dashboard-header dashboard-hero team-dashboard-hero">
           <div className="dashboard-title-block">
@@ -910,6 +966,44 @@ function TeamDashboard() {
                   ))}
                 </select>
               </div>
+
+              {showImportModal && (
+                <div className="modal-overlay">
+                  <div className="modal-dialog">
+                    <h3>Importer les statistiques de saison</h3>
+                    <div style={{ marginBottom: 8 }}>
+                      <label>Année</label>
+                      <input
+                        type="number"
+                        value={importYear}
+                        onChange={(e) => setImportYear(e.target.value)}
+                        min="1900"
+                        max={new Date().getFullYear()}
+                      />
+                    </div>
+
+                    <div style={{ marginBottom: 8 }}>
+                      <label>JSON des statistiques (tableau)</label>
+                      <textarea
+                        rows={10}
+                        value={importJson}
+                        onChange={(e) => setImportJson(e.target.value)}
+                        style={{ width: "100%" }}
+                      />
+                      <p className="muted">Ex: [{"player_id":1,"matches":10,"goals":5,...}]</p>
+                    </div>
+
+                    <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                      <button type="button" onClick={() => setShowImportModal(false)} disabled={importLoading}>
+                        Annuler
+                      </button>
+                      <button type="button" onClick={handleSubmitImport} disabled={importLoading}>
+                        {importLoading ? "Import..." : "Importer"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="ranking-tabs">
                 {Object.entries(rankingConfig).map(([key, config]) => (
