@@ -739,46 +739,74 @@ router.get("/public/:teamId", (req, res) => {
             }
 
           const seasonYear = parseSeasonYear(req.query.year);
-          const statsWhere = seasonYear
-            ? "WHERE m.team_id = ? AND YEAR(m.match_date) = ?"
-            : "WHERE m.team_id = ?";
-          const statsValues = seasonYear ? [team.id, seasonYear] : [team.id];
-          const playersSql = `
-            SELECT
-              p.id,
-              p.position,
-              p.city,
-              p.profile_photo,
-              COALESCE(ptm.club_role, p.club_role) AS club_role,
-              u.name,
-              COALESCE(s.goals, 0) AS goals,
-              COALESCE(s.assists, 0) AS assists,
-              COALESCE(s.yellow_cards, 0) + COALESCE(s.red_cards, 0) AS cards,
-              COALESCE(s.motm_count, 0) AS motm_count
-            FROM player_team_memberships ptm
-            JOIN players p ON p.id = ptm.player_id
-            JOIN users u ON u.id = p.user_id
-            LEFT JOIN (
-              SELECT
-                ms.player_id,
-                COALESCE(SUM(ms.goals), 0) AS goals,
-                COALESCE(SUM(ms.assists), 0) AS assists,
-                COALESCE(SUM(ms.yellow_cards), 0) AS yellow_cards,
-                COALESCE(SUM(ms.red_cards), 0) AS red_cards,
-                COUNT(DISTINCT CASE WHEN m.man_of_match_player_id = ms.player_id THEN m.id END) AS motm_count
-              FROM match_stats ms
-              JOIN matches m ON m.id = ms.match_id
-              ${statsWhere}
-              GROUP BY ms.player_id
-            ) s ON s.player_id = p.id
-            WHERE ptm.team_id = ? AND ptm.active = 1
-            ORDER BY goals DESC, u.name
-          `;
 
-          db.query(playersSql, [...statsValues, team.id], (playersErr, players) => {
-            if (playersErr) {
-              return sendDbError(res, playersErr, "Impossible de charger les joueurs");
-            }
+          let playersSql;
+          let playersValues;
+
+          if (seasonYear) {
+            // When a season year is provided, prefer stored season stats
+            playersSql = `
+              SELECT
+                p.id,
+                p.position,
+                p.city,
+                p.profile_photo,
+                COALESCE(ptm.club_role, p.club_role) AS club_role,
+                u.name,
+                COALESCE(ps.goals, 0) AS goals,
+                COALESCE(ps.assists, 0) AS assists,
+                COALESCE(ps.yellow_cards, 0) + COALESCE(ps.red_cards, 0) AS cards,
+                COALESCE(ps.motm_count, 0) AS motm_count
+              FROM player_team_memberships ptm
+              JOIN players p ON p.id = ptm.player_id
+              JOIN users u ON u.id = p.user_id
+              LEFT JOIN player_season_stats ps
+                ON ps.player_id = p.id AND ps.team_id = ? AND ps.season_year = ?
+              WHERE ptm.team_id = ? AND ptm.active = 1
+              ORDER BY goals DESC, u.name
+            `;
+
+            playersValues = [team.id, seasonYear, team.id];
+          } else {
+            // default: compute stats from match_stats as before
+            const statsWhere = "WHERE m.team_id = ?";
+            playersSql = `
+              SELECT
+                p.id,
+                p.position,
+                p.city,
+                p.profile_photo,
+                COALESCE(ptm.club_role, p.club_role) AS club_role,
+                u.name,
+                COALESCE(s.goals, 0) AS goals,
+                COALESCE(s.assists, 0) AS assists,
+                COALESCE(s.yellow_cards, 0) + COALESCE(s.red_cards, 0) AS cards,
+                COALESCE(s.motm_count, 0) AS motm_count
+              FROM player_team_memberships ptm
+              JOIN players p ON p.id = ptm.player_id
+              JOIN users u ON u.id = p.user_id
+              LEFT JOIN (
+                SELECT
+                  ms.player_id,
+                  COALESCE(SUM(ms.goals), 0) AS goals,
+                  COALESCE(SUM(ms.assists), 0) AS assists,
+                  COALESCE(SUM(ms.yellow_cards), 0) AS yellow_cards,
+                  COALESCE(SUM(ms.red_cards), 0) AS red_cards,
+                  COUNT(DISTINCT CASE WHEN m.man_of_match_player_id = ms.player_id THEN m.id END) AS motm_count
+                FROM match_stats ms
+                JOIN matches m ON m.id = ms.match_id
+                ${statsWhere}
+                GROUP BY ms.player_id
+              ) s ON s.player_id = p.id
+              WHERE ptm.team_id = ? AND ptm.active = 1
+              ORDER BY goals DESC, u.name
+            `;
+
+            playersValues = [team.id];
+          }
+
+          db.query(playersSql, playersValues, (playersErr, players) => {
+            if (playersErr) return sendDbError(res, playersErr, "Impossible de charger les joueurs");
 
               const matchesSql = `
                 SELECT
@@ -1979,3 +2007,79 @@ router.delete("/account", verifyToken, (req, res) => {
 });
 
 module.exports = router;
+
+// Bulk upsert season stats for team players
+router.post("/stats/season", verifyToken, (req, res) => {
+  if (req.user.role !== "team") {
+    return res.status(403).json({ message: "Acces reserve aux equipes" });
+  }
+
+  const { year, stats } = req.body || {};
+  const seasonYear = parseSeasonYear(year);
+  if (!seasonYear) return res.status(400).json({ message: "Annee invalide" });
+
+  const currentYear = new Date().getFullYear();
+  if (seasonYear < 1900 || seasonYear > currentYear) {
+    return res.status(400).json({ message: "Annee hors plage acceptable" });
+  }
+
+  if (!Array.isArray(stats) || stats.length === 0) {
+    return res.status(400).json({ message: "Aucune statistique fournie" });
+  }
+
+  getTeamForUser(req.user.id, (teamErr, team) => {
+    if (teamErr) return sendDbError(res, teamErr, "Impossible de charger l'equipe");
+    if (!team) return res.status(404).json({ message: "Equipe introuvable" });
+
+    const playerIds = [...new Set(stats.map((s) => Number(s.player_id)).filter(Boolean))];
+    if (playerIds.length === 0) return res.status(400).json({ message: "Aucun joueur valide fourni" });
+
+    const placeholders = playerIds.map(() => '?').join(',');
+    const membershipSql = `
+      SELECT player_id FROM player_team_memberships
+      WHERE team_id = ? AND player_id IN (${placeholders}) AND active = 1
+    `;
+
+    db.query(membershipSql, [team.id, ...playerIds], (memErr, rows) => {
+      if (memErr) return sendDbError(res, memErr, "Impossible de verifier les membres de l'equipe");
+
+      const validIds = new Set(rows.map((r) => r.player_id));
+      const validStats = stats.filter((s) => validIds.has(Number(s.player_id)));
+
+      if (validStats.length === 0) return res.status(400).json({ message: "Aucun des joueurs fournis n'appartient a l'equipe" });
+
+      const values = validStats.map((s) => [
+        Number(s.player_id),
+        team.id,
+        seasonYear,
+        Number(s.matches) || 0,
+        Number(s.goals) || 0,
+        Number(s.assists) || 0,
+        Number(s.yellow_cards) || 0,
+        Number(s.red_cards) || 0,
+        Number(s.motm_count) || 0,
+        req.user.id,
+      ]);
+
+      const insertSql = `
+        INSERT INTO player_season_stats
+          (player_id, team_id, season_year, matches, goals, assists, yellow_cards, red_cards, motm_count, created_by)
+        VALUES ?
+        ON DUPLICATE KEY UPDATE
+          matches = VALUES(matches),
+          goals = VALUES(goals),
+          assists = VALUES(assists),
+          yellow_cards = VALUES(yellow_cards),
+          red_cards = VALUES(red_cards),
+          motm_count = VALUES(motm_count),
+          created_by = VALUES(created_by),
+          created_at = NOW()
+      `;
+
+      db.query(insertSql, [values], (insErr) => {
+        if (insErr) return sendDbError(res, insErr, "Impossible d'enregistrer les statistiques");
+        res.json({ message: "Statistiques de saison enregistrees", count: values.length });
+      });
+    });
+  });
+});
