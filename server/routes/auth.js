@@ -36,6 +36,28 @@ const normalizeEmail = (value) => cleanText(value).toLowerCase();
 const getFrontendUrl = () =>
   (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
 
+const getNewUserNotificationEmail = () =>
+  process.env.NEW_PLAYER_NOTIFICATION_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL || null;
+
+const sendNewUserNotificationEmail = async (user, role) => {
+  const notificationEmail = getNewUserNotificationEmail();
+  if (!notificationEmail || !isEmailConfigured) return null;
+
+  return sendEmail({
+    to: notificationEmail,
+    subject: `Nouvel utilisateur inscrit: ${user.name}`,
+    text: `Un nouvel utilisateur a cree un compte FootLink.\n\nNom: ${user.name}\nEmail: ${user.email}\nRole: ${role}`,
+    html: `
+      <p>Un nouvel utilisateur a créé un compte FootLink.</p>
+      <ul>
+        <li><strong>Nom:</strong> ${user.name}</li>
+        <li><strong>Email:</strong> ${user.email}</li>
+        <li><strong>Role:</strong> ${role}</li>
+      </ul>
+    `,
+  });
+};
+
 const createSecureToken = () => crypto.randomBytes(32).toString("hex");
 
 const hashToken = (token) =>
@@ -411,19 +433,24 @@ router.post("/register/player", (req, res) => {
                     ? "Compte joueur cree. La demande au club n'a pas pu etre envoyee automatiquement. Tu pourras la refaire depuis ton espace joueur."
                     : "Compte joueur cree. Verifie ton adresse email avant de te connecter.";
 
-              sendEmailVerificationEmail(user, verificationToken)
-                .then(() =>
-                  res.json({
-                    message,
-                  })
-                )
-                .catch((mailErr) => {
-                  console.log("Email verification non envoye", mailErr);
-                  res.status(502).json({
-                    message:
-                      "Compte cree, mais l'email de verification n'a pas pu etre envoye. Reessaie depuis la page de connexion.",
-                  });
-                });
+              const verificationPromise = sendEmailVerificationEmail(user, verificationToken);
+              const notificationPromise = sendNewUserNotificationEmail(user, "Joueur");
+
+              Promise.allSettled([verificationPromise, notificationPromise]).then(
+                ([verificationResult, notificationResult]) => {
+                  if (verificationResult.status === "rejected") {
+                    console.log("Email verification non envoye", verificationResult.reason);
+                  }
+
+                  if (notificationResult && notificationResult.status === "rejected") {
+                    console.log("Notification admin non envoyee", notificationResult.reason);
+                  }
+                }
+              );
+
+              return res.json({
+                message,
+              });
             };
 
             if (!selectedTeam) {
@@ -611,23 +638,31 @@ router.post("/register/team", (req, res) => {
                     );
                   }
 
-                  sendEmailVerificationEmail(
+                  const verificationPromise = sendEmailVerificationEmail(
                     { id: result.insertId, name, email },
                     verificationToken
-                  )
-                    .then(() =>
-                      res.json({
-                        message:
-                          "Compte equipe cree. Verifie ton adresse email avant de te connecter.",
-                      })
-                    )
-                    .catch((mailErr) => {
-                      console.log("Email verification non envoye", mailErr);
-                      res.status(502).json({
-                        message:
-                          "Compte cree, mais l'email de verification n'a pas pu etre envoye. Reessaie depuis la page de connexion.",
-                      });
-                    });
+                  );
+                  const notificationPromise = sendNewUserNotificationEmail(
+                    { id: result.insertId, name, email },
+                    "Equipe"
+                  );
+
+                  Promise.allSettled([verificationPromise, notificationPromise]).then(
+                    ([verificationResult, notificationResult]) => {
+                      if (verificationResult.status === "rejected") {
+                        console.log("Email verification non envoye", verificationResult.reason);
+                      }
+
+                      if (notificationResult && notificationResult.status === "rejected") {
+                        console.log("Notification admin non envoyee", notificationResult.reason);
+                      }
+                    }
+                  );
+
+                  res.json({
+                    message:
+                      "Compte equipe cree. Verifie ton adresse email avant de te connecter.",
+                  });
                 }
               );
             }
