@@ -333,6 +333,29 @@ function TeamDashboard() {
     }
   };
 
+  const handleAddPlayer = async (playerId) => {
+    try {
+      await axios.post(
+        `${API_URL}/api/team/players/${playerId}/add`,
+        {},
+        {
+          headers: {
+            authorization: token,
+          },
+        }
+      );
+
+      showNotice("success", "Joueur ajouté à l'équipe.");
+      fetchPlayers();
+    } catch (err) {
+      console.log(err);
+      showNotice(
+        "error",
+        err.response?.data?.message || "Impossible d'ajouter le joueur."
+      );
+    }
+  };
+
   const handleInvitationResponse = async (invitationId, action) => {
     try {
       const res = await axios.post(
@@ -985,9 +1008,14 @@ function TeamDashboard() {
                     <div className="team-player-card" key={player.id}>
                       {renderPlayerIdentity(player)}
 
-                      <button onClick={() => handleInvitePlayer(player.id)}>
-                        Inviter
-                      </button>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button onClick={() => handleInvitePlayer(player.id)}>
+                          Inviter
+                        </button>
+                        <button onClick={() => handleAddPlayer(player.id)}>
+                          Ajouter
+                        </button>
+                      </div>
                     </div>
                   ))}
                   {searchResults.length > 4 && (
@@ -998,9 +1026,14 @@ function TeamDashboard() {
                           <div className="team-player-card" key={player.id}>
                             {renderPlayerIdentity(player)}
 
-                            <button onClick={() => handleInvitePlayer(player.id)}>
-                              Inviter
-                            </button>
+                            <div style={{ display: "flex", gap: "8px" }}>
+                              <button onClick={() => handleInvitePlayer(player.id)}>
+                                Inviter
+                              </button>
+                              <button onClick={() => handleAddPlayer(player.id)}>
+                                Ajouter
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
