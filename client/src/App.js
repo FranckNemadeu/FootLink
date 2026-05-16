@@ -15,6 +15,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import API_URL from "./config/api";
 import getMediaUrl from "./utils/mediaUrl";
 import requestWithRetry from "./utils/requestWithRetry";
+import { fetchTeamList } from "./utils/fetchTeams";
 
 const featuredPlayers = [
   {
@@ -152,7 +153,7 @@ function Home() {
           requestWithRetry(() =>
             axios.get(`${API_URL}/api/player/public/featured?limit=8`)
           ),
-          requestWithRetry(() => axios.get(`${API_URL}/api/team/list`)),
+          fetchTeamList(),
         ]);
 
         if (playersResult.status === "fulfilled") {
@@ -161,7 +162,7 @@ function Home() {
         }
 
         if (clubsResult.status === "fulfilled") {
-          const apiClubs = (clubsResult.value.data || []).map(normalizeClub);
+          const apiClubs = clubsResult.value.map(normalizeClub);
           setHomeClubs(getRandomClubs(apiClubs, 3));
         }
 
@@ -212,51 +213,51 @@ function Home() {
   const heroImage =
     "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1400&q=80";
   const platformStats = [
-    { label: "Clubs affichés", value: homeClubs.length || 3 },
-    { label: "Joueurs visibles", value: totalClubPlayers || players.length },
-    { label: "Buts enregistrés", value: totalGoals },
-    { label: "Matchs suivis", value: totalMatches || totalAssists },
+    { label: "Clubs", value: homeClubs.length || 3 },
+    { label: "Joueurs", value: totalClubPlayers || players.length },
+    { label: "Buts", value: totalGoals },
+    { label: "Matchs", value: totalMatches || totalAssists },
   ];
   const onboardingSteps = [
     {
       step: "01",
       title: "Choisis ton rôle",
-      text: "Joueur ou club, tu arrives directement sur le bon espace.",
+      text: "Joueur ou club.",
     },
     {
       step: "02",
       title: "Complète ton profil",
-      text: "Ajoute photo, poste, équipe, galerie et infos importantes.",
+      text: "Photo, poste, clubs.",
     },
     {
       step: "03",
-      title: "Suis les performances",
-      text: "Les stats, leaders et hommes du match restent faciles à lire.",
+      title: "Suis tes stats",
+      text: "Saisons, leaders, MVP.",
     },
   ];
   const experienceCards = [
     {
       label: "Joueurs",
-      title: "Profil clair, stats lisibles",
-      text: "Crée ton profil, montre ton poste et garde tes clubs au même endroit.",
+      title: "Profil joueur",
+      text: "Photo, poste, clubs.",
       metric: `${players.length}+ profils`,
     },
     {
       label: "Équipes",
-      title: "Clubhouse moderne",
-      text: "Gère effectif, galerie, anciens membres et demandes d'adhésion.",
+      title: "Espace club",
+      text: "Effectif, demandes, galerie.",
       metric: `${homeClubs.length} clubs`,
     },
     {
       label: "Stats",
-      title: "Saisons, leaders, homme du match",
-      text: "Ajoute les matchs, compare les saisons et garde les leaders visibles.",
+      title: "Stats saison",
+      text: "Matchs, leaders, MVP.",
       metric: `${totalGoals} buts`,
     },
     {
       label: "Scouting",
-      title: "Repérer les bons profils",
-      text: "Compare rapidement les profils sans noyer la page d'informations.",
+      title: "Scouting",
+      text: "Comparer vite.",
       metric: "Live board",
     },
   ];
@@ -273,11 +274,8 @@ function Home() {
               <span className="live-pill">Stats live</span>
             </div>
 
-            <h1>Le terrain local, version professionnelle.</h1>
-            <p>
-              Trouve un club, présente ton profil ou gère ton équipe depuis une
-              plateforme claire.
-            </p>
+            <h1>Ta carrière. Ton club. Tes stats.</h1>
+            <p>FootLink connecte joueurs, clubs et performances locales.</p>
 
             <div className="hero-buttons">
               {isAuthenticated ? (
@@ -302,23 +300,23 @@ function Home() {
                     className="player-btn"
                     onClick={() => navigate("/register/player")}
                   >
-                    Créer mon profil joueur
+                    Profil joueur
                   </button>
 
                   <button
                     className="team-btn"
                     onClick={() => navigate("/register/team")}
                   >
-                    Inscrire mon club
+                    Inscrire un club
                   </button>
                 </>
               )}
             </div>
 
             <div className="hero-trust-row" aria-label="Points forts">
-              <span>Profils publics</span>
-              <span>Clubs vérifiés</span>
-              <span>Stats par saison</span>
+              <span>Profils</span>
+              <span>Clubs</span>
+              <span>Stats</span>
             </div>
           </div>
 
@@ -369,7 +367,7 @@ function Home() {
                   <div className="dashboard-message dashboard-empty-state">
                     {homeLoading
                       ? "Chargement des joueurs..."
-                      : "Les joueurs apparaitront ici dès que l'API répond."}
+                      : "Les joueurs apparaitront ici."}
                   </div>
                 )}
               </div>
@@ -409,8 +407,8 @@ function Home() {
 
         <section className="home-section guidance-section" id="how-it-works">
           <div className="section-heading section-heading-centered">
-            <p className="home-kicker">Comment ça marche</p>
-            <h2>Commencer sans se perdre</h2>
+            <p className="home-kicker">Démarrer</p>
+            <h2>Trois actions</h2>
           </div>
 
           <div className="steps-grid">
@@ -428,28 +426,28 @@ function Home() {
               className="audience-card audience-player"
               to={isAuthenticated ? dashboardPath : "/register/player"}
             >
-              <span>Pour joueurs</span>
-              <h3>Je veux être visible</h3>
-              <p>Crée ton profil, demande à rejoindre un club et garde tes stats.</p>
-              <strong>{isAuthenticated ? "Ouvrir mon espace" : "Créer mon profil"}</strong>
+              <span>Joueur</span>
+              <h3>Être visible</h3>
+              <p>Profil, clubs, stats.</p>
+              <strong>{isAuthenticated ? "Mon espace" : "Commencer"}</strong>
             </Link>
 
             <Link
               className="audience-card audience-club"
               to={isAuthenticated ? "/clubs" : "/register/team"}
             >
-              <span>Pour clubs</span>
-              <h3>Je veux gérer mon équipe</h3>
-              <p>Ajoute ton club, valide les demandes et présente ton effectif.</p>
-              <strong>{isAuthenticated ? "Explorer les clubs" : "Inscrire mon club"}</strong>
+              <span>Club</span>
+              <h3>Gérer l'équipe</h3>
+              <p>Effectif, demandes, vitrine.</p>
+              <strong>{isAuthenticated ? "Explorer" : "Inscrire"}</strong>
             </Link>
           </div>
         </section>
 
         <section className="home-section experience-section">
           <div className="section-heading section-heading-centered">
-            <p className="home-kicker">Plateforme sportive</p>
-            <h2>Les outils importants, sans surcharge</h2>
+            <p className="home-kicker">Essentiel</p>
+            <h2>Tout en un coup d'oeil</h2>
           </div>
 
           <div className="experience-grid">
@@ -468,7 +466,7 @@ function Home() {
           <div className="section-heading">
             <div>
               <p className="home-kicker">Joueurs</p>
-              <h2>Les profils qui montent</h2>
+              <h2>Profils en vue</h2>
             </div>
             <Link className="team-btn nav-link-btn" to="/clubs">
               Voir les clubs
@@ -540,7 +538,7 @@ function Home() {
             <div className="section-heading">
               <div>
                 <p className="home-kicker">Stats</p>
-                <h2>Performance lisible</h2>
+                <h2>Stats nettes</h2>
               </div>
             </div>
 
@@ -572,7 +570,7 @@ function Home() {
             <div className="section-heading">
               <div>
                 <p className="home-kicker">Scouting</p>
-                <h2>Décider plus vite</h2>
+                <h2>Comparer vite</h2>
               </div>
             </div>
 
@@ -613,7 +611,7 @@ function Home() {
           <div className="section-heading">
             <div>
               <p className="home-kicker">Équipes</p>
-              <h2>Clubs à découvrir</h2>
+              <h2>Clubs actifs</h2>
             </div>
             <Link className="team-btn nav-link-btn" to="/clubs">
               Voir tous les clubs
@@ -648,8 +646,8 @@ function Home() {
                   </span>
                 </div>
                 <div className="club-card-leaders">
-                  <p>Buteur: {getLeaderName(club.top_scorer)}</p>
-                  <p>Passeur: {getLeaderName(club.top_assister)}</p>
+                  <p>Top: {getLeaderName(club.top_scorer)}</p>
+                  <p>Passes: {getLeaderName(club.top_assister)}</p>
                 </div>
               </Link>
               ))
@@ -675,8 +673,7 @@ function ClubsList() {
   useEffect(() => {
     const loadClubs = async () => {
       try {
-        const res = await requestWithRetry(() => axios.get(`${API_URL}/api/team/list`));
-        const apiClubs = (res.data || []).map(normalizeClub);
+        const apiClubs = (await fetchTeamList()).map(normalizeClub);
         setAllClubs(apiClubs);
       } catch (err) {
         console.log(err);

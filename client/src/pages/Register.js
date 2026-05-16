@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
+import { fetchTeamOptions } from "../utils/fetchTeams";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ' -]{2,}$/;
@@ -39,6 +40,7 @@ function Register({ accountType }) {
   const [loading, setLoading] = useState(false);
   const [clubs, setClubs] = useState([]);
   const [loadingClubs, setLoadingClubs] = useState(false);
+  const [clubsError, setClubsError] = useState("");
   const [formMessage, setFormMessage] = useState(null);
   const navigate = useNavigate();
   const { dashboardPath, isAuthenticated } = useAuth();
@@ -57,10 +59,15 @@ function Register({ accountType }) {
     const loadClubs = async () => {
       try {
         setLoadingClubs(true);
-        const res = await axios.get(`${API_URL}/api/team/list`);
-        setClubs(res.data || []);
+        setClubsError("");
+        const teamOptions = await fetchTeamOptions();
+        setClubs(teamOptions);
       } catch (err) {
         console.log(err);
+        setClubs([]);
+        setClubsError(
+          "Impossible de charger les clubs. Tu peux cocher sans equipe et faire la demande plus tard."
+        );
       } finally {
         setLoadingClubs(false);
       }
@@ -188,6 +195,7 @@ function Register({ accountType }) {
           city: cleanCity,
           height,
           preferred_foot: preferredFoot,
+          team_id: noTeam ? null : playerTeamId || null,
           team_name: playerTeamName,
           no_team: noTeam,
           bio: cleanBio,
@@ -401,6 +409,7 @@ function Register({ accountType }) {
                 ) : (
                   <p className="info-text">Aucun club enregistré pour le moment.</p>
                 )}
+                {clubsError && <p className="info-text">{clubsError}</p>}
                 <p className="info-text">
                   Le club devra accepter ta demande avant que tu rejoignes son effectif.
                 </p>

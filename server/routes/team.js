@@ -241,6 +241,17 @@ const ensureTeamPublicColumns = (callback) => {
   });
 };
 
+const ensureTeamListColumns = (callback) => {
+  ensureTeamPlayerCountColumn((countErr) => {
+    if (countErr) return callback(countErr);
+
+    ensureTeamLogoColumn((logoErr) => {
+      if (logoErr) return callback(logoErr);
+      ensurePlayerTeamMembershipsTable(callback);
+    });
+  });
+};
+
 const uploadTeamLogo = (req, res, next) => {
   upload.single("logo")(req, res, (err) => {
     if (err) {
@@ -372,6 +383,64 @@ const teamPublicSelect = `
   LEFT JOIN player_team_memberships ptm ON ptm.team_id = t.id AND ptm.active = 1
   LEFT JOIN players p ON p.id = ptm.player_id
   LEFT JOIN match_stats ms ON ms.player_id = p.id
+`;
+
+const teamListSelect = `
+  SELECT
+    t.id,
+    t.team_name,
+    t.city,
+    t.level,
+    t.category,
+    t.bio,
+    COALESCE(active_players.player_count, t.player_count, 0) AS player_count,
+    t.logo_photo,
+    COALESCE(team_stats.goals, 0) AS goals,
+    COALESCE(team_stats.assists, 0) AS assists,
+    COALESCE(team_stats.matches, 0) AS matches,
+    NULL AS top_scorer,
+    0 AS top_scorer_goals,
+    NULL AS top_assister,
+    0 AS top_assister_assists
+  FROM teams t
+  LEFT JOIN (
+    SELECT team_id, COUNT(*) AS player_count
+    FROM player_team_memberships
+    WHERE active = 1
+    GROUP BY team_id
+  ) active_players ON active_players.team_id = t.id
+  LEFT JOIN (
+    SELECT
+      ptm.team_id,
+      COALESCE(SUM(ms.goals), 0) AS goals,
+      COALESCE(SUM(ms.assists), 0) AS assists,
+      COUNT(DISTINCT ms.match_id) AS matches
+    FROM player_team_memberships ptm
+    LEFT JOIN players p ON p.id = ptm.player_id
+    LEFT JOIN match_stats ms ON ms.player_id = p.id
+    WHERE ptm.active = 1
+    GROUP BY ptm.team_id
+  ) team_stats ON team_stats.team_id = t.id
+`;
+
+const teamOptionsSelect = `
+  SELECT
+    t.id,
+    t.team_name,
+    t.city,
+    t.level,
+    t.category,
+    t.bio,
+    COALESCE(t.player_count, 0) AS player_count,
+    t.logo_photo,
+    0 AS goals,
+    0 AS assists,
+    0 AS matches,
+    NULL AS top_scorer,
+    0 AS top_scorer_goals,
+    NULL AS top_assister,
+    0 AS top_assister_assists
+  FROM teams t
 `;
 
 router.get("/players", verifyToken, (req, res) => {
@@ -539,43 +608,68 @@ router.post("/logo", verifyToken, uploadTeamLogo, async (req, res) => {
   });
 });
 
-router.get("/list", (req, res) => {
-  const loadTeams = () => {
-    const sql = `
-      ${teamPublicSelect}
-      GROUP BY
-        t.id,
-        t.team_name,
-        t.city,
-        t.level,
-        t.category,
-        t.bio,
-        t.player_count,
-        t.logo_photo
-      ORDER BY team_name
-    `;
+router.get("/options", (req, res) => {
+  const sql = `${teamOptionsSelect} ORDER BY t.team_name`;
+
+  ensureTeamListColumns((columnErr) => {
+    if (columnErr) {
+      if (columnErr.code === "ER_NO_SUCH_TABLE") {
+        return res.json([]);
+      }
+
+      return sendDbError(res, columnErr, "Impossible de preparer les clubs");
+    }
 
     db.query(sql, (err, teams) => {
       if (err) {
         if (err.code === "ER_NO_SUCH_TABLE") {
           return res.json([]);
         }
-        return sendDbError(res, err, "Impossible de charger la liste des clubs");
+
+        return sendDbError(res, err, "Impossible de charger les clubs");
+      }
+
+      res.json(teams);
+    });
+  });
+});
+
+router.get("/list", (req, res) => {
+  const sql = `${teamListSelect} ORDER BY t.team_name`;
+  const loadOptions = () => {
+    db.query(`${teamOptionsSelect} ORDER BY t.team_name`, (optionErr, teams) => {
+      if (optionErr) {
+        if (optionErr.code === "ER_NO_SUCH_TABLE") {
+          return res.json([]);
+        }
+
+        return sendDbError(res, optionErr, "Impossible de charger la liste des clubs");
       }
 
       res.json(teams);
     });
   };
 
-  ensureTeamPublicColumns((countErr) => {
-    if (countErr) {
-      if (countErr.code === "ER_NO_SUCH_TABLE") {
+  ensureTeamListColumns((columnErr) => {
+    if (columnErr) {
+      if (columnErr.code === "ER_NO_SUCH_TABLE") {
         return res.json([]);
       }
-      return sendDbError(res, countErr, "Impossible de mettre a jour les clubs");
+
+      return sendDbError(res, columnErr, "Impossible de preparer les clubs");
     }
 
-    loadTeams();
+    db.query(sql, (err, teams) => {
+      if (err) {
+        if (err.code === "ER_NO_SUCH_TABLE") {
+          return loadOptions();
+        }
+
+        return sendDbError(res, err, "Impossible de charger la liste des clubs");
+      }
+
+      res.json(teams);
+    });
   });
 });
 

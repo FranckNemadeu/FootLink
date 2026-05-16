@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
 import getMediaUrl from "../utils/mediaUrl";
 import requestWithRetry from "../utils/requestWithRetry";
+import { fetchTeamOptions } from "../utils/fetchTeams";
 
 function PlayerDashboard() {
   const navigate = useNavigate();
@@ -104,7 +105,7 @@ function PlayerDashboard() {
         ] = await Promise.allSettled([
           requestWithRetry(() => axios.get(`${API_URL}/api/player`, { headers })),
           requestWithRetry(() => axios.get(`${API_URL}/api/player/stats`, { headers })),
-          requestWithRetry(() => axios.get(`${API_URL}/api/team/list`)),
+          fetchTeamOptions(),
           requestWithRetry(() =>
             axios.get(`${API_URL}/api/player/invitations`, { headers })
           ),
@@ -141,7 +142,7 @@ function PlayerDashboard() {
           });
         }
 
-        setClubs(clubsResult.status === "fulfilled" ? clubsResult.value.data || [] : []);
+        setClubs(clubsResult.status === "fulfilled" ? clubsResult.value || [] : []);
         setInvitations(
           invitationsResult.status === "fulfilled"
             ? invitationsResult.value.data || []

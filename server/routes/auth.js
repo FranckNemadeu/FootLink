@@ -233,6 +233,14 @@ const checkTeamExists = (teamName, callback) => {
   });
 };
 
+const checkTeamExistsById = (teamId, callback) => {
+  const sql = "SELECT * FROM teams WHERE id = ? LIMIT 1";
+  db.query(sql, [teamId], (err, result) => {
+    if (err) return callback(err);
+    callback(null, result.length > 0 ? result[0] : null);
+  });
+};
+
 const sendPasswordResetEmail = (user, token) => {
   const resetUrl = `${getFrontendUrl()}/reset-password?token=${token}`;
 
@@ -292,6 +300,7 @@ router.post("/register/player", (req, res) => {
     city: rawCity,
     height,
     preferred_foot,
+    team_id,
     team_name,
     no_team,
     bio,
@@ -332,7 +341,7 @@ router.post("/register/player", (req, res) => {
     return res.status(400).json({ message: "La taille doit etre comprise entre 100 et 230 cm" });
   }
 
-  if (!no_team && !team_name) {
+  if (!no_team && !team_id && !team_name) {
     return res.status(400).json({ message: "Indique ton equipe ou coche sans equipe" });
   }
 
@@ -356,6 +365,11 @@ router.post("/register/player", (req, res) => {
         );
       }
 
+      const selectedTeamId = Number(team_id);
+      const finalTeamId =
+        !no_team && Number.isInteger(selectedTeamId) && selectedTeamId > 0
+          ? selectedTeamId
+          : null;
       const finalTeamName = no_team ? null : cleanText(team_name);
       let selectedTeam = null;
 
@@ -460,7 +474,21 @@ router.post("/register/player", (req, res) => {
         );
       };
 
-      if (!no_team) {
+      if (!no_team && finalTeamId) {
+        checkTeamExistsById(finalTeamId, (teamErr, team) => {
+          if (teamErr) {
+            return sendDbError(res, teamErr, "Impossible de verifier le club");
+          }
+
+          if (!team) {
+            selectedTeam = null;
+            return processPlayerCreation();
+          }
+
+          selectedTeam = team;
+          processPlayerCreation();
+        });
+      } else if (!no_team) {
         checkTeamExists(finalTeamName, (teamErr, team) => {
           if (teamErr) {
             return sendDbError(res, teamErr, "Impossible de verifier le club");
