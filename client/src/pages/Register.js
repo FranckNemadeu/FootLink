@@ -20,6 +20,9 @@ const isDisposableEmail = (value) => {
   return DISPOSABLE_EMAIL_DOMAINS.includes(domain);
 };
 
+const getClubOptionValue = (club) =>
+  club.id ? String(club.id) : club.team_name || club.name || "";
+
 function Register({ accountType }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -76,9 +79,9 @@ function Register({ accountType }) {
     loadClubs();
   }, [isTeam]);
 
-  const handleClubSelect = (clubId) => {
-    const club = clubs.find((c) => c.id === clubId);
-    setPlayerTeamId(clubId);
+  const handleClubSelect = (clubValue) => {
+    const club = clubs.find((c) => getClubOptionValue(c) === clubValue);
+    setPlayerTeamId(clubValue);
     setPlayerTeamName(club ? club.team_name : "");
   };
 
@@ -195,7 +198,10 @@ function Register({ accountType }) {
           city: cleanCity,
           height,
           preferred_foot: preferredFoot,
-          team_id: noTeam ? null : playerTeamId || null,
+          team_id:
+            !noTeam && /^\d+$/.test(String(playerTeamId))
+              ? Number(playerTeamId)
+              : null,
           team_name: playerTeamName,
           no_team: noTeam,
           bio: cleanBio,
@@ -396,12 +402,15 @@ function Register({ accountType }) {
                 ) : clubs.length > 0 ? (
                   <select
                     value={playerTeamId}
-                    onChange={(e) => handleClubSelect(Number(e.target.value))}
+                    onChange={(e) => handleClubSelect(e.target.value)}
                     required
                   >
                     <option value="">Club à rejoindre sur demande</option>
                     {clubs.map((club) => (
-                      <option key={club.id} value={club.id}>
+                      <option
+                        key={getClubOptionValue(club)}
+                        value={getClubOptionValue(club)}
+                      >
                         {club.team_name} ({club.city})
                       </option>
                     ))}

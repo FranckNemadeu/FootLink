@@ -92,7 +92,8 @@ const clubs = [
 ];
 
 const playerLink = (player) => `/players/${player.id || player.slug}`;
-const clubLink = (club) => `/clubs/${club.id || club.slug}`;
+const clubLink = (club) =>
+  club.id ? `/clubs/${club.id}` : club.slug ? `/clubs/${club.slug}` : "/clubs";
 
 const normalizePlayer = (player, index = 0) => ({
   id: player.id,
@@ -132,6 +133,47 @@ const normalizeClub = (club) => ({
   colors: club.colors || "Rouge / Blanc",
 });
 
+const buildClubsFromPlayers = (items = []) => {
+  const clubsByName = new Map();
+
+  items.forEach((player) => {
+    if (!player.club || player.club === "Sans club") return;
+
+    const club = clubsByName.get(player.club) || {
+      name: player.club,
+      city: player.city,
+      players: 0,
+      level: "Club actif",
+      goals: 0,
+      assists: 0,
+      matches: 0,
+      top_scorer: player.name,
+      top_scorer_goals: player.goals,
+      top_assister: player.name,
+      top_assister_assists: player.assists,
+    };
+
+    club.players += 1;
+    club.goals += player.goals;
+    club.assists += player.assists;
+    club.matches += player.matches;
+
+    if (player.goals > club.top_scorer_goals) {
+      club.top_scorer = player.name;
+      club.top_scorer_goals = player.goals;
+    }
+
+    if (player.assists > club.top_assister_assists) {
+      club.top_assister = player.name;
+      club.top_assister_assists = player.assists;
+    }
+
+    clubsByName.set(player.club, club);
+  });
+
+  return [...clubsByName.values()];
+};
+
 const getRandomClubs = (items, count = 3) =>
   [...items].sort(() => Math.random() - 0.5).slice(0, count);
 
@@ -156,15 +198,24 @@ function Home() {
           fetchTeamList(),
         ]);
 
+        let apiPlayers = [];
+        let apiClubs = [];
+
         if (playersResult.status === "fulfilled") {
-          const apiPlayers = (playersResult.value.data || []).map(normalizePlayer);
+          apiPlayers = (playersResult.value.data || []).map(normalizePlayer);
           setPlayers(apiPlayers);
         }
 
         if (clubsResult.status === "fulfilled") {
-          const apiClubs = clubsResult.value.map(normalizeClub);
-          setHomeClubs(getRandomClubs(apiClubs, 3));
+          apiClubs = clubsResult.value.map(normalizeClub);
         }
+
+        setHomeClubs(
+          getRandomClubs(
+            apiClubs.length > 0 ? apiClubs : buildClubsFromPlayers(apiPlayers),
+            3
+          )
+        );
 
         if (
           playersResult.status === "rejected" ||
