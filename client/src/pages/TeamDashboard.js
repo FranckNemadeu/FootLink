@@ -756,15 +756,7 @@ function TeamDashboard() {
           </button>
           <button onClick={handleLogout}>Déconnexion</button>
         </div>
-              </div>
-              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                <span className="dashboard-pill">{seasonYear === "all" ? "Toutes saisons" : seasonYear}</span>
-                <button type="button" className="btn-import" onClick={handleOpenImportModal}>
-                  Importer stats
-                </button>
-              </div>
-
-              <div className="dashboard-mini-stats">
+      </nav>
       <main className="dashboard-content">
         <section className="dashboard-header dashboard-hero team-dashboard-hero">
           <div className="dashboard-title-block">
@@ -933,7 +925,14 @@ function TeamDashboard() {
                   <span className="dashboard-label">Leaders</span>
                   <h3>Classements du club</h3>
                 </div>
-                <span className="dashboard-pill">{seasonYear === "all" ? "Toutes saisons" : seasonYear}</span>
+                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                  <span className="dashboard-pill">
+                    {seasonYear === "all" ? "Toutes saisons" : seasonYear}
+                  </span>
+                  <button type="button" className="btn-import" onClick={handleOpenImportModal}>
+                    Importer stats
+                  </button>
+                </div>
               </div>
 
               <div className="dashboard-mini-stats">
@@ -990,7 +989,7 @@ function TeamDashboard() {
                         onChange={(e) => setImportJson(e.target.value)}
                         style={{ width: "100%" }}
                       />
-                      <p className="muted">Ex: [{"player_id":1,"matches":10,"goals":5,...}]</p>
+                      <p className="muted">Ex: {`[{"player_id":1,"matches":10,"goals":5,...}]`}</p>
                     </div>
 
                     <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
