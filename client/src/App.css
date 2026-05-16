@@ -4122,6 +4122,52 @@ select option {
   margin-top: 24px;
 }
 
+.match-stats-editor {
+  margin-top: 16px;
+}
+
+.match-stats-list {
+  display: grid;
+  gap: 10px;
+}
+
+.match-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.match-stat-row strong {
+  color: var(--text);
+}
+
+.match-stat-row p {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.match-stat-row button {
+  min-height: 40px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.match-stat-row button:hover {
+  border-color: rgba(239, 35, 60, 0.48);
+  background: rgba(239, 35, 60, 0.12);
+}
+
 .club-gallery-item {
   overflow: hidden;
 }

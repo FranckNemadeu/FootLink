@@ -27,6 +27,12 @@ const parseSeasonYear = (value) => {
   return year;
 };
 
+const parseStatValue = (value) => {
+  const parsed = Number(value || 0);
+  if (!Number.isInteger(parsed) || parsed < 0) return null;
+  return parsed;
+};
+
 if (shouldUseLocalUploads && !fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -544,6 +550,7 @@ router.get("/players", verifyToken, (req, res) => {
       });
     });
   });
+});
 
 router.post("/logo", verifyToken, uploadTeamLogo, async (req, res) => {
   if (req.user.role !== "team") {
@@ -1016,6 +1023,56 @@ router.get("/matches", verifyToken, (req, res) => {
       });
     });
   });
+
+router.get("/matches/:matchId/stats", verifyToken, (req, res) => {
+  if (req.user.role !== "team") {
+    return res.status(403).json({ message: "Acces reserve aux equipes" });
+  }
+
+  const matchId = Number(req.params.matchId);
+
+  if (!Number.isInteger(matchId) || matchId <= 0) {
+    return res.status(400).json({ message: "Match invalide" });
+  }
+
+  getTeamForUser(req.user.id, (teamErr, team) => {
+    if (teamErr) {
+      return sendDbError(res, teamErr, "Impossible de charger l'equipe");
+    }
+
+    if (!team) {
+      return res.status(404).json({ message: "Equipe introuvable" });
+    }
+
+    const sql = `
+      SELECT
+        MIN(ms.id) AS id,
+        ms.match_id,
+        ms.player_id,
+        COALESCE(SUM(ms.goals), 0) AS goals,
+        COALESCE(SUM(ms.assists), 0) AS assists,
+        COALESCE(SUM(ms.yellow_cards), 0) AS yellow_cards,
+        COALESCE(SUM(ms.red_cards), 0) AS red_cards,
+        u.name AS player_name,
+        p.position
+      FROM match_stats ms
+      JOIN matches m ON m.id = ms.match_id
+      JOIN players p ON p.id = ms.player_id
+      JOIN users u ON u.id = p.user_id
+      WHERE ms.match_id = ? AND m.team_id = ?
+      GROUP BY ms.match_id, ms.player_id, u.name, p.position
+      ORDER BY u.name
+    `;
+
+    db.query(sql, [matchId, team.id], (err, stats) => {
+      if (err) {
+        return sendDbError(res, err, "Impossible de charger les stats du match");
+      }
+
+      res.json(stats);
+    });
+  });
+});
 
 router.get("/gallery", verifyToken, (req, res) => {
   if (req.user.role !== "team") {
@@ -1495,7 +1552,6 @@ router.delete("/players/:playerId", verifyToken, (req, res) => {
       });
     });
   });
-});
 
 router.put("/players/:playerId/role", verifyToken, (req, res) => {
   if (req.user.role !== "team") {
@@ -1555,9 +1611,25 @@ router.post("/players/:playerId/stats", verifyToken, (req, res) => {
     red_cards = 0,
     man_of_match_player_id,
   } = req.body;
+  const playerId = Number(req.params.playerId);
+  const matchId = Number(match_id);
+  const statValues = {
+    goals: parseStatValue(goals),
+    assists: parseStatValue(assists),
+    yellow_cards: parseStatValue(yellow_cards),
+    red_cards: parseStatValue(red_cards),
+  };
 
-  if (!match_id) {
+  if (!Number.isInteger(playerId) || playerId <= 0) {
+    return res.status(400).json({ message: "Joueur invalide" });
+  }
+
+  if (!Number.isInteger(matchId) || matchId <= 0) {
     return res.status(400).json({ message: "match_id est requis" });
+  }
+
+  if (Object.values(statValues).some((value) => value === null)) {
+    return res.status(400).json({ message: "Les stats doivent etre des nombres positifs" });
   }
 
   getTeamForUser(req.user.id, (teamErr, team) => {
@@ -1580,10 +1652,7 @@ router.post("/players/:playerId/stats", verifyToken, (req, res) => {
         AND m.team_id = ?
     `;
 
-    db.query(
-      checkSql,
-      [match_id, req.params.playerId, team.id, team.id],
-      (checkErr, result) => {
+    db.query(checkSql, [matchId, playerId, team.id, team.id], (checkErr, result) => {
       if (checkErr) {
         return sendDbError(res, checkErr, "Impossible de verifier le joueur");
       }
@@ -1592,31 +1661,94 @@ router.post("/players/:playerId/stats", verifyToken, (req, res) => {
         return res.status(404).json({ message: "Joueur introuvable dans cette equipe" });
       }
 
-      const saveStats = () => {
-        const insertSql = `
-          INSERT INTO match_stats
-          (match_id, player_id, goals, assists, yellow_cards, red_cards)
-          VALUES (?, ?, ?, ?, ?, ?)
-        `;
+      const finishStatsSave = (message, mode, statId, duplicateIds = []) => {
+        if (duplicateIds.length === 0) {
+          return res.json({ message, mode, stat_id: statId });
+        }
 
         db.query(
-          insertSql,
-          [
-            match_id,
-            req.params.playerId,
-            goals,
-            assists,
-            yellow_cards,
-            red_cards,
-          ],
-          (insertErr) => {
-            if (insertErr) {
-              return sendDbError(res, insertErr, "Impossible d'ajouter les stats");
+          "DELETE FROM match_stats WHERE id IN (?)",
+          [duplicateIds],
+          (deleteErr) => {
+            if (deleteErr) {
+              return sendDbError(res, deleteErr, "Impossible de nettoyer les stats en double");
             }
 
-            res.json({ message: "Stats ajoutees" });
+            res.json({ message, mode, stat_id: statId });
           }
         );
+      };
+
+      const saveStats = () => {
+        const existingSql = `
+          SELECT id
+          FROM match_stats
+          WHERE match_id = ? AND player_id = ?
+          ORDER BY id ASC
+        `;
+
+        db.query(existingSql, [matchId, playerId], (existingErr, existingRows) => {
+          if (existingErr) {
+            return sendDbError(res, existingErr, "Impossible de verifier les stats");
+          }
+
+          if (existingRows.length > 0) {
+            const statId = existingRows[0].id;
+            const duplicateIds = existingRows.slice(1).map((row) => row.id);
+            const updateSql = `
+              UPDATE match_stats
+              SET goals = ?, assists = ?, yellow_cards = ?, red_cards = ?
+              WHERE id = ?
+            `;
+
+            return db.query(
+              updateSql,
+              [
+                statValues.goals,
+                statValues.assists,
+                statValues.yellow_cards,
+                statValues.red_cards,
+                statId,
+              ],
+              (updateErr) => {
+                if (updateErr) {
+                  return sendDbError(res, updateErr, "Impossible de modifier les stats");
+                }
+
+                finishStatsSave("Stats mises a jour", "updated", statId, duplicateIds);
+              }
+            );
+          }
+
+          const insertSql = `
+            INSERT INTO match_stats
+            (match_id, player_id, goals, assists, yellow_cards, red_cards)
+            VALUES (?, ?, ?, ?, ?, ?)
+          `;
+
+          db.query(
+            insertSql,
+            [
+              matchId,
+              playerId,
+              statValues.goals,
+              statValues.assists,
+              statValues.yellow_cards,
+              statValues.red_cards,
+            ],
+            (insertErr, insertResult) => {
+              if (insertErr) {
+                return sendDbError(res, insertErr, "Impossible d'ajouter les stats");
+              }
+
+              res.json({
+                message: "Stats ajoutees",
+                mode: "created",
+                stat_id: insertResult.insertId,
+              });
+            }
+          );
+        });
       };
 
       const motmPlayerId = Number(man_of_match_player_id);
@@ -1651,7 +1783,7 @@ router.post("/players/:playerId/stats", verifyToken, (req, res) => {
 
           db.query(
             "UPDATE matches SET man_of_match_player_id = ? WHERE id = ? AND team_id = ?",
-            [motmPlayerId, match_id, team.id],
+            [motmPlayerId, matchId, team.id],
             (updateErr) => {
               if (updateErr) {
                 return sendDbError(
@@ -1666,8 +1798,7 @@ router.post("/players/:playerId/stats", verifyToken, (req, res) => {
           );
         });
       });
-    }
-    );
+    });
   });
 });
 

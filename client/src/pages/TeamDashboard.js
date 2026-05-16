@@ -51,6 +51,7 @@ function TeamDashboard() {
     redCards: 0,
     motmPlayerId: "",
   });
+  const [matchStatsByMatch, setMatchStatsByMatch] = useState({});
 
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
@@ -140,6 +141,15 @@ function TeamDashboard() {
     (sum, player) => sum + Number(player.motm_count || 0),
     0
   );
+  const selectedMatch = matches.find(
+    (match) => String(match.id) === String(statsForm.matchId)
+  );
+  const selectedMatchStats = statsForm.matchId
+    ? matchStatsByMatch[statsForm.matchId] || []
+    : [];
+  const selectedPlayerStat = selectedMatchStats.find(
+    (stat) => String(stat.player_id) === String(statsForm.playerId)
+  );
 
   const fetchPlayers = useCallback(async () => {
     if (!token) {
@@ -197,6 +207,80 @@ function TeamDashboard() {
   useEffect(() => {
     fetchPlayers();
   }, [fetchPlayers]);
+
+  const loadMatchStats = useCallback(
+    async (matchId, force = false) => {
+      if (!token || !matchId) return;
+      if (!force && matchStatsByMatch[matchId]) return;
+
+      try {
+        const res = await axios.get(`${API_URL}/api/team/matches/${matchId}/stats`, {
+          headers: {
+            authorization: token,
+          },
+        });
+
+        setMatchStatsByMatch((currentStats) => ({
+          ...currentStats,
+          [matchId]: res.data || [],
+        }));
+      } catch (err) {
+        console.log(err);
+        showNotice(
+          "error",
+          err.response?.data?.message || "Impossible de charger les stats du match."
+        );
+      }
+    },
+    [matchStatsByMatch, token]
+  );
+
+  useEffect(() => {
+    if (!statsForm.matchId) return;
+    loadMatchStats(statsForm.matchId);
+  }, [loadMatchStats, statsForm.matchId]);
+
+  useEffect(() => {
+    if (!statsForm.matchId || !statsForm.playerId) return;
+
+    const rows = matchStatsByMatch[statsForm.matchId];
+    if (!rows) return;
+
+    const existingStat = rows.find(
+      (stat) => String(stat.player_id) === String(statsForm.playerId)
+    );
+    const motmPlayerId = selectedMatch?.man_of_match_player_id
+      ? String(selectedMatch.man_of_match_player_id)
+      : "";
+    const nextValues = {
+      goals: existingStat ? Number(existingStat.goals || 0) : 0,
+      assists: existingStat ? Number(existingStat.assists || 0) : 0,
+      yellowCards: existingStat ? Number(existingStat.yellow_cards || 0) : 0,
+      redCards: existingStat ? Number(existingStat.red_cards || 0) : 0,
+      motmPlayerId,
+    };
+
+    setStatsForm((currentForm) => {
+      const isSame =
+        Number(currentForm.goals || 0) === nextValues.goals &&
+        Number(currentForm.assists || 0) === nextValues.assists &&
+        Number(currentForm.yellowCards || 0) === nextValues.yellowCards &&
+        Number(currentForm.redCards || 0) === nextValues.redCards &&
+        String(currentForm.motmPlayerId || "") === nextValues.motmPlayerId;
+
+      if (isSame) return currentForm;
+
+      return {
+        ...currentForm,
+        ...nextValues,
+      };
+    });
+  }, [
+    matchStatsByMatch,
+    selectedMatch,
+    statsForm.matchId,
+    statsForm.playerId,
+  ]);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -441,7 +525,7 @@ function TeamDashboard() {
     }
 
     try {
-      await axios.post(
+      const res = await axios.post(
         `${API_URL}/api/team/players/${statsForm.playerId}/stats`,
         {
           match_id: statsForm.matchId,
@@ -458,15 +542,22 @@ function TeamDashboard() {
         }
       );
 
-      showNotice("success", "Stats ajoutées.");
-      setStatsForm((currentForm) => ({
-        ...currentForm,
-        goals: 0,
-        assists: 0,
-        yellowCards: 0,
-        redCards: 0,
-        motmPlayerId: "",
-      }));
+      showNotice(
+        "success",
+        res.data.message ||
+          (res.data.mode === "updated" ? "Stats mises à jour." : "Stats ajoutées.")
+      );
+      await loadMatchStats(statsForm.matchId, true);
+      if (res.data.mode !== "updated") {
+        setStatsForm((currentForm) => ({
+          ...currentForm,
+          goals: 0,
+          assists: 0,
+          yellowCards: 0,
+          redCards: 0,
+          motmPlayerId: "",
+        }));
+      }
       fetchPlayers();
     } catch (err) {
       console.log(err);
@@ -475,6 +566,20 @@ function TeamDashboard() {
         err.response?.data?.message || "Impossible d'ajouter les stats."
       );
     }
+  };
+
+  const handleEditStat = (stat) => {
+    setStatsForm({
+      playerId: String(stat.player_id),
+      matchId: String(stat.match_id),
+      goals: Number(stat.goals || 0),
+      assists: Number(stat.assists || 0),
+      yellowCards: Number(stat.yellow_cards || 0),
+      redCards: Number(stat.red_cards || 0),
+      motmPlayerId: selectedMatch?.man_of_match_player_id
+        ? String(selectedMatch.man_of_match_player_id)
+        : "",
+    });
   };
 
   const handleCreateMatch = async (e) => {
@@ -1123,7 +1228,7 @@ function TeamDashboard() {
               <div className="panel-heading compact-heading">
                 <div>
                   <span className="dashboard-label">Feuille de match</span>
-                  <h3>Ajuster stats</h3>
+                  <h3>Ajouter ou modifier stats</h3>
                 </div>
               </div>
 
@@ -1215,8 +1320,50 @@ function TeamDashboard() {
                   min="0"
                 />
 
-                <button type="submit">Ajouter stats</button>
+                <button type="submit">
+                  {selectedPlayerStat ? "Modifier stats" : "Ajouter stats"}
+                </button>
               </form>
+
+              {statsForm.matchId && (
+                <div className="match-stats-editor">
+                  <div className="panel-heading compact-heading">
+                    <div>
+                      <span className="dashboard-label">Stats enregistrées</span>
+                      <h4>
+                        Match #{statsForm.matchId}
+                        {selectedMatch?.man_of_match_name
+                          ? ` - HDM: ${selectedMatch.man_of_match_name}`
+                          : ""}
+                      </h4>
+                    </div>
+                  </div>
+
+                  {selectedMatchStats.length > 0 ? (
+                    <div className="match-stats-list">
+                      {selectedMatchStats.map((stat) => (
+                        <div className="match-stat-row" key={stat.id}>
+                          <div>
+                            <strong>{stat.player_name}</strong>
+                            <p>
+                              {stat.goals || 0} buts - {stat.assists || 0} passes -
+                              {" "}
+                              {stat.yellow_cards || 0} jaunes - {stat.red_cards || 0} rouges
+                            </p>
+                          </div>
+                          <button type="button" onClick={() => handleEditStat(stat)}>
+                            Modifier
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="dashboard-message dashboard-empty-state">
+                      Aucune stat enregistrée pour ce match.
+                    </p>
+                  )}
+                </div>
+              )}
             </section>
 
             <form className="danger-zone" id="compte" onSubmit={handleDeleteAccount}>
