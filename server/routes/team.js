@@ -938,6 +938,73 @@ router.post("/players/:playerId/invite", verifyToken, (req, res) => {
   });
 });
 
+router.post("/players/:playerId/add", verifyToken, (req, res) => {
+  if (req.user.role !== "team") {
+    return res.status(403).json({ message: "Acces reserve aux equipes" });
+  }
+
+  getTeamForUser(req.user.id, (teamErr, team) => {
+    if (teamErr) {
+      return sendDbError(res, teamErr, "Impossible de charger l'equipe");
+    }
+
+    if (!team) {
+      return res.status(404).json({ message: "Equipe introuvable" });
+    }
+
+    ensurePlayerTeamMembershipsTable((membershipTableErr) => {
+      if (membershipTableErr) {
+        return sendDbError(
+          res,
+          membershipTableErr,
+          "Impossible de verifier les clubs du joueur"
+        );
+      }
+
+      const checkPlayerSql = `
+        SELECT p.id, p.team_name, ptm.id AS membership_id
+        FROM players p
+        LEFT JOIN player_team_memberships ptm
+          ON ptm.player_id = p.id AND ptm.team_id = ? AND ptm.active = 1
+        WHERE p.id = ?
+        LIMIT 1
+      `;
+
+      db.query(checkPlayerSql, [team.id, req.params.playerId], (playerErr, playerResult) => {
+        if (playerErr) {
+          return sendDbError(res, playerErr, "Impossible de verifier le joueur");
+        }
+
+        if (playerResult.length === 0) {
+          return res.status(404).json({ message: "Joueur introuvable" });
+        }
+
+        if (playerResult[0].membership_id) {
+          return res.status(400).json({ message: "Ce joueur est deja dans ton equipe" });
+        }
+
+        addPlayerMembership(team.id, req.params.playerId, "Joueur", (membershipErr) => {
+          if (membershipErr) {
+            return sendDbError(res, membershipErr, "Impossible d'ajouter le joueur");
+          }
+
+          db.query(
+            "UPDATE players SET team_name = ? WHERE id = ?",
+            [team.team_name, req.params.playerId],
+            (updateErr) => {
+              if (updateErr) {
+                console.log("Joueur ajoute mais pas de maj team_name", updateErr);
+              }
+
+              res.json({ message: "Joueur ajoute a l'equipe" });
+            }
+          );
+        });
+      });
+    });
+  });
+});
+
 router.get("/invitations", verifyToken, (req, res) => {
   if (req.user.role !== "team") {
     return res.status(403).json({ message: "Acces reserve aux equipes" });
