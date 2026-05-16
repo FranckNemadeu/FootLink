@@ -92,6 +92,24 @@ const ensureCoreTables = async () => {
   `);
 
   await runQuery(`
+    CREATE TABLE IF NOT EXISTS player_season_stats (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      player_id INT NOT NULL,
+      team_id INT NOT NULL,
+      season_year INT NOT NULL,
+      matches INT DEFAULT 0,
+      goals INT DEFAULT 0,
+      assists INT DEFAULT 0,
+      yellow_cards INT DEFAULT 0,
+      red_cards INT DEFAULT 0,
+      motm_count INT DEFAULT 0,
+      created_by INT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uk_player_season (player_id, team_id, season_year)
+    )
+  `);
+
+  await runQuery(`
     CREATE TABLE IF NOT EXISTS team_invitations (
       id INT AUTO_INCREMENT PRIMARY KEY,
       team_id INT NOT NULL,
