@@ -72,6 +72,7 @@ res = réponse (ce que tu renvoies) */
 //N’oublie pas de mettre .env dans ton .gitignore pour ne pas le pousser sur GitHub
 */
 
+const { ensureCoreTables } = require("./dbSchema");
 const authRoutes = require("./routes/auth");
 //authRoutes → les routes d’authentification (inscription, connexion)
 
@@ -94,8 +95,15 @@ app.use("/api/match", matchRoutes);
 const teamRoutes = require("./routes/team");
 app.use("/api/team", teamRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server lance sur ${PORT}`);
-});
+ensureCoreTables()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server lance sur ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Impossible de preparer la base de donnees au demarrage", err);
+    process.exit(1);
+  });
 // Lance le serveur sur le port 5000
 
