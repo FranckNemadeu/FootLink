@@ -4,60 +4,38 @@ import requestWithRetry from "./requestWithRetry";
 
 const normalizeTeams = (data) => (Array.isArray(data) ? data : data?.teams || []);
 
-export const fetchTeamOptions = () =>
+const fetchTeamsEndpoint = async (endpoint) => {
+  const res = await axios.get(`${API_URL}/api/team/${endpoint}`, {
+    params: { _: Date.now() },
+    timeout: 45000,
+  });
+
+  return normalizeTeams(res.data);
+};
+
+const fetchTeamsFromEndpoints = (preferredEndpoint) =>
   requestWithRetry(async () => {
-    try {
-      const res = await axios.get(`${API_URL}/api/team/options`, {
-        timeout: 15000,
-      });
+    const endpoints =
+      preferredEndpoint === "options" ? ["options", "list"] : ["list", "options"];
+    const results = await Promise.allSettled(
+      endpoints.map((endpoint) => fetchTeamsEndpoint(endpoint))
+    );
+    const fulfilledLists = results
+      .filter((result) => result.status === "fulfilled")
+      .map((result) => result.value);
+    const nonEmptyList = fulfilledLists.find((teams) => teams.length > 0);
 
-      return normalizeTeams(res.data);
-    } catch (error) {
-      if (error.response?.status !== 404) {
-        throw error;
-      }
+    if (nonEmptyList) return nonEmptyList;
+    if (fulfilledLists.length > 0) return fulfilledLists[0];
 
-      try {
-        const fallbackRes = await axios.get(`${API_URL}/api/team/list`, {
-          timeout: 15000,
-        });
-
-        return normalizeTeams(fallbackRes.data);
-      } catch (fallbackError) {
-        if (fallbackError.response?.status === 404) {
-          return [];
-        }
-
-        throw fallbackError;
-      }
+    const firstError = results.find((result) => result.status === "rejected")?.reason;
+    if (results.every((result) => result.reason?.response?.status === 404)) {
+      return [];
     }
-  }, 3, 1000);
 
-export const fetchTeamList = () =>
-  requestWithRetry(async () => {
-    try {
-      const res = await axios.get(`${API_URL}/api/team/list`, {
-        timeout: 20000,
-      });
+    throw firstError;
+  }, 3, 1500);
 
-      return normalizeTeams(res.data);
-    } catch (error) {
-      if (error.response?.status !== 404) {
-        throw error;
-      }
+export const fetchTeamOptions = () => fetchTeamsFromEndpoints("options");
 
-      try {
-        const fallbackRes = await axios.get(`${API_URL}/api/team/options`, {
-          timeout: 15000,
-        });
-
-        return normalizeTeams(fallbackRes.data);
-      } catch (fallbackError) {
-        if (fallbackError.response?.status === 404) {
-          return [];
-        }
-
-        throw fallbackError;
-      }
-    }
-  }, 3, 1000);
+export const fetchTeamList = () => fetchTeamsFromEndpoints("list");

@@ -673,22 +673,29 @@ function Home() {
 function ClubsList() {
   const [allClubs, setAllClubs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [clubError, setClubError] = useState("");
   const [clubQuery, setClubQuery] = useState("");
+  const [reloadClubs, setReloadClubs] = useState(0);
 
   useEffect(() => {
     const loadClubs = async () => {
       try {
+        setLoading(true);
+        setClubError("");
         const apiClubs = (await fetchTeamList()).map(normalizeClub);
         setAllClubs(apiClubs);
       } catch (err) {
         console.log(err);
+        setClubError(
+          "Impossible de charger les clubs. Le serveur est peut-etre en train de demarrer."
+        );
       } finally {
         setLoading(false);
       }
     };
 
     loadClubs();
-  }, []);
+  }, [reloadClubs]);
 
   const filteredClubs = allClubs.filter((club) => {
     const query = clubQuery.trim().toLowerCase();
@@ -788,9 +795,22 @@ function ClubsList() {
           ))}
           </div>
         ) : (
-          <p className="dashboard-message dashboard-empty-state">
-            Aucun club ne correspond à cette recherche.
-          </p>
+          <div className="dashboard-message dashboard-empty-state">
+            <p>
+              {clubError ||
+                (clubQuery
+                  ? "Aucun club ne correspond a cette recherche."
+                  : "Aucun club actif pour le moment.")}
+            </p>
+            {(clubError || !clubQuery) && (
+              <button
+                type="button"
+                onClick={() => setReloadClubs((count) => count + 1)}
+              >
+                Recharger les clubs
+              </button>
+            )}
+          </div>
         )}
       </section>
     </PublicShell>
