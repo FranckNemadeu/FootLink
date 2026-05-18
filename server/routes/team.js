@@ -817,7 +817,7 @@ router.get("/public/:teamId", (req, res) => {
               ORDER BY goals DESC, u.name
             `;
 
-            playersValues = [team.id];
+            playersValues = [team.id, team.id];
           }
 
           db.query(playersSql, playersValues, (playersErr, players) => {

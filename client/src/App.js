@@ -17,80 +17,6 @@ import getMediaUrl from "./utils/mediaUrl";
 import requestWithRetry from "./utils/requestWithRetry";
 import { fetchTeamList } from "./utils/fetchTeams";
 
-const featuredPlayers = [
-  {
-    slug: "franck-m",
-    name: "Franck M.",
-    club: "SSL",
-    position: "Attaquant",
-    goals: 18,
-    assists: 7,
-    city: "Montreal",
-    tone: "red",
-  },
-  {
-    slug: "yanis-d",
-    name: "Yanis D.",
-    club: "Nord FC",
-    position: "Milieu",
-    goals: 14,
-    assists: 11,
-    city: "Laval",
-    tone: "green",
-  },
-  {
-    slug: "samuel-k",
-    name: "Samuel K.",
-    club: "Rive Sud",
-    position: "Ailier",
-    goals: 12,
-    assists: 6,
-    city: "Longueuil",
-    tone: "gold",
-  },
-];
-
-const topScorers = [
-  ...featuredPlayers,
-  {
-    slug: "malik-b",
-    name: "Malik B.",
-    club: "Laval Stars",
-    position: "Avant-centre",
-    goals: 10,
-    assists: 4,
-    city: "Laval",
-    tone: "blue",
-  },
-];
-
-const clubs = [
-  {
-    slug: "ssl",
-    name: "SSL",
-    city: "Montreal",
-    players: 24,
-    level: "Senior local",
-    colors: "Vert / Blanc",
-  },
-  {
-    slug: "nord-fc",
-    name: "Nord FC",
-    city: "Laval",
-    players: 19,
-    level: "Competitif",
-    colors: "Bleu / Or",
-  },
-  {
-    slug: "rive-sud",
-    name: "Rive Sud",
-    city: "Longueuil",
-    players: 21,
-    level: "Regional",
-    colors: "Cyan / Marine",
-  },
-];
-
 const playerLink = (player) => `/players/${player.id || player.slug}`;
 const clubLink = (club) =>
   club.id ? `/clubs/${club.id}` : club.slug ? `/clubs/${club.slug}` : "/clubs";
@@ -819,28 +745,70 @@ function ClubsList() {
 
 function PublicPlayer() {
   const { slug } = useParams();
-  const fallbackPlayer = topScorers.find((item) => item.slug === slug) || topScorers[0];
-  const [player, setPlayer] = useState(normalizePlayer(fallbackPlayer));
-  const [loading, setLoading] = useState(Boolean(Number(slug)));
+  const [player, setPlayer] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [playerError, setPlayerError] = useState("");
+  const [reloadPlayer, setReloadPlayer] = useState(0);
   const { dashboardPath, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (!Number(slug)) return;
+    if (!Number(slug)) {
+      setPlayer(null);
+      setPlayerError("Joueur introuvable.");
+      setLoading(false);
+      return;
+    }
 
     const loadPlayer = async () => {
       try {
         setLoading(true);
+        setPlayerError("");
         const res = await axios.get(`${API_URL}/api/player/public/${slug}`);
         setPlayer(normalizePlayer(res.data));
       } catch (err) {
         console.log(err);
+        setPlayer(null);
+        setPlayerError(
+          err.response?.data?.message ||
+            "Impossible de charger les vraies donnees de ce joueur."
+        );
       } finally {
         setLoading(false);
       }
     };
 
     loadPlayer();
-  }, [slug]);
+  }, [reloadPlayer, slug]);
+
+  if (loading && !player) {
+    return (
+      <PublicShell>
+        <section className="home-section">
+          <p className="dashboard-message dashboard-loading-state">
+            Chargement du joueur...
+          </p>
+        </section>
+      </PublicShell>
+    );
+  }
+
+  if (!player) {
+    return (
+      <PublicShell>
+        <section className="home-section">
+          <div className="dashboard-message dashboard-empty-state">
+            <p>{playerError || "Joueur introuvable."}</p>
+            <button type="button" onClick={() => setReloadPlayer((count) => count + 1)}>
+              Recharger le joueur
+            </button>
+            <Link className="team-btn nav-link-btn" to="/">
+              Retour accueil
+            </Link>
+          </div>
+        </section>
+      </PublicShell>
+    );
+  }
 
   return (
     <PublicShell>
@@ -907,22 +875,32 @@ function PublicPlayer() {
 
 function PublicClub() {
   const { slug } = useParams();
-  const fallbackClub = clubs.find((item) => item.slug === slug) || clubs[0];
-  const [club, setClub] = useState(normalizeClub(fallbackClub));
+  const [club, setClub] = useState(null);
   const [clubPlayers, setClubPlayers] = useState([]);
   const [clubMatches, setClubMatches] = useState([]);
   const [clubGallery, setClubGallery] = useState([]);
   const [activeTab, setActiveTab] = useState("classements");
   const [seasonYear, setSeasonYear] = useState("all");
-  const [loading, setLoading] = useState(Boolean(Number(slug)));
+  const [loading, setLoading] = useState(true);
+  const [clubError, setClubError] = useState("");
+  const [reloadClub, setReloadClub] = useState(0);
   const { dashboardPath, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (!Number(slug)) return;
+    if (!Number(slug)) {
+      setClub(null);
+      setClubPlayers([]);
+      setClubMatches([]);
+      setClubGallery([]);
+      setClubError("Club introuvable.");
+      setLoading(false);
+      return;
+    }
 
     const loadClub = async () => {
       try {
         setLoading(true);
+        setClubError("");
         const res = await axios.get(`${API_URL}/api/team/public/${slug}`, {
           params: seasonYear === "all" ? {} : { year: seasonYear },
         });
@@ -932,13 +910,51 @@ function PublicClub() {
         setClubGallery(res.data.gallery || []);
       } catch (err) {
         console.log(err);
+        setClub(null);
+        setClubPlayers([]);
+        setClubMatches([]);
+        setClubGallery([]);
+        setClubError(
+          err.response?.data?.message ||
+            "Impossible de charger les vraies donnees de ce club."
+        );
       } finally {
         setLoading(false);
       }
     };
 
     loadClub();
-  }, [seasonYear, slug]);
+  }, [reloadClub, seasonYear, slug]);
+
+  if (loading && !club) {
+    return (
+      <PublicShell>
+        <section className="home-section">
+          <p className="dashboard-message dashboard-loading-state">
+            Chargement du club...
+          </p>
+        </section>
+      </PublicShell>
+    );
+  }
+
+  if (!club) {
+    return (
+      <PublicShell>
+        <section className="home-section">
+          <div className="dashboard-message dashboard-empty-state">
+            <p>{clubError || "Club introuvable."}</p>
+            <button type="button" onClick={() => setReloadClub((count) => count + 1)}>
+              Recharger le club
+            </button>
+            <Link className="team-btn nav-link-btn" to="/clubs">
+              Retour aux clubs
+            </Link>
+          </div>
+        </section>
+      </PublicShell>
+    );
+  }
 
   const topScorer = [...clubPlayers].sort(
     (a, b) => b.goals - a.goals || a.name.localeCompare(b.name)
