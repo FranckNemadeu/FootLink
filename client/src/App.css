@@ -4357,6 +4357,206 @@ select option {
   -webkit-text-fill-color: #ffffff;
 }
 
+/* Page-fit guardrails and season stats import */
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.home {
+  overflow-x: hidden;
+}
+
+.home main {
+  width: min(1240px, calc(100vw - 40px));
+  max-width: 1240px;
+}
+
+.landing-hero {
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+}
+
+.home-hero-copy,
+.hero-visual,
+.hero-score-card,
+.hero-scout-card,
+.home-section,
+.player-poster,
+.scorer-row,
+.experience-card,
+.step-card,
+.audience-card,
+.home-stat-tile {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.home-hero-copy h1,
+.home-hero-copy p,
+.section-heading h2 {
+  overflow-wrap: anywhere;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(3, 4, 8, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.modal-dialog {
+  width: min(980px, calc(100vw - 32px));
+  max-height: min(86vh, 780px);
+  overflow: auto;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(239, 35, 60, 0.1), rgba(255, 255, 255, 0.045)),
+    #0f1219;
+  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.58);
+}
+
+.modal-heading,
+.modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-heading {
+  margin-bottom: 18px;
+}
+
+.modal-close-btn {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+}
+
+.season-import-year {
+  display: grid;
+  gap: 8px;
+  max-width: 220px;
+  margin-bottom: 16px;
+}
+
+.season-import-grid {
+  display: grid;
+  gap: 8px;
+  max-height: min(54vh, 480px);
+  overflow: auto;
+  padding-bottom: 4px;
+}
+
+.season-import-row {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.4fr) repeat(6, minmax(72px, 0.5fr));
+  align-items: center;
+  gap: 8px;
+  min-width: 720px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.season-import-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #151923;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.season-import-player {
+  min-width: 0;
+}
+
+.season-import-player strong,
+.season-import-player span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.season-import-player span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.season-import-row input,
+.season-import-year input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: #0f1219;
+  color: #ffffff;
+  font: inherit;
+  outline: none;
+  padding: 10px;
+}
+
+.season-import-row input:focus,
+.season-import-year input:focus {
+  border-color: rgba(239, 35, 60, 0.68);
+  box-shadow: 0 0 0 4px rgba(239, 35, 60, 0.16);
+}
+
+.modal-actions {
+  justify-content: flex-end;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1080px) {
+  .landing-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .home main {
+    width: min(100vw - 28px, 1240px);
+  }
+
+  .hero-visual {
+    min-height: 460px;
+  }
+
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-dialog {
+    width: calc(100vw - 24px);
+    max-height: 88vh;
+  }
+
+  .modal-heading,
+  .modal-actions {
+    align-items: stretch;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+}
+
 button:disabled,
 .login-form button:disabled,
 .profile-edit-form button:disabled,

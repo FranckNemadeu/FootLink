@@ -9,6 +9,19 @@ import getMediaUrl from "../utils/mediaUrl";
 import requestWithRetry from "../utils/requestWithRetry";
 
 const clubRoles = ["Joueur", "Coach", "Assistant coach", "Manager", "Staff"];
+const seasonStatFields = [
+  { key: "matches", label: "MJ" },
+  { key: "goals", label: "Buts" },
+  { key: "assists", label: "Passes" },
+  { key: "yellow_cards", label: "Jaunes" },
+  { key: "red_cards", label: "Rouges" },
+  { key: "motm_count", label: "MVP" },
+];
+
+const toStatInputValue = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+};
 
 function TeamDashboard() {
   const [team, setTeam] = useState(null);
@@ -34,8 +47,9 @@ function TeamDashboard() {
   const [loading, setLoading] = useState(true);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importYear, setImportYear] = useState(new Date().getFullYear());
-  const [importJson, setImportJson] = useState("");
+  const [importRows, setImportRows] = useState([]);
   const [importLoading, setImportLoading] = useState(false);
+  const [availableSeasonYears, setAvailableSeasonYears] = useState([]);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const [galleryCaption, setGalleryCaption] = useState("");
@@ -123,9 +137,10 @@ function TeamDashboard() {
 
   const seasonYears = [
     ...new Set(
-      matches
-        .map((match) => match.match_date?.slice(0, 4))
-        .filter(Boolean)
+      [
+        ...availableSeasonYears.map(String),
+        ...matches.map((match) => match.match_date?.slice(0, 4)),
+      ].filter(Boolean)
     ),
   ].sort((a, b) => Number(b) - Number(a));
 
@@ -173,6 +188,7 @@ function TeamDashboard() {
         matchesResult,
         formerMembersResult,
         galleryResult,
+        seasonsResult,
       ] = await Promise.allSettled([
         requestWithRetry(() => axios.get(`${API_URL}/api/team/players`, {
           headers,
@@ -182,6 +198,7 @@ function TeamDashboard() {
         requestWithRetry(() => axios.get(`${API_URL}/api/team/matches`, { headers })),
         requestWithRetry(() => axios.get(`${API_URL}/api/team/former-members`, { headers })),
         requestWithRetry(() => axios.get(`${API_URL}/api/team/gallery`, { headers })),
+        requestWithRetry(() => axios.get(`${API_URL}/api/team/stats/seasons`, { headers })),
       ]);
 
       if (playersResult.status === "rejected") {
@@ -200,6 +217,9 @@ function TeamDashboard() {
         formerMembersResult.status === "fulfilled" ? formerMembersResult.value.data : []
       );
       setGallery(galleryResult.status === "fulfilled" ? galleryResult.value.data : []);
+      setAvailableSeasonYears(
+        seasonsResult.status === "fulfilled" ? seasonsResult.value.data : []
+      );
     } catch (err) {
       console.log(err);
       setError(err.response?.data?.message || "Impossible de charger l'équipe.");
@@ -211,43 +231,60 @@ function TeamDashboard() {
   const handleOpenImportModal = () => {
     const yearPref = seasonYear === "all" ? new Date().getFullYear() : seasonYear;
     setImportYear(yearPref);
-    // Prefill example JSON for convenience
-    setImportJson(
-      JSON.stringify(
-        players.map((p) => ({
-          player_id: p.id,
-          matches: 0,
-          goals: 0,
-          assists: 0,
-          yellow_cards: 0,
-          red_cards: 0,
-          motm_count: 0,
-        })),
-        null,
-        2
-      )
+    setImportRows(
+      players.map((player) => ({
+        player_id: player.id,
+        name: player.name,
+        position: player.position,
+        matches: toStatInputValue(player.matches),
+        goals: toStatInputValue(player.goals),
+        assists: toStatInputValue(player.assists),
+        yellow_cards: 0,
+        red_cards: 0,
+        motm_count: toStatInputValue(player.motm_count),
+      }))
     );
     setShowImportModal(true);
+  };
+
+  const handleImportRowChange = (playerId, field, value) => {
+    setImportRows((currentRows) =>
+      currentRows.map((row) =>
+        row.player_id === playerId
+          ? { ...row, [field]: Math.max(0, Number(value) || 0) }
+          : row
+      )
+    );
   };
 
   const handleSubmitImport = async () => {
     setImportLoading(true);
     try {
-      let parsed = JSON.parse(importJson);
-      if (!Array.isArray(parsed)) throw new Error("Le JSON doit être un tableau d'objets.");
+      if (importRows.length === 0) {
+        throw new Error("Aucun joueur actif dans l'effectif.");
+      }
 
-      const payload = { year: Number(importYear), stats: parsed };
+      const payload = {
+        year: Number(importYear),
+        stats: importRows.map(({ name, position, ...row }) => row),
+      };
 
       await axios.post(`${API_URL}/api/team/stats/season`, payload, {
         headers: { authorization: token },
       });
 
-      showNotice("success", "Stats importées avec succès.");
+      showNotice("success", `Stats ${importYear} enregistrées.`);
+      setAvailableSeasonYears((currentYears) => [
+        ...new Set([String(importYear), ...currentYears.map(String)]),
+      ]);
+      setSeasonYear(String(importYear));
       setShowImportModal(false);
-      fetchPlayers();
+      if (String(seasonYear) === String(importYear)) {
+        fetchPlayers();
+      }
     } catch (err) {
       console.log(err);
-      showNotice("error", err.response?.data?.message || err.message || "Import failed");
+      showNotice("error", err.response?.data?.message || err.message || "Import impossible");
     } finally {
       setImportLoading(false);
     }
@@ -969,8 +1006,23 @@ function TeamDashboard() {
               {showImportModal && (
                 <div className="modal-overlay">
                   <div className="modal-dialog">
-                    <h3>Importer les statistiques de saison</h3>
-                    <div style={{ marginBottom: 8 }}>
+                    <div className="modal-heading">
+                      <div>
+                        <span className="dashboard-label">Saison</span>
+                        <h3>Stats anciennes</h3>
+                      </div>
+                      <button
+                        type="button"
+                        className="modal-close-btn"
+                        onClick={() => setShowImportModal(false)}
+                        disabled={importLoading}
+                        aria-label="Fermer"
+                      >
+                        X
+                      </button>
+                    </div>
+
+                    <div className="season-import-year">
                       <label>Année</label>
                       <input
                         type="number"
@@ -981,18 +1033,48 @@ function TeamDashboard() {
                       />
                     </div>
 
-                    <div style={{ marginBottom: 8 }}>
-                      <label>JSON des statistiques (tableau)</label>
-                      <textarea
-                        rows={10}
-                        value={importJson}
-                        onChange={(e) => setImportJson(e.target.value)}
-                        style={{ width: "100%" }}
-                      />
-                      <p className="muted">Ex: {`[{"player_id":1,"matches":10,"goals":5,...}]`}</p>
+                    <div className="season-import-grid">
+                      <div className="season-import-row season-import-head">
+                        <span>Joueur</span>
+                        {seasonStatFields.map((field) => (
+                          <span key={field.key}>{field.label}</span>
+                        ))}
+                      </div>
+
+                      {importRows.length > 0 ? (
+                        importRows.map((row) => (
+                          <div className="season-import-row" key={row.player_id}>
+                            <div className="season-import-player">
+                              <strong>{row.name}</strong>
+                              <span>{row.position || "Joueur"}</span>
+                            </div>
+
+                            {seasonStatFields.map((field) => (
+                              <input
+                                key={field.key}
+                                type="number"
+                                min="0"
+                                value={row[field.key]}
+                                onChange={(e) =>
+                                  handleImportRowChange(
+                                    row.player_id,
+                                    field.key,
+                                    e.target.value
+                                  )
+                                }
+                                aria-label={`${field.label} - ${row.name}`}
+                              />
+                            ))}
+                          </div>
+                        ))
+                      ) : (
+                        <p className="dashboard-message dashboard-empty-state">
+                          Aucun joueur actif dans l'effectif.
+                        </p>
+                      )}
                     </div>
 
-                    <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                    <div className="modal-actions">
                       <button type="button" onClick={() => setShowImportModal(false)} disabled={importLoading}>
                         Annuler
                       </button>

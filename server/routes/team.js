@@ -491,22 +491,34 @@ router.get("/players", verifyToken, (req, res) => {
         ? "WHERE m.team_id = ? AND YEAR(m.match_date) = ?"
         : "WHERE m.team_id = ?";
       const statsValues = seasonYear ? [team.id, seasonYear] : [team.id];
+      const seasonJoin = seasonYear
+        ? "LEFT JOIN player_season_stats ps ON ps.player_id = p.id AND ps.team_id = ? AND ps.season_year = ?"
+        : "";
+      const seasonSelectPrefix = seasonYear ? "COALESCE(ps.matches, s.matches, 0)" : "COALESCE(s.matches, 0)";
+      const seasonGoalPrefix = seasonYear ? "COALESCE(ps.goals, s.goals, 0)" : "COALESCE(s.goals, 0)";
+      const seasonAssistPrefix = seasonYear ? "COALESCE(ps.assists, s.assists, 0)" : "COALESCE(s.assists, 0)";
+      const seasonYellowPrefix = seasonYear ? "COALESCE(ps.yellow_cards, s.yellow_cards, 0)" : "COALESCE(s.yellow_cards, 0)";
+      const seasonRedPrefix = seasonYear ? "COALESCE(ps.red_cards, s.red_cards, 0)" : "COALESCE(s.red_cards, 0)";
+      const seasonMotmPrefix = seasonYear ? "COALESCE(ps.motm_count, s.motm_count, 0)" : "COALESCE(s.motm_count, 0)";
       const sql = `
         SELECT
           p.*,
           u.name,
           u.email,
-          COALESCE(s.goals, 0) AS goals,
-          COALESCE(s.assists, 0) AS assists,
-          COALESCE(s.yellow_cards, 0) + COALESCE(s.red_cards, 0) AS cards,
-            COALESCE(s.motm_count, 0) AS motm_count,
-            ptm.club_role AS club_role
+          ${seasonSelectPrefix} AS matches,
+          ${seasonGoalPrefix} AS goals,
+          ${seasonAssistPrefix} AS assists,
+          ${seasonYellowPrefix} + ${seasonRedPrefix} AS cards,
+          ${seasonMotmPrefix} AS motm_count,
+          ptm.club_role AS club_role
         FROM player_team_memberships ptm
         JOIN players p ON p.id = ptm.player_id
         JOIN users u ON u.id = p.user_id
+        ${seasonJoin}
         LEFT JOIN (
           SELECT
             ms.player_id,
+            COUNT(DISTINCT ms.match_id) AS matches,
             COALESCE(SUM(ms.goals), 0) AS goals,
             COALESCE(SUM(ms.assists), 0) AS assists,
             COALESCE(SUM(ms.yellow_cards), 0) AS yellow_cards,
@@ -520,8 +532,11 @@ router.get("/players", verifyToken, (req, res) => {
         WHERE ptm.team_id = ? AND ptm.active = 1
         ORDER BY u.name
       `;
+      const queryValues = seasonYear
+        ? [team.id, seasonYear, ...statsValues, team.id]
+        : [...statsValues, team.id];
 
-      db.query(sql, [...statsValues, team.id], (playersErr, players) => {
+      db.query(sql, queryValues, (playersErr, players) => {
         if (playersErr) {
           return sendDbError(res, playersErr, "Impossible de charger les joueurs");
         }
@@ -2006,7 +2021,32 @@ router.delete("/account", verifyToken, (req, res) => {
   });
 });
 
-module.exports = router;
+router.get("/stats/seasons", verifyToken, (req, res) => {
+  if (req.user.role !== "team") {
+    return res.status(403).json({ message: "Acces reserve aux equipes" });
+  }
+
+  getTeamForUser(req.user.id, (teamErr, team) => {
+    if (teamErr) return sendDbError(res, teamErr, "Impossible de charger l'equipe");
+    if (!team) return res.status(404).json({ message: "Equipe introuvable" });
+
+    const sql = `
+      SELECT season_year AS year
+      FROM player_season_stats
+      WHERE team_id = ?
+      UNION
+      SELECT YEAR(match_date) AS year
+      FROM matches
+      WHERE team_id = ? AND match_date IS NOT NULL
+      ORDER BY year DESC
+    `;
+
+    db.query(sql, [team.id, team.id], (err, rows) => {
+      if (err) return sendDbError(res, err, "Impossible de charger les saisons");
+      res.json(rows.map((row) => Number(row.year)).filter(Boolean));
+    });
+  });
+});
 
 // Bulk upsert season stats for team players
 router.post("/stats/season", verifyToken, (req, res) => {
@@ -2083,3 +2123,5 @@ router.post("/stats/season", verifyToken, (req, res) => {
     });
   });
 });
+
+module.exports = router;
