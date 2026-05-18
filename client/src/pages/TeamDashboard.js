@@ -268,7 +268,6 @@ function TeamDashboard() {
         year: Number(importYear),
         stats: importRows.map(({ name, position, ...row }) => row),
       };
-
       await axios.post(`${API_URL}/api/team/stats/season`, payload, {
         headers: { authorization: token },
       });

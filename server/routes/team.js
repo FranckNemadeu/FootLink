@@ -2125,3 +2125,79 @@ router.post("/stats/season", verifyToken, (req, res) => {
 });
 
 module.exports = router;
+
+// Bulk upsert season stats for team players
+router.post("/stats/season", verifyToken, (req, res) => {
+  if (req.user.role !== "team") {
+    return res.status(403).json({ message: "Acces reserve aux equipes" });
+  }
+
+  const { year, stats } = req.body || {};
+  const seasonYear = parseSeasonYear(year);
+  if (!seasonYear) return res.status(400).json({ message: "Annee invalide" });
+
+  const currentYear = new Date().getFullYear();
+  if (seasonYear < 1900 || seasonYear > currentYear) {
+    return res.status(400).json({ message: "Annee hors plage acceptable" });
+  }
+
+  if (!Array.isArray(stats) || stats.length === 0) {
+    return res.status(400).json({ message: "Aucune statistique fournie" });
+  }
+
+  getTeamForUser(req.user.id, (teamErr, team) => {
+    if (teamErr) return sendDbError(res, teamErr, "Impossible de charger l'equipe");
+    if (!team) return res.status(404).json({ message: "Equipe introuvable" });
+
+    const playerIds = [...new Set(stats.map((s) => Number(s.player_id)).filter(Boolean))];
+    if (playerIds.length === 0) return res.status(400).json({ message: "Aucun joueur valide fourni" });
+
+    const placeholders = playerIds.map(() => '?').join(',');
+    const membershipSql = `
+      SELECT player_id FROM player_team_memberships
+      WHERE team_id = ? AND player_id IN (${placeholders}) AND active = 1
+    `;
+
+    db.query(membershipSql, [team.id, ...playerIds], (memErr, rows) => {
+      if (memErr) return sendDbError(res, memErr, "Impossible de verifier les membres de l'equipe");
+
+      const validIds = new Set(rows.map((r) => r.player_id));
+      const validStats = stats.filter((s) => validIds.has(Number(s.player_id)));
+
+      if (validStats.length === 0) return res.status(400).json({ message: "Aucun des joueurs fournis n'appartient a l'equipe" });
+
+      const values = validStats.map((s) => [
+        Number(s.player_id),
+        team.id,
+        seasonYear,
+        Number(s.matches) || 0,
+        Number(s.goals) || 0,
+        Number(s.assists) || 0,
+        Number(s.yellow_cards) || 0,
+        Number(s.red_cards) || 0,
+        Number(s.motm_count) || 0,
+        req.user.id,
+      ]);
+
+      const insertSql = `
+        INSERT INTO player_season_stats
+          (player_id, team_id, season_year, matches, goals, assists, yellow_cards, red_cards, motm_count, created_by)
+        VALUES ?
+        ON DUPLICATE KEY UPDATE
+          matches = VALUES(matches),
+          goals = VALUES(goals),
+          assists = VALUES(assists),
+          yellow_cards = VALUES(yellow_cards),
+          red_cards = VALUES(red_cards),
+          motm_count = VALUES(motm_count),
+          created_by = VALUES(created_by),
+          created_at = NOW()
+      `;
+
+      db.query(insertSql, [values], (insErr) => {
+        if (insErr) return sendDbError(res, insErr, "Impossible d'enregistrer les statistiques");
+        res.json({ message: "Statistiques de saison enregistrees", count: values.length });
+      });
+    });
+  });
+});
