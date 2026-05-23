@@ -23,6 +23,19 @@ const toStatInputValue = (value) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 };
 
+const buildSeasonImportRows = (items) =>
+  items.map((player) => ({
+    player_id: player.id,
+    name: player.name,
+    position: player.position,
+    matches: toStatInputValue(player.matches),
+    goals: toStatInputValue(player.goals),
+    assists: toStatInputValue(player.assists),
+    yellow_cards: toStatInputValue(player.yellow_cards),
+    red_cards: toStatInputValue(player.red_cards),
+    motm_count: toStatInputValue(player.motm_count),
+  }));
+
 function TeamDashboard() {
   const [team, setTeam] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -42,6 +55,7 @@ function TeamDashboard() {
   });
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [searchResultsOpen, setSearchResultsOpen] = useState(false);
   const [rankingTab, setRankingTab] = useState("goals");
   const [seasonYear, setSeasonYear] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -49,6 +63,7 @@ function TeamDashboard() {
   const [importYear, setImportYear] = useState(new Date().getFullYear());
   const [importRows, setImportRows] = useState([]);
   const [importLoading, setImportLoading] = useState(false);
+  const [importRowsLoading, setImportRowsLoading] = useState(false);
   const [availableSeasonYears, setAvailableSeasonYears] = useState([]);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
@@ -231,21 +246,36 @@ function TeamDashboard() {
   const handleOpenImportModal = () => {
     const yearPref = seasonYear === "all" ? new Date().getFullYear() : seasonYear;
     setImportYear(yearPref);
-    setImportRows(
-      players.map((player) => ({
-        player_id: player.id,
-        name: player.name,
-        position: player.position,
-        matches: toStatInputValue(player.matches),
-        goals: toStatInputValue(player.goals),
-        assists: toStatInputValue(player.assists),
-        yellow_cards: 0,
-        red_cards: 0,
-        motm_count: toStatInputValue(player.motm_count),
-      }))
-    );
+    setImportRows(buildSeasonImportRows(players));
     setShowImportModal(true);
   };
+
+  useEffect(() => {
+    if (!showImportModal || !token || !importYear) return;
+
+    const loadImportRows = async () => {
+      setImportRowsLoading(true);
+      try {
+        const res = await axios.get(`${API_URL}/api/team/players`, {
+          headers: { authorization: token },
+          params: { year: importYear },
+        });
+
+        setImportRows(buildSeasonImportRows(res.data.players || []));
+      } catch (err) {
+        console.log(err);
+        showNotice(
+          "error",
+          err.response?.data?.message ||
+            "Impossible de charger les stats de cette annee."
+        );
+      } finally {
+        setImportRowsLoading(false);
+      }
+    };
+
+    loadImportRows();
+  }, [showImportModal, importYear, token]);
 
   const handleImportRowChange = (playerId, field, value) => {
     setImportRows((currentRows) =>
@@ -388,6 +418,7 @@ function TeamDashboard() {
       );
 
       setSearchResults(res.data);
+      setSearchResultsOpen(true);
     } catch (err) {
       console.log(err);
       setSearchError(err.response?.data?.message || "Impossible de rechercher des joueurs.");
@@ -1040,7 +1071,11 @@ function TeamDashboard() {
                         ))}
                       </div>
 
-                      {importRows.length > 0 ? (
+                      {importRowsLoading ? (
+                        <p className="dashboard-message dashboard-loading-state">
+                          Chargement des stats de {importYear}...
+                        </p>
+                      ) : importRows.length > 0 ? (
                         importRows.map((row) => (
                           <div className="season-import-row" key={row.player_id}>
                             <div className="season-import-player">
@@ -1077,7 +1112,7 @@ function TeamDashboard() {
                       <button type="button" onClick={() => setShowImportModal(false)} disabled={importLoading}>
                         Annuler
                       </button>
-                      <button type="button" onClick={handleSubmitImport} disabled={importLoading}>
+                      <button type="button" onClick={handleSubmitImport} disabled={importLoading || importRowsLoading}>
                         {importLoading ? "Import..." : "Importer"}
                       </button>
                     </div>
@@ -1177,43 +1212,34 @@ function TeamDashboard() {
               {searchError && <p className="dashboard-error">{searchError}</p>}
 
               {searchResults.length > 0 && (
-                <div className="team-player-list">
-                  {searchResults.slice(0, 4).map((player) => (
-                    <div className="team-player-card" key={player.id}>
-                      {renderPlayerIdentity(player)}
+                <details
+                  className="ranking-more collapsible-results"
+                  open={searchResultsOpen}
+                  onToggle={(e) => setSearchResultsOpen(e.currentTarget.open)}
+                >
+                  <summary>{searchResults.length} joueur(s) trouve(s)</summary>
+                  <div className="panel-inline-actions">
+                    <button type="button" onClick={() => setSearchResultsOpen(false)}>
+                      Fermer les resultats
+                    </button>
+                  </div>
+                  <div className="team-player-list compact-scroll-list">
+                    {searchResults.map((player) => (
+                      <div className="team-player-card" key={player.id}>
+                        {renderPlayerIdentity(player)}
 
-                      <div style={{ display: "flex", gap: "8px" }}>
-                        <button onClick={() => handleInvitePlayer(player.id)}>
-                          Inviter
-                        </button>
-                        <button onClick={() => handleAddPlayer(player.id)}>
-                          Ajouter
-                        </button>
+                        <div className="member-actions">
+                          <button onClick={() => handleInvitePlayer(player.id)}>
+                            Inviter
+                          </button>
+                          <button onClick={() => handleAddPlayer(player.id)}>
+                            Ajouter
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  {searchResults.length > 4 && (
-                    <details className="ranking-more">
-                      <summary>Voir le reste des joueurs</summary>
-                      <div className="team-player-list">
-                        {searchResults.slice(4).map((player) => (
-                          <div className="team-player-card" key={player.id}>
-                            {renderPlayerIdentity(player)}
-
-                            <div style={{ display: "flex", gap: "8px" }}>
-                              <button onClick={() => handleInvitePlayer(player.id)}>
-                                Inviter
-                              </button>
-                              <button onClick={() => handleAddPlayer(player.id)}>
-                                Ajouter
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </details>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                </details>
               )}
             </section>
 
@@ -1301,8 +1327,8 @@ function TeamDashboard() {
                   Aucun joueur n'a encore indiqué cette équipe.
                 </p>
               ) : (
-                <div className="team-player-list">
-                  {players.map((player) => (
+                <div className="team-player-list compact-roster-list">
+                  {players.slice(0, 6).map((player) => (
                     <div className="team-player-card" key={player.id}>
                       <div className="player-card-main">
                         <div className="mini-avatar">
@@ -1349,6 +1375,62 @@ function TeamDashboard() {
                       </div>
                     </div>
                   ))}
+                  {players.length > 6 && (
+                    <details className="ranking-more">
+                      <summary>Voir les {players.length - 6} autres joueurs</summary>
+                      <div className="team-player-list compact-scroll-list">
+                        {players.slice(6).map((player) => (
+                          <div className="team-player-card" key={player.id}>
+                            <div className="player-card-main">
+                              <div className="mini-avatar">
+                                {player.profile_photo ? (
+                                  <img
+                                    src={getMediaUrl(player.profile_photo)}
+                                    alt={player.name || "Joueur"}
+                                  />
+                                ) : (
+                                  <span>{(player.name || "J").charAt(0)}</span>
+                                )}
+                              </div>
+
+                              <div>
+                                <h4>{player.name}</h4>
+                                <p>
+                                  {player.position || "Poste inconnu"} -{" "}
+                                  {player.city || "Ville inconnue"}
+                                </p>
+                                <p>RÃ´le club : {player.club_role || "Joueur"}</p>
+                                <p>
+                                  Buts {player.goals || 0} - Passes{" "}
+                                  {player.assists || 0} - Hommes du match{" "}
+                                  {player.motm_count || 0} - Cartons {player.cards || 0}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="member-actions">
+                              <select
+                                value={player.club_role || "Joueur"}
+                                onChange={(e) =>
+                                  handleRoleChange(player.id, e.target.value)
+                                }
+                                aria-label={`RÃ´le club de ${player.name}`}
+                              >
+                                {clubRoles.map((role) => (
+                                  <option key={role} value={role}>
+                                    {role}
+                                  </option>
+                                ))}
+                              </select>
+                              <button onClick={() => handleRemovePlayer(player.id)}>
+                                Retirer
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
                 </div>
               )}
             </section>

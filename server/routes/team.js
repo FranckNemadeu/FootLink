@@ -508,6 +508,8 @@ router.get("/players", verifyToken, (req, res) => {
           ${seasonSelectPrefix} AS matches,
           ${seasonGoalPrefix} AS goals,
           ${seasonAssistPrefix} AS assists,
+          ${seasonYellowPrefix} AS yellow_cards,
+          ${seasonRedPrefix} AS red_cards,
           ${seasonYellowPrefix} + ${seasonRedPrefix} AS cards,
           ${seasonMotmPrefix} AS motm_count,
           ptm.club_role AS club_role

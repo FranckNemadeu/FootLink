@@ -4212,6 +4212,58 @@ select option {
   background: rgba(239, 35, 60, 0.12);
 }
 
+.dashboard-page,
+.dashboard-content,
+.profile-panel,
+.stats-panel,
+.team-player-list,
+.team-player-card,
+.team-search-form,
+.team-stats-form,
+.match-stat-row {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.team-player-card {
+  overflow: hidden;
+}
+
+.team-player-card p,
+.match-stat-row p,
+.player-card-main h4 {
+  overflow-wrap: anywhere;
+}
+
+.member-actions,
+.invitation-actions,
+.panel-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.panel-inline-actions {
+  margin: 10px 0;
+}
+
+.collapsible-results,
+.compact-roster-list .ranking-more {
+  max-width: 100%;
+}
+
+.compact-scroll-list {
+  max-height: min(56vh, 520px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.team-search-form,
+.team-stats-form {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
 .club-gallery-item {
   overflow: hidden;
 }
