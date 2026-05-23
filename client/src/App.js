@@ -1367,6 +1367,7 @@ function PublicNav({ showBack = false }) {
         <a href="/#players">Joueurs</a>
         <Link to="/clubs">Clubs</Link>
         <a href="/#stats">Stats</a>
+        <Link to="/confidentialite">Confidentialite</Link>
       </div>
 
       <div className="nav-buttons">
@@ -1396,6 +1397,105 @@ function PublicNav({ showBack = false }) {
   );
 }
 
+function PrivacyPolicy() {
+  return (
+    <PublicShell>
+      <section className="legal-page">
+        <p className="home-kicker">Loi 25</p>
+        <h2>Politique de confidentialite FootLink</h2>
+        <p className="legal-updated">Derniere mise a jour : 22 mai 2026</p>
+
+        <div className="legal-content">
+          <section>
+            <h3>Responsable des renseignements personnels</h3>
+            <p>
+              FootLink designe la direction de la plateforme comme responsable
+              de la protection des renseignements personnels. Les demandes
+              d'acces, de correction, de suppression ou de retrait du
+              consentement peuvent etre envoyees a footlink.site@gmail.com.
+            </p>
+          </section>
+
+          <section>
+            <h3>Renseignements collectes</h3>
+            <p>
+              FootLink collecte les renseignements necessaires a la creation et
+              a l'utilisation d'un compte : nom, courriel, mot de passe chiffre,
+              role, ville, poste, pied fort, club demande ou gere, description,
+              statistiques sportives, photos de profil, logos, galerie et
+              messages ou demandes transmis dans la plateforme.
+            </p>
+          </section>
+
+          <section>
+            <h3>Utilisation</h3>
+            <p>
+              Ces renseignements servent a creer le compte, afficher les profils
+              publics ou d'equipe, mettre en relation joueurs et clubs, gerer
+              les demandes, securiser l'acces, envoyer les emails de verification
+              et ameliorer le service.
+            </p>
+          </section>
+
+          <section>
+            <h3>Partage et hebergement</h3>
+            <p>
+              Les donnees peuvent etre traitees par les fournisseurs techniques
+              utilises pour l'hebergement, la base de donnees, les images et les
+              emails. Certains fournisseurs peuvent traiter des donnees hors du
+              Quebec ou du Canada. FootLink limite ce partage aux services
+              necessaires au fonctionnement de la plateforme.
+            </p>
+          </section>
+
+          <section>
+            <h3>Consentement et visibilite</h3>
+            <p>
+              Le consentement est demande a l'inscription. Les profils joueurs
+              peuvent contenir des informations visibles par les clubs et, selon
+              les pages publiques, par les visiteurs. Les utilisateurs doivent
+              eviter d'ajouter des renseignements sensibles non necessaires dans
+              leur bio ou leurs images.
+            </p>
+          </section>
+
+          <section>
+            <h3>Conservation et suppression</h3>
+            <p>
+              FootLink conserve les renseignements tant que le compte est actif
+              ou que leur conservation est necessaire au service, a la securite
+              ou aux obligations legales. Un utilisateur peut demander la
+              suppression de son compte depuis son espace ou par une demande de
+              confidentialite.
+            </p>
+          </section>
+
+          <section>
+            <h3>Incidents de confidentialite</h3>
+            <p>
+              En cas d'acces, d'utilisation, de communication ou de perte non
+              autorises impliquant des renseignements personnels, FootLink
+              documente l'incident, prend les mesures raisonnables pour limiter
+              les risques et avise les personnes concernees ainsi que la
+              Commission d'acces a l'information lorsque la loi l'exige.
+            </p>
+          </section>
+
+          <section>
+            <h3>Vos droits</h3>
+            <p>
+              Vous pouvez demander l'acces a vos renseignements, leur
+              rectification, leur suppression, le retrait de votre consentement
+              ou, lorsque applicable, une copie portable des renseignements que
+              vous avez fournis.
+            </p>
+          </section>
+        </div>
+      </section>
+    </PublicShell>
+  );
+}
+
 function NotFound() {
   return (
     <PublicShell>
@@ -1419,6 +1519,7 @@ function App() {
         <Route path="/players/:slug" element={<PublicPlayer />} />
         <Route path="/clubs" element={<ClubsList />} />
         <Route path="/clubs/:slug" element={<PublicClub />} />
+        <Route path="/confidentialite" element={<PrivacyPolicy />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />

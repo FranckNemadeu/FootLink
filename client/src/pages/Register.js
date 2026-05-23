@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
 import { fetchTeamOptions } from "../utils/fetchTeams";
@@ -29,9 +29,7 @@ function Register({ accountType }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [position, setPosition] = useState("");
-  const [age, setAge] = useState("");
   const [city, setCity] = useState("");
-  const [height, setHeight] = useState("");
   const [preferredFoot, setPreferredFoot] = useState("");
   const [playerTeamId, setPlayerTeamId] = useState("");
   const [playerTeamName, setPlayerTeamName] = useState("");
@@ -45,6 +43,7 @@ function Register({ accountType }) {
   const [loadingClubs, setLoadingClubs] = useState(false);
   const [clubsError, setClubsError] = useState("");
   const [formMessage, setFormMessage] = useState(null);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const navigate = useNavigate();
   const { dashboardPath, isAuthenticated } = useAuth();
 
@@ -137,10 +136,15 @@ function Register({ accountType }) {
       return;
     }
 
-    if (!isTeam) {
-      const numericAge = Number(age);
-      const numericHeight = height ? Number(height) : null;
+    if (!privacyAccepted) {
+      setFormMessage({
+        type: "error",
+        text: "Tu dois accepter la politique de confidentialite pour creer un compte.",
+      });
+      return;
+    }
 
+    if (!isTeam) {
       if (!position || !preferredFoot) {
         setFormMessage({
           type: "error",
@@ -149,21 +153,6 @@ function Register({ accountType }) {
         return;
       }
 
-      if (!Number.isInteger(numericAge) || numericAge < 5 || numericAge > 60) {
-        setFormMessage({
-          type: "error",
-          text: "L'âge doit être compris entre 5 et 60 ans.",
-        });
-        return;
-      }
-
-      if (numericHeight && (numericHeight < 100 || numericHeight > 230)) {
-        setFormMessage({
-          type: "error",
-          text: "La taille doit être comprise entre 100 et 230 cm.",
-        });
-        return;
-      }
     }
 
     if (isTeam && (!cleanTeamName || !cleanLevel || !cleanCategory)) {
@@ -188,15 +177,15 @@ function Register({ accountType }) {
           level: cleanLevel,
           category: cleanCategory,
           bio: cleanBio,
+          privacy_consent: privacyAccepted,
+          privacy_policy_version: "2026-05-22",
         }
       : {
           name: cleanName,
           email: cleanEmail,
           password,
           position,
-          age,
           city: cleanCity,
-          height,
           preferred_foot: preferredFoot,
           team_id:
             !noTeam && /^\d+$/.test(String(playerTeamId))
@@ -205,6 +194,8 @@ function Register({ accountType }) {
           team_name: playerTeamName,
           no_team: noTeam,
           bio: cleanBio,
+          privacy_consent: privacyAccepted,
+          privacy_policy_version: "2026-05-22",
         };
 
     try {
@@ -347,16 +338,6 @@ function Register({ accountType }) {
             </select>
 
             <input
-              type="number"
-              placeholder="Age"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              min="5"
-              max="60"
-              required
-            />
-
-            <input
               type="text"
               placeholder="Ville"
               value={city}
@@ -364,15 +345,6 @@ function Register({ accountType }) {
               pattern="[A-Za-zÀ-ÖØ-öø-ÿ' -]+"
               title="La ville ne doit pas contenir de chiffre."
               required
-            />
-
-            <input
-              type="number"
-              placeholder="Taille en cm"
-              value={height}
-              onChange={(e) => setHeight(e.target.value)}
-              min="100"
-              max="230"
             />
 
             <select
@@ -433,6 +405,22 @@ function Register({ accountType }) {
           onChange={(e) => setBio(e.target.value)}
           rows="4"
         />
+
+        <label className="checkbox-row privacy-consent-row">
+          <input
+            type="checkbox"
+            checked={privacyAccepted}
+            onChange={(e) => setPrivacyAccepted(e.target.checked)}
+            required
+          />
+          <span>
+            J'accepte la{" "}
+            <Link to="/confidentialite" target="_blank" rel="noreferrer">
+              politique de confidentialite
+            </Link>
+            .
+          </span>
+        </label>
 
         <button type="submit" disabled={loading}>
           {loading ? "Création..." : "Créer mon compte"}

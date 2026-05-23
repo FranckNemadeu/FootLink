@@ -28,6 +28,7 @@ const DISPOSABLE_EMAIL_DOMAINS = new Set([
   "tempmail.com",
   "yopmail.com",
 ]);
+const PRIVACY_POLICY_VERSION = "2026-05-22";
 
 const cleanText = (value) => (typeof value === "string" ? value.trim() : "");
 
@@ -144,6 +145,8 @@ const ensureUserSecurityColumns = (callback) => {
     ["email_verification_expires", "DATETIME"],
     ["reset_password_token", "VARCHAR(128)"],
     ["reset_password_expires", "DATETIME"],
+    ["privacy_consent_at", "DATETIME"],
+    ["privacy_policy_version", "VARCHAR(20)"],
   ];
 
   const runNext = (index) => {
@@ -295,18 +298,29 @@ const sendEmailVerificationEmail = (user, token) => {
   });
 };
 
-const createUser = async ({ name, email, password, role }, callback) => {
+const createUser = async (
+  { name, email, password, role, privacyPolicyVersion = PRIVACY_POLICY_VERSION },
+  callback
+) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const verificationToken = createSecureToken();
   const sql = `
     INSERT INTO users
-    (name, email, password, role, email_verified, email_verification_token, email_verification_expires)
-    VALUES (?, ?, ?, ?, 0, ?, ?)
+    (name, email, password, role, email_verified, email_verification_token, email_verification_expires, privacy_consent_at, privacy_policy_version)
+    VALUES (?, ?, ?, ?, 0, ?, ?, NOW(), ?)
   `;
 
   db.query(
     sql,
-    [name, email, hashedPassword, role, hashToken(verificationToken), addHours(24)],
+    [
+      name,
+      email,
+      hashedPassword,
+      role,
+      hashToken(verificationToken),
+      addHours(24),
+      privacyPolicyVersion,
+    ],
     (err, result) => callback(err, result, verificationToken)
   );
 };
@@ -318,25 +332,29 @@ router.post("/register/player", (req, res) => {
     email: rawEmail,
     password,
     position,
-    age,
     city: rawCity,
-    height,
     preferred_foot,
     team_id,
     team_name,
     no_team,
     bio,
+    privacy_consent,
+    privacy_policy_version,
   } = req.body;
 
   const name = cleanText(rawName);
   const email = normalizeEmail(rawEmail);
   const city = cleanText(rawCity);
   const bioText = cleanText(bio);
-  const numericAge = Number(age);
-  const numericHeight = height ? Number(height) : null;
 
-  if (!name || !email || !password || !position || !age || !city) {
+  if (!name || !email || !password || !position || !city) {
     return res.status(400).json({ message: "Tous les champs sont requis" });
+  }
+
+  if (privacy_consent !== true) {
+    return res.status(400).json({
+      message: "La politique de confidentialite doit etre acceptee.",
+    });
   }
 
   const baseValidationError = validateBaseAccount({ name, email, password });
@@ -353,14 +371,6 @@ router.post("/register/player", (req, res) => {
     !["Droit", "Gauche", "Deux pieds"].includes(preferred_foot)
   ) {
     return res.status(400).json({ message: "Poste ou pied fort invalide" });
-  }
-
-  if (!Number.isInteger(numericAge) || numericAge < 5 || numericAge > 60) {
-    return res.status(400).json({ message: "L'age doit etre compris entre 5 et 60 ans" });
-  }
-
-  if (numericHeight && (numericHeight < 100 || numericHeight > 230)) {
-    return res.status(400).json({ message: "La taille doit etre comprise entre 100 et 230 cm" });
   }
 
   if (!no_team && !team_id && !team_name) {
@@ -407,9 +417,9 @@ router.post("/register/player", (req, res) => {
           [
             user.id,
             position,
-            numericAge,
+            null,
             city,
-            numericHeight,
+            null,
             preferred_foot || null,
             null,
             1,
@@ -483,7 +493,13 @@ router.post("/register/player", (req, res) => {
 
       const processPlayerCreation = () => {
         createUser(
-          { name, email, password, role: "player" },
+          {
+            name,
+            email,
+            password,
+            role: "player",
+            privacyPolicyVersion: cleanText(privacy_policy_version) || PRIVACY_POLICY_VERSION,
+          },
           (userErr, result, verificationToken) => {
             if (userErr) {
               if (userErr.code === "ER_DUP_ENTRY") {
@@ -551,6 +567,8 @@ router.post("/register/team", (req, res) => {
     level: rawLevel,
     category: rawCategory,
     bio,
+    privacy_consent,
+    privacy_policy_version,
   } = req.body;
 
   const name = cleanText(rawName);
@@ -563,6 +581,12 @@ router.post("/register/team", (req, res) => {
 
   if (!name || !email || !password || !team_name || !city || !level || !category) {
     return res.status(400).json({ message: "Tous les champs sont requis" });
+  }
+
+  if (privacy_consent !== true) {
+    return res.status(400).json({
+      message: "La politique de confidentialite doit etre acceptee.",
+    });
   }
 
   const baseValidationError = validateBaseAccount({ name, email, password });
@@ -601,7 +625,13 @@ router.post("/register/team", (req, res) => {
 
         try {
           await createUser(
-            { name, email, password, role: "team" },
+            {
+              name,
+              email,
+              password,
+              role: "team",
+              privacyPolicyVersion: cleanText(privacy_policy_version) || PRIVACY_POLICY_VERSION,
+            },
             (userErr, result, verificationToken) => {
               if (userErr) {
                 if (userErr.code === "ER_DUP_ENTRY") {
