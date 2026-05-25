@@ -1,5 +1,69 @@
 const db = require("../db");
 const { uploadImage } = require("../config/cloudinary");
+const { ensureCoreTables } = require("../dbSchema");
+
+const buildPlayerSeasonStatsSql = (whereClause) => `
+  SELECT
+    season_year,
+    team_id,
+    team_name,
+    SUM(matches) AS matches,
+    SUM(goals) AS goals,
+    SUM(assists) AS assists,
+    SUM(yellow_cards) AS yellow_cards,
+    SUM(red_cards) AS red_cards,
+    SUM(cards) AS cards,
+    SUM(motm_count) AS motm_count,
+    SUM(goals) + SUM(assists) AS ga,
+    CASE WHEN SUM(matches) > 0 THEN ROUND(SUM(goals) / SUM(matches), 2) ELSE 0 END AS goal_ratio
+  FROM (
+    SELECT
+      ps.season_year,
+      ps.team_id,
+      t.team_name,
+      ps.matches,
+      ps.goals,
+      ps.assists,
+      ps.yellow_cards,
+      ps.red_cards,
+      ps.yellow_cards + ps.red_cards AS cards,
+      ps.motm_count
+    FROM player_season_stats ps
+    JOIN teams t ON t.id = ps.team_id
+    JOIN players p ON p.id = ps.player_id
+    ${whereClause}
+
+    UNION ALL
+
+    SELECT
+      YEAR(m.match_date) AS season_year,
+      m.team_id,
+      t.team_name,
+      COUNT(DISTINCT ms.match_id) AS matches,
+      COALESCE(SUM(ms.goals), 0) AS goals,
+      COALESCE(SUM(ms.assists), 0) AS assists,
+      COALESCE(SUM(ms.yellow_cards), 0) AS yellow_cards,
+      COALESCE(SUM(ms.red_cards), 0) AS red_cards,
+      COALESCE(SUM(ms.yellow_cards), 0) + COALESCE(SUM(ms.red_cards), 0) AS cards,
+      COUNT(DISTINCT CASE WHEN m.man_of_match_player_id = ms.player_id THEN m.id END) AS motm_count
+    FROM match_stats ms
+    JOIN matches m ON m.id = ms.match_id
+    JOIN teams t ON t.id = m.team_id
+    JOIN players p ON p.id = ms.player_id
+    ${whereClause.replace(/ps\./g, "ms.")}
+      AND m.match_date IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM player_season_stats existing
+        WHERE existing.player_id = ms.player_id
+          AND existing.team_id = m.team_id
+          AND existing.season_year = YEAR(m.match_date)
+      )
+    GROUP BY ms.player_id, m.team_id, t.team_name, YEAR(m.match_date)
+  ) season_rows
+  GROUP BY season_year, team_id, team_name
+  ORDER BY season_year DESC, team_name
+`;
 
 const ensureProfilePhotoColumn = (callback) => {
   const checkSql = `
@@ -295,7 +359,22 @@ exports.getPublicPlayer = (req, res) => {
         return res.status(404).json({ message: "Joueur introuvable" });
       }
 
-      res.json(result[0]);
+      const player = result[0];
+      const seasonsSql = buildPlayerSeasonStatsSql("WHERE ps.player_id = ?");
+
+      ensureCoreTables()
+        .then(() => {
+          db.query(seasonsSql, [player.id, player.id], (seasonErr, seasons) => {
+            if (seasonErr) {
+              return sendDbError(res, seasonErr, "Impossible de charger les stats par saison");
+            }
+
+            res.json({ ...player, seasons });
+          });
+        })
+        .catch((schemaErr) =>
+          sendDbError(res, schemaErr, "Impossible de preparer les stats par saison")
+        );
     });
   });
 };
@@ -424,7 +503,22 @@ exports.getPlayerStats = (req, res) => {
       });
     }
 
-    res.json(result[0]);
+    const totals = result[0];
+    const seasonsSql = buildPlayerSeasonStatsSql("WHERE p.user_id = ?");
+
+    ensureCoreTables()
+      .then(() => {
+        db.query(seasonsSql, [userId, userId], (seasonErr, seasons) => {
+          if (seasonErr) {
+            return sendDbError(res, seasonErr, "Impossible de charger les stats par saison");
+          }
+
+          res.json({ ...totals, seasons });
+        });
+      })
+      .catch((schemaErr) =>
+        sendDbError(res, schemaErr, "Impossible de preparer les stats par saison")
+      );
   });
 };
 

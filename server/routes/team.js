@@ -770,6 +770,7 @@ router.get("/public/:teamId", (req, res) => {
                 p.profile_photo,
                 COALESCE(ptm.club_role, p.club_role) AS club_role,
                 u.name,
+                COALESCE(ps.matches, 0) AS matches,
                 COALESCE(ps.goals, 0) AS goals,
                 COALESCE(ps.assists, 0) AS assists,
                 COALESCE(ps.yellow_cards, 0) + COALESCE(ps.red_cards, 0) AS cards,
@@ -795,6 +796,7 @@ router.get("/public/:teamId", (req, res) => {
                 p.profile_photo,
                 COALESCE(ptm.club_role, p.club_role) AS club_role,
                 u.name,
+                COALESCE(s.matches, 0) AS matches,
                 COALESCE(s.goals, 0) AS goals,
                 COALESCE(s.assists, 0) AS assists,
                 COALESCE(s.yellow_cards, 0) + COALESCE(s.red_cards, 0) AS cards,
@@ -805,6 +807,7 @@ router.get("/public/:teamId", (req, res) => {
               LEFT JOIN (
                 SELECT
                   ms.player_id,
+                  COUNT(DISTINCT ms.match_id) AS matches,
                   COALESCE(SUM(ms.goals), 0) AS goals,
                   COALESCE(SUM(ms.assists), 0) AS assists,
                   COALESCE(SUM(ms.yellow_cards), 0) AS yellow_cards,
@@ -871,7 +874,79 @@ router.get("/public/:teamId", (req, res) => {
                     );
                   }
 
-                  res.json({ team, players, matches, gallery });
+                  const seasonStatsSql = `
+                    SELECT
+                      season_year,
+                      player_id,
+                      player_name,
+                      position,
+                      SUM(matches) AS matches,
+                      SUM(goals) AS goals,
+                      SUM(assists) AS assists,
+                      SUM(yellow_cards) + SUM(red_cards) AS cards,
+                      SUM(motm_count) AS motm_count,
+                      SUM(goals) + SUM(assists) AS ga,
+                      CASE WHEN SUM(matches) > 0 THEN ROUND(SUM(goals) / SUM(matches), 2) ELSE 0 END AS goal_ratio
+                    FROM (
+                      SELECT
+                        ps.season_year,
+                        p.id AS player_id,
+                        u.name AS player_name,
+                        p.position,
+                        ps.matches,
+                        ps.goals,
+                        ps.assists,
+                        ps.yellow_cards,
+                        ps.red_cards,
+                        ps.motm_count
+                      FROM player_season_stats ps
+                      JOIN players p ON p.id = ps.player_id
+                      JOIN users u ON u.id = p.user_id
+                      WHERE ps.team_id = ?
+
+                      UNION ALL
+
+                      SELECT
+                        YEAR(m.match_date) AS season_year,
+                        p.id AS player_id,
+                        u.name AS player_name,
+                        p.position,
+                        COUNT(DISTINCT ms.match_id) AS matches,
+                        COALESCE(SUM(ms.goals), 0) AS goals,
+                        COALESCE(SUM(ms.assists), 0) AS assists,
+                        COALESCE(SUM(ms.yellow_cards), 0) AS yellow_cards,
+                        COALESCE(SUM(ms.red_cards), 0) AS red_cards,
+                        COUNT(DISTINCT CASE WHEN m.man_of_match_player_id = ms.player_id THEN m.id END) AS motm_count
+                      FROM match_stats ms
+                      JOIN matches m ON m.id = ms.match_id
+                      JOIN players p ON p.id = ms.player_id
+                      JOIN users u ON u.id = p.user_id
+                      WHERE m.team_id = ?
+                        AND m.match_date IS NOT NULL
+                        AND NOT EXISTS (
+                          SELECT 1
+                          FROM player_season_stats existing
+                          WHERE existing.player_id = ms.player_id
+                            AND existing.team_id = m.team_id
+                            AND existing.season_year = YEAR(m.match_date)
+                        )
+                      GROUP BY YEAR(m.match_date), p.id, u.name, p.position
+                    ) season_rows
+                    GROUP BY season_year, player_id, player_name, position
+                    ORDER BY season_year DESC, ga DESC, goals DESC, player_name
+                  `;
+
+                  db.query(seasonStatsSql, [team.id, team.id], (seasonStatsErr, seasonStats) => {
+                    if (seasonStatsErr) {
+                      return sendDbError(
+                        res,
+                        seasonStatsErr,
+                        "Impossible de charger les stats par saison"
+                      );
+                    }
+
+                    res.json({ team, players, matches, gallery, seasonStats });
+                  });
                 });
               });
               });

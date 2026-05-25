@@ -33,9 +33,12 @@ const normalizePlayer = (player, index = 0) => ({
   matches: Number(player.matches) || 0,
   cards: Number(player.cards) || 0,
   motm_count: Number(player.motm_count) || 0,
+  ga: Number(player.ga ?? player.goals + player.assists) || 0,
+  goal_ratio: Number(player.goal_ratio) || 0,
   city: player.city || "Ville inconnue",
   profile_photo: player.profile_photo,
   bio: player.bio,
+  seasons: player.seasons || [],
   tone: player.tone || ["red", "green", "gold", "blue"][index % 4],
 });
 
@@ -859,6 +862,37 @@ function PublicPlayer() {
             <p>{player.bio || "Ce joueur n'a pas encore ajouté de bio publique."}</p>
           </div>
 
+          {player.seasons.length > 0 && (
+            <div className="public-bio-card season-stats-card">
+              <h3>Stats par saison</h3>
+              <div className="season-stats-table">
+                <div className="season-stats-row season-stats-head">
+                  <span>Saison</span>
+                  <span>Club</span>
+                  <span>MJ</span>
+                  <span>B</span>
+                  <span>P</span>
+                  <span>G/A</span>
+                  <span>Ratio</span>
+                </div>
+                {player.seasons.map((season) => (
+                  <div
+                    className="season-stats-row"
+                    key={`${season.team_id}-${season.season_year}`}
+                  >
+                    <span>{season.season_year}</span>
+                    <span>{season.team_name}</span>
+                    <span>{season.matches || 0}</span>
+                    <span>{season.goals || 0}</span>
+                    <span>{season.assists || 0}</span>
+                    <span>{season.ga || 0}</span>
+                    <span>{season.goal_ratio || 0}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="public-actions">
             <Link className="player-btn nav-link-btn" to={isAuthenticated ? dashboardPath : "/register/team"}>
               {isAuthenticated ? "Ouvrir mon espace" : "Recruter des joueurs"}
@@ -879,6 +913,7 @@ function PublicClub() {
   const [clubPlayers, setClubPlayers] = useState([]);
   const [clubMatches, setClubMatches] = useState([]);
   const [clubGallery, setClubGallery] = useState([]);
+  const [clubSeasonStats, setClubSeasonStats] = useState([]);
   const [activeTab, setActiveTab] = useState("classements");
   const [seasonYear, setSeasonYear] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -892,6 +927,7 @@ function PublicClub() {
       setClubPlayers([]);
       setClubMatches([]);
       setClubGallery([]);
+      setClubSeasonStats([]);
       setClubError("Club introuvable.");
       setLoading(false);
       return;
@@ -908,6 +944,7 @@ function PublicClub() {
         setClubPlayers((res.data.players || []).map(normalizePlayer));
         setClubMatches(res.data.matches || []);
         setClubGallery(res.data.gallery || []);
+        setClubSeasonStats(res.data.seasonStats || []);
       } catch (err) {
         console.log(err);
         setClub(null);
@@ -970,6 +1007,7 @@ function PublicClub() {
       clubMatches
         .map((match) => match.match_date?.slice(0, 4))
         .filter(Boolean)
+        .concat(clubSeasonStats.map((row) => String(row.season_year)).filter(Boolean))
     ),
   ].sort((a, b) => Number(b) - Number(a));
   const rankingGroups = [
@@ -987,6 +1025,17 @@ function PublicClub() {
       suffix: "passes",
       players: [...clubPlayers].sort(
         (a, b) => b.assists - a.assists || a.name.localeCompare(b.name)
+      ),
+    },
+    {
+      title: "Meilleurs G/A",
+      field: "ga",
+      suffix: "G/A",
+      players: [...clubPlayers].sort(
+        (a, b) =>
+          Number(b.ga || 0) - Number(a.ga || 0) ||
+          b.goals - a.goals ||
+          a.name.localeCompare(b.name)
       ),
     },
     {
@@ -1018,6 +1067,10 @@ function PublicClub() {
     club.level,
     club.category || "Catégorie ouverte",
   ].filter(Boolean);
+  const displayedSeasonStats =
+    seasonYear === "all"
+      ? clubSeasonStats
+      : clubSeasonStats.filter((row) => String(row.season_year) === String(seasonYear));
 
   return (
     <PublicShell>
@@ -1197,6 +1250,36 @@ function PublicClub() {
                 Aucun joueur public n'est encore rattaché à ce club.
               </p>
             )}
+            {displayedSeasonStats.length > 0 && (
+              <div className="public-bio-card season-stats-card">
+                <h3>Stats detaillees par saison</h3>
+                <div className="season-stats-table">
+                  <div className="season-stats-row season-stats-head">
+                    <span>Saison</span>
+                    <span>Joueur</span>
+                    <span>MJ</span>
+                    <span>B</span>
+                    <span>P</span>
+                    <span>G/A</span>
+                    <span>Ratio</span>
+                  </div>
+                  {displayedSeasonStats.map((row) => (
+                    <div
+                      className="season-stats-row"
+                      key={`${row.season_year}-${row.player_id}`}
+                    >
+                      <span>{row.season_year}</span>
+                      <span>{row.player_name}</span>
+                      <span>{row.matches || 0}</span>
+                      <span>{row.goals || 0}</span>
+                      <span>{row.assists || 0}</span>
+                      <span>{row.ga || 0}</span>
+                      <span>{row.goal_ratio || 0}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1241,7 +1324,7 @@ function PublicClub() {
 
             {clubPlayers.length > 0 ? (
               <div className="public-roster-grid">
-                {clubPlayers.map((player) => (
+                {clubPlayers.slice(0, 2).map((player) => (
                   <Link
                     className="team-player-card public-player-card"
                     key={player.id}
@@ -1267,6 +1350,39 @@ function PublicClub() {
                     </div>
                   </Link>
                 ))}
+                {clubPlayers.length > 2 && (
+                  <details className="ranking-more">
+                    <summary>Voir les {clubPlayers.length - 2} autres joueurs</summary>
+                    <div className="public-roster-grid">
+                      {clubPlayers.slice(2).map((player) => (
+                        <Link
+                          className="team-player-card public-player-card"
+                          key={player.id}
+                          to={playerLink(player)}
+                        >
+                          <div className="player-card-main">
+                            <span className="mini-avatar">
+                              {player.profile_photo ? (
+                                <img
+                                  src={getMediaUrl(player.profile_photo)}
+                                  alt={player.name}
+                                />
+                              ) : (
+                                player.name.charAt(0)
+                              )}
+                            </span>
+                            <div>
+                              <h4>{player.name}</h4>
+                              <p>
+                                {player.club_role || "Joueur"} - {player.position} - {player.goals} buts - {player.assists} passes
+                              </p>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </details>
+                )}
               </div>
             ) : (
               <p className="dashboard-message dashboard-empty-state">

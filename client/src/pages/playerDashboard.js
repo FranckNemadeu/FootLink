@@ -25,6 +25,7 @@ function PlayerDashboard() {
     assists: 0,
     cards: 0,
   });
+  const [seasonStats, setSeasonStats] = useState([]);
   const [clubs, setClubs] = useState([]);
   const [playerClubs, setPlayerClubs] = useState([]);
   const [invitations, setInvitations] = useState([]);
@@ -140,6 +141,7 @@ function PlayerDashboard() {
             assists: statsRes.data.assists || 0,
             cards: statsRes.data.cards || 0,
           });
+          setSeasonStats(statsRes.data.seasons || []);
         }
 
         setClubs(clubsResult.status === "fulfilled" ? clubsResult.value || [] : []);
@@ -676,7 +678,50 @@ function PlayerDashboard() {
                   <span>Cartons</span>
                   <strong>{stats.cards}</strong>
                 </div>
+                <div className="stat-card stat-card-modern">
+                  <span>G/A</span>
+                  <strong>{Number(stats.goals || 0) + Number(stats.assists || 0)}</strong>
+                </div>
+                <div className="stat-card stat-card-modern">
+                  <span>Ratio buts</span>
+                  <strong>
+                    {stats.matches
+                      ? (Number(stats.goals || 0) / Number(stats.matches)).toFixed(2)
+                      : "0"}
+                  </strong>
+                </div>
               </div>
+
+              {seasonStats.length > 0 && (
+                <div className="public-bio-card season-stats-card">
+                  <h3>Stats par saison</h3>
+                  <div className="season-stats-table">
+                    <div className="season-stats-row season-stats-head">
+                      <span>Saison</span>
+                      <span>Club</span>
+                      <span>MJ</span>
+                      <span>B</span>
+                      <span>P</span>
+                      <span>G/A</span>
+                      <span>Ratio</span>
+                    </div>
+                    {seasonStats.map((season) => (
+                      <div
+                        className="season-stats-row"
+                        key={`${season.team_id}-${season.season_year}`}
+                      >
+                        <span>{season.season_year}</span>
+                        <span>{season.team_name}</span>
+                        <span>{season.matches || 0}</span>
+                        <span>{season.goals || 0}</span>
+                        <span>{season.assists || 0}</span>
+                        <span>{season.ga || 0}</span>
+                        <span>{season.goal_ratio || 0}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="invitations-panel">
                 <div className="panel-heading compact-heading">

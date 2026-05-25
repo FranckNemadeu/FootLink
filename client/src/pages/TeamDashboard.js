@@ -1328,7 +1328,7 @@ function TeamDashboard() {
                 </p>
               ) : (
                 <div className="team-player-list compact-roster-list">
-                  {players.slice(0, 6).map((player) => (
+                  {players.slice(0, 2).map((player) => (
                     <div className="team-player-card" key={player.id}>
                       <div className="player-card-main">
                         <div className="mini-avatar">
@@ -1375,11 +1375,11 @@ function TeamDashboard() {
                       </div>
                     </div>
                   ))}
-                  {players.length > 6 && (
+                  {players.length > 2 && (
                     <details className="ranking-more">
-                      <summary>Voir les {players.length - 6} autres joueurs</summary>
+                      <summary>Voir les {players.length - 2} autres joueurs</summary>
                       <div className="team-player-list compact-scroll-list">
-                        {players.slice(6).map((player) => (
+                        {players.slice(2).map((player) => (
                           <div className="team-player-card" key={player.id}>
                             <div className="player-card-main">
                               <div className="mini-avatar">

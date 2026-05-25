@@ -4264,6 +4264,44 @@ select option {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
+.season-stats-card {
+  overflow: hidden;
+}
+
+.season-stats-table {
+  display: grid;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.season-stats-row {
+  display: grid;
+  grid-template-columns: minmax(70px, 0.7fr) minmax(130px, 1.4fr) repeat(5, minmax(62px, 0.6fr));
+  align-items: center;
+  gap: 8px;
+  min-width: 680px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--text);
+}
+
+.season-stats-head {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.season-stats-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .club-gallery-item {
   overflow: hidden;
 }
