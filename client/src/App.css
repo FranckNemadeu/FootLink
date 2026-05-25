@@ -2935,6 +2935,32 @@ button:hover,
   gap: 16px;
 }
 
+.home-player-filter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.home-player-filter select {
+  min-height: 42px;
+  min-width: min(280px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0f1219;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 800;
+  padding: 0 12px;
+}
+
+.home-player-filter-note {
+  margin: -4px 0 16px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
 .player-showcase-grid .player-poster,
 .player-showcase-grid .player-poster:nth-child(2) {
   min-height: 420px;

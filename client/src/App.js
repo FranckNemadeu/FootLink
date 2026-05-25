@@ -69,6 +69,11 @@ function Home() {
   const navigate = useNavigate();
   const [players, setPlayers] = useState([]);
   const [homeClubs, setHomeClubs] = useState([]);
+  const [allHomeClubs, setAllHomeClubs] = useState([]);
+  const [selectedHomeClubId, setSelectedHomeClubId] = useState("");
+  const [homeClubPlayers, setHomeClubPlayers] = useState([]);
+  const [homeClubPlayersLoading, setHomeClubPlayersLoading] = useState(false);
+  const [homeClubPlayersError, setHomeClubPlayersError] = useState("");
   const [homeLoading, setHomeLoading] = useState(true);
   const [homeError, setHomeError] = useState("");
   const { dashboardPath, isAuthenticated } = useAuth();
@@ -96,6 +101,10 @@ function Home() {
 
         if (clubsResult.status === "fulfilled") {
           apiClubs = clubsResult.value.map(normalizeClub);
+          setAllHomeClubs(apiClubs);
+          setSelectedHomeClubId((currentClubId) =>
+            currentClubId || (apiClubs[0]?.id ? String(apiClubs[0].id) : "")
+          );
         }
 
         setHomeClubs(getRandomClubs(apiClubs, 3));
@@ -117,8 +126,38 @@ function Home() {
     loadHomeData();
   }, []);
 
+  useEffect(() => {
+    if (!selectedHomeClubId) {
+      setHomeClubPlayers([]);
+      return;
+    }
+
+    const loadClubPlayers = async () => {
+      try {
+        setHomeClubPlayersLoading(true);
+        setHomeClubPlayersError("");
+        const res = await axios.get(`${API_URL}/api/team/public/${selectedHomeClubId}`);
+        setHomeClubPlayers((res.data.players || []).map(normalizePlayer));
+      } catch (err) {
+        console.log(err);
+        setHomeClubPlayers([]);
+        setHomeClubPlayersError(
+          err.response?.data?.message || "Impossible de charger les joueurs du club."
+        );
+      } finally {
+        setHomeClubPlayersLoading(false);
+      }
+    };
+
+    loadClubPlayers();
+  }, [selectedHomeClubId]);
+
   const featuredHomePlayers = players.slice(0, 3);
   const leaderboardPlayers = players.slice(0, 4);
+  const selectedHomeClub = allHomeClubs.find(
+    (club) => String(club.id) === String(selectedHomeClubId)
+  );
+  const homePlayersToShow = selectedHomeClubId ? homeClubPlayers : players;
   const heroPlayer = featuredHomePlayers[0] || {
     name: "Joueurs FootLink",
     position: "Profils live",
@@ -400,16 +439,43 @@ function Home() {
           <div className="section-heading">
             <div>
               <p className="home-kicker">Joueurs</p>
-              <h2>Profils en vue</h2>
+              <h2>Profils par club</h2>
             </div>
-            <Link className="team-btn nav-link-btn" to="/clubs">
-              Voir les clubs
-            </Link>
+            <div className="home-player-filter">
+              <select
+                value={selectedHomeClubId}
+                onChange={(e) => setSelectedHomeClubId(e.target.value)}
+                aria-label="Choisir un club"
+              >
+                <option value="">Tous les joueurs</option>
+                {allHomeClubs.map((club) => (
+                  <option key={club.id || club.slug || club.name} value={club.id || ""}>
+                    {club.name} ({club.city})
+                  </option>
+                ))}
+              </select>
+              <Link className="team-btn nav-link-btn" to="/clubs">
+                Voir les clubs
+              </Link>
+            </div>
           </div>
 
+          {selectedHomeClub && (
+            <p className="home-player-filter-note">
+              {homeClubPlayersLoading
+                ? `Chargement des joueurs de ${selectedHomeClub.name}...`
+                : `${homePlayersToShow.length} joueur(s) affiché(s) pour ${selectedHomeClub.name}.`}
+            </p>
+          )}
+          {homeClubPlayersError && (
+            <p className="dashboard-message dashboard-empty-state">
+              {homeClubPlayersError}
+            </p>
+          )}
+
           <div className="player-showcase-grid">
-            {featuredHomePlayers.length > 0 ? (
-              featuredHomePlayers.map((player) => (
+            {homePlayersToShow.length > 0 ? (
+              homePlayersToShow.map((player) => (
               <Link
                 className={`player-poster player-feature-card poster-${player.tone}`}
                 key={player.id || player.slug || player.name}
@@ -435,9 +501,9 @@ function Home() {
               ))
             ) : (
               <p className="dashboard-message dashboard-empty-state">
-                {homeLoading
+                {homeLoading || homeClubPlayersLoading
                   ? "Chargement des joueurs..."
-                  : "Aucun joueur public n'est disponible pour le moment."}
+                  : "Aucun joueur public n'est disponible pour cette selection."}
               </p>
             )}
           </div>
