@@ -25,7 +25,7 @@ const normalizePlayer = (player, index = 0) => ({
   id: player.id,
   slug: player.slug,
   name: player.name || "Joueur FootLink",
-  club: player.team_name || player.club || "Sans club",
+  club: player.team_name || player.club || player.club_name || "Sans club",
   position: player.position || "Joueur",
   club_role: player.club_role || "Joueur",
   goals: Number(player.goals) || 0,
@@ -69,11 +69,7 @@ function Home() {
   const navigate = useNavigate();
   const [players, setPlayers] = useState([]);
   const [homeClubs, setHomeClubs] = useState([]);
-  const [allHomeClubs, setAllHomeClubs] = useState([]);
-  const [selectedHomeClubId, setSelectedHomeClubId] = useState("");
-  const [homeClubPlayers, setHomeClubPlayers] = useState([]);
-  const [homeClubPlayersLoading, setHomeClubPlayersLoading] = useState(false);
-  const [homeClubPlayersError, setHomeClubPlayersError] = useState("");
+  const [homePlayerOffset, setHomePlayerOffset] = useState(0);
   const [homeLoading, setHomeLoading] = useState(true);
   const [homeError, setHomeError] = useState("");
   const { dashboardPath, isAuthenticated } = useAuth();
@@ -101,10 +97,6 @@ function Home() {
 
         if (clubsResult.status === "fulfilled") {
           apiClubs = clubsResult.value.map(normalizeClub);
-          setAllHomeClubs(apiClubs);
-          setSelectedHomeClubId((currentClubId) =>
-            currentClubId || (apiClubs[0]?.id ? String(apiClubs[0].id) : "")
-          );
         }
 
         setHomeClubs(getRandomClubs(apiClubs, 3));
@@ -127,37 +119,20 @@ function Home() {
   }, []);
 
   useEffect(() => {
-    if (!selectedHomeClubId) {
-      setHomeClubPlayers([]);
-      return;
-    }
+    if (players.length <= 3) return undefined;
 
-    const loadClubPlayers = async () => {
-      try {
-        setHomeClubPlayersLoading(true);
-        setHomeClubPlayersError("");
-        const res = await axios.get(`${API_URL}/api/team/public/${selectedHomeClubId}`);
-        setHomeClubPlayers((res.data.players || []).map(normalizePlayer));
-      } catch (err) {
-        console.log(err);
-        setHomeClubPlayers([]);
-        setHomeClubPlayersError(
-          err.response?.data?.message || "Impossible de charger les joueurs du club."
-        );
-      } finally {
-        setHomeClubPlayersLoading(false);
-      }
-    };
+    const intervalId = setInterval(() => {
+      setHomePlayerOffset((currentOffset) => (currentOffset + 3) % players.length);
+    }, 9000);
 
-    loadClubPlayers();
-  }, [selectedHomeClubId]);
+    return () => clearInterval(intervalId);
+  }, [players.length]);
 
-  const featuredHomePlayers = players.slice(0, 3);
+  const featuredHomePlayers =
+    players.length <= 3
+      ? players
+      : [...players, ...players].slice(homePlayerOffset, homePlayerOffset + 3);
   const leaderboardPlayers = players.slice(0, 4);
-  const selectedHomeClub = allHomeClubs.find(
-    (club) => String(club.id) === String(selectedHomeClubId)
-  );
-  const homePlayersToShow = selectedHomeClubId ? homeClubPlayers : players;
   const heroPlayer = featuredHomePlayers[0] || {
     name: "Joueurs FootLink",
     position: "Profils live",
@@ -439,43 +414,16 @@ function Home() {
           <div className="section-heading">
             <div>
               <p className="home-kicker">Joueurs</p>
-              <h2>Profils par club</h2>
+              <h2>Profils en vue</h2>
             </div>
-            <div className="home-player-filter">
-              <select
-                value={selectedHomeClubId}
-                onChange={(e) => setSelectedHomeClubId(e.target.value)}
-                aria-label="Choisir un club"
-              >
-                <option value="">Tous les joueurs</option>
-                {allHomeClubs.map((club) => (
-                  <option key={club.id || club.slug || club.name} value={club.id || ""}>
-                    {club.name} ({club.city})
-                  </option>
-                ))}
-              </select>
-              <Link className="team-btn nav-link-btn" to="/clubs">
-                Voir les clubs
-              </Link>
-            </div>
+            <Link className="team-btn nav-link-btn" to="/players">
+              Voir tous les joueurs
+            </Link>
           </div>
 
-          {selectedHomeClub && (
-            <p className="home-player-filter-note">
-              {homeClubPlayersLoading
-                ? `Chargement des joueurs de ${selectedHomeClub.name}...`
-                : `${homePlayersToShow.length} joueur(s) affiché(s) pour ${selectedHomeClub.name}.`}
-            </p>
-          )}
-          {homeClubPlayersError && (
-            <p className="dashboard-message dashboard-empty-state">
-              {homeClubPlayersError}
-            </p>
-          )}
-
           <div className="player-showcase-grid">
-            {homePlayersToShow.length > 0 ? (
-              homePlayersToShow.map((player) => (
+            {featuredHomePlayers.length > 0 ? (
+              featuredHomePlayers.map((player) => (
               <Link
                 className={`player-poster player-feature-card poster-${player.tone}`}
                 key={player.id || player.slug || player.name}
@@ -501,9 +449,9 @@ function Home() {
               ))
             ) : (
               <p className="dashboard-message dashboard-empty-state">
-                {homeLoading || homeClubPlayersLoading
+                {homeLoading
                   ? "Chargement des joueurs..."
-                  : "Aucun joueur public n'est disponible pour cette selection."}
+                  : "Aucun joueur public n'est disponible pour le moment."}
               </p>
             )}
           </div>
@@ -806,6 +754,148 @@ function ClubsList() {
               </button>
             )}
           </div>
+        )}
+      </section>
+    </PublicShell>
+  );
+}
+
+function PlayersList() {
+  const [allClubs, setAllClubs] = useState([]);
+  const [selectedClubId, setSelectedClubId] = useState("");
+  const [players, setPlayers] = useState([]);
+  const [loadingClubs, setLoadingClubs] = useState(true);
+  const [loadingPlayers, setLoadingPlayers] = useState(false);
+  const [playerError, setPlayerError] = useState("");
+
+  useEffect(() => {
+    const loadClubs = async () => {
+      try {
+        setLoadingClubs(true);
+        const apiClubs = (await fetchTeamList()).map(normalizeClub);
+        setAllClubs(apiClubs);
+        setSelectedClubId(apiClubs[0]?.id ? String(apiClubs[0].id) : "");
+      } catch (err) {
+        console.log(err);
+        setPlayerError("Impossible de charger les clubs.");
+      } finally {
+        setLoadingClubs(false);
+      }
+    };
+
+    loadClubs();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedClubId) {
+      setPlayers([]);
+      return;
+    }
+
+    const loadPlayers = async () => {
+      try {
+        setLoadingPlayers(true);
+        setPlayerError("");
+        const res = await axios.get(`${API_URL}/api/team/public/${selectedClubId}`);
+        const clubName = res.data.team?.team_name || res.data.team?.name;
+        setPlayers(
+          (res.data.players || []).map((player, index) =>
+            normalizePlayer(
+              {
+                ...player,
+                team_name: player.team_name || clubName,
+                club: player.club || clubName,
+              },
+              index
+            )
+          )
+        );
+      } catch (err) {
+        console.log(err);
+        setPlayers([]);
+        setPlayerError(
+          err.response?.data?.message || "Impossible de charger les joueurs du club."
+        );
+      } finally {
+        setLoadingPlayers(false);
+      }
+    };
+
+    loadPlayers();
+  }, [selectedClubId]);
+
+  const selectedClub = allClubs.find(
+    (club) => String(club.id) === String(selectedClubId)
+  );
+
+  return (
+    <PublicShell>
+      <section className="home-section club-directory-page">
+        <div className="section-heading">
+          <div>
+            <p className="home-kicker">{loadingClubs ? "Chargement" : "Joueurs"}</p>
+            <h2>Tous les joueurs par club</h2>
+          </div>
+          <Link className="team-btn nav-link-btn" to="/clubs">
+            Voir les clubs
+          </Link>
+        </div>
+
+        <div className="directory-search-panel players-directory-filter">
+          <select
+            value={selectedClubId}
+            onChange={(e) => setSelectedClubId(e.target.value)}
+            aria-label="Choisir un club"
+          >
+            {allClubs.map((club) => (
+              <option key={club.id || club.slug || club.name} value={club.id || ""}>
+                {club.name} ({club.city})
+              </option>
+            ))}
+          </select>
+          <span>
+            {selectedClub
+              ? `${players.length} joueur(s) - ${selectedClub.name}`
+              : "Selectionne un club"}
+          </span>
+        </div>
+
+        {playerError && (
+          <p className="dashboard-message dashboard-empty-state">{playerError}</p>
+        )}
+
+        {loadingPlayers ? (
+          <p className="dashboard-message dashboard-loading-state">
+            Chargement des joueurs...
+          </p>
+        ) : players.length > 0 ? (
+          <div className="player-showcase-grid players-directory-grid">
+            {players.map((player) => (
+              <Link
+                className={`player-poster player-feature-card poster-${player.tone}`}
+                key={player.id || player.slug || player.name}
+                to={playerLink(player)}
+              >
+                <div className="poster-player-art">
+                  {player.profile_photo ? (
+                    <img src={getMediaUrl(player.profile_photo)} alt={player.name} />
+                  ) : (
+                    <span>{player.name.charAt(0)}</span>
+                  )}
+                </div>
+                <div className="poster-content">
+                  <span>{player.position}</span>
+                  <h3>{player.name}</h3>
+                  <p>{player.club}</p>
+                  <strong>{player.goals} buts</strong>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="dashboard-message dashboard-empty-state">
+            Aucun joueur public pour ce club.
+          </p>
         )}
       </section>
     </PublicShell>
@@ -1546,7 +1636,7 @@ function PublicNav({ showBack = false }) {
       <div className="nav-menu" aria-label="Navigation principale">
         <Link to="/">Accueil</Link>
         <a href="/#how-it-works">Guide</a>
-        <a href="/#players">Joueurs</a>
+        <Link to="/players">Joueurs</Link>
         <Link to="/clubs">Clubs</Link>
         <a href="/#stats">Stats</a>
         <Link to="/confidentialite">Confidentialite</Link>
@@ -1698,6 +1788,7 @@ function App() {
     <AuthProvider>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/players" element={<PlayersList />} />
         <Route path="/players/:slug" element={<PublicPlayer />} />
         <Route path="/clubs" element={<ClubsList />} />
         <Route path="/clubs/:slug" element={<PublicClub />} />

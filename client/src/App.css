@@ -2961,6 +2961,20 @@ button:hover,
   font-weight: 800;
 }
 
+.players-directory-filter select {
+  min-height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: #0f1219;
+  color: #ffffff;
+  font: inherit;
+  padding: 0 14px;
+}
+
+.players-directory-grid {
+  align-items: stretch;
+}
+
 .player-showcase-grid .player-poster,
 .player-showcase-grid .player-poster:nth-child(2) {
   min-height: 420px;
