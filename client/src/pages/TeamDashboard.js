@@ -89,13 +89,88 @@ function TeamDashboard() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const mobileNavItems = [
-    { id: "profil", target: "profil", label: "Club", icon: "C" },
-    { id: "galerie", target: "galerie", label: "Galerie", icon: "G" },
-    { id: "classements", target: "classements", label: "Stats", icon: "S" },
-    { id: "joueurs", target: "joueurs", label: "Joueurs", icon: "J" },
-    { id: "anciens", target: "anciens", label: "Anciens", icon: "A" },
-    { id: "matchs", target: "matchs", label: "Matchs", icon: "M" },
-    { id: "compte", target: "compte", label: "Compte", icon: "!" },
+    {
+      id: "profil",
+      target: "profil",
+      label: "Club",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 2L4 5v6c0 5.25 3.75 10.15 8 11.5C16.25 21.15 20 16.25 20 11V5L12 2z" />
+        </svg>
+      ),
+    },
+    {
+      id: "galerie",
+      target: "galerie",
+      label: "Galerie",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <path d="M21 15l-5-5L5 21" />
+        </svg>
+      ),
+    },
+    {
+      id: "classements",
+      target: "classements",
+      label: "Stats",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="3" y="12" width="4" height="9" rx="1" />
+          <rect x="10" y="7" width="4" height="14" rx="1" />
+          <rect x="17" y="3" width="4" height="18" rx="1" />
+        </svg>
+      ),
+    },
+    {
+      id: "joueurs",
+      target: "joueurs",
+      label: "Joueurs",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      ),
+    },
+    {
+      id: "anciens",
+      target: "anciens",
+      label: "Anciens",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      ),
+    },
+    {
+      id: "matchs",
+      target: "matchs",
+      label: "Matchs",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+      ),
+    },
+    {
+      id: "compte",
+      target: "compte",
+      label: "Compte",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      ),
+    },
   ];
 
   useEffect(() => {
@@ -854,9 +929,32 @@ function TeamDashboard() {
         </section>
 
         {loading && (
-          <p className="dashboard-message dashboard-loading-state">
-            Chargement...
-          </p>
+          <div className="dashboard-skeleton">
+            <div className="dashboard-grid">
+              <div className="skeleton-panel">
+                <div className="sk-profile-card">
+                  <div className="sk-avatar" />
+                  <div className="sk-lines">
+                    <div className="sk-block sk-line-lg" />
+                    <div className="sk-block sk-line-md" />
+                    <div className="sk-block sk-line-sm" />
+                  </div>
+                </div>
+                <div className="sk-grid">
+                  <div className="sk-block" style={{ height: 82 }} />
+                  <div className="sk-block" style={{ height: 82 }} />
+                </div>
+              </div>
+              <div className="skeleton-panel">
+                <div className="sk-block" style={{ height: 160 }} />
+                <div className="sk-grid">
+                  <div className="sk-block" style={{ height: 96 }} />
+                  <div className="sk-block" style={{ height: 96 }} />
+                  <div className="sk-block" style={{ height: 96 }} />
+                </div>
+              </div>
+            </div>
+          </div>
         )}
         {error && <p className="dashboard-error">{error}</p>}
 

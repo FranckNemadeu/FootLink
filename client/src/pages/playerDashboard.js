@@ -13,10 +13,50 @@ function PlayerDashboard() {
   const navigate = useNavigate();
   const { user, token, logout } = useAuth();
   const mobileNavItems = [
-    { id: "profil", target: "profil", label: "Profil", icon: "P" },
-    { id: "stats", target: "stats", label: "Stats", icon: "S" },
-    { id: "clubs", target: "clubs", label: "Clubs", icon: "C" },
-    { id: "compte", target: "compte", label: "Compte", icon: "!" },
+    {
+      id: "profil",
+      target: "profil",
+      label: "Profil",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+        </svg>
+      ),
+    },
+    {
+      id: "stats",
+      target: "stats",
+      label: "Stats",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="3" y="12" width="4" height="9" rx="1" />
+          <rect x="10" y="7" width="4" height="14" rx="1" />
+          <rect x="17" y="3" width="4" height="18" rx="1" />
+        </svg>
+      ),
+    },
+    {
+      id: "clubs",
+      target: "clubs",
+      label: "Clubs",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 2L4 5v6c0 5.25 3.75 10.15 8 11.5C16.25 21.15 20 16.25 20 11V5L12 2z" />
+        </svg>
+      ),
+    },
+    {
+      id: "compte",
+      target: "compte",
+      label: "Compte",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      ),
+    },
   ];
   const [player, setPlayer] = useState(null);
   const [stats, setStats] = useState({
@@ -413,9 +453,32 @@ function PlayerDashboard() {
         </section>
 
         {loading && (
-          <p className="dashboard-message dashboard-loading-state">
-            Chargement du profil...
-          </p>
+          <div className="dashboard-skeleton">
+            <div className="dashboard-grid">
+              <div className="skeleton-panel">
+                <div className="sk-profile-card">
+                  <div className="sk-avatar" />
+                  <div className="sk-lines">
+                    <div className="sk-block sk-line-lg" />
+                    <div className="sk-block sk-line-md" />
+                    <div className="sk-block sk-line-sm" />
+                  </div>
+                </div>
+                <div className="sk-grid">
+                  <div className="sk-block" style={{ height: 82 }} />
+                  <div className="sk-block" style={{ height: 82 }} />
+                  <div className="sk-block" style={{ height: 82 }} />
+                </div>
+              </div>
+              <div className="skeleton-panel">
+                <div className="sk-block" style={{ height: 140 }} />
+                <div className="sk-grid">
+                  <div className="sk-block" style={{ height: 96 }} />
+                  <div className="sk-block" style={{ height: 96 }} />
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {error && <p className="dashboard-error">{error}</p>}
