@@ -66,6 +66,9 @@ function PlayerDashboard() {
     cards: 0,
   });
   const [seasonStats, setSeasonStats] = useState([]);
+  const [seasonSortKey, setSeasonSortKey] = useState("season_year");
+  const [seasonSortDir, setSeasonSortDir] = useState("desc");
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [clubs, setClubs] = useState([]);
   const [playerClubs, setPlayerClubs] = useState([]);
   const [invitations, setInvitations] = useState([]);
@@ -206,6 +209,28 @@ function PlayerDashboard() {
     fetchPlayer();
   }, [token]);
 
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const handleSeasonSort = (key) => {
+    if (seasonSortKey === key) {
+      setSeasonSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSeasonSortKey(key);
+      setSeasonSortDir("desc");
+    }
+  };
+
+  const sortedSeasonStats = [...seasonStats].sort((a, b) => {
+    const av = a[seasonSortKey] ?? 0;
+    const bv = b[seasonSortKey] ?? 0;
+    const cmp = typeof av === "string" ? av.localeCompare(bv) : Number(av) - Number(bv);
+    return seasonSortDir === "asc" ? cmp : -cmp;
+  });
+
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -245,6 +270,21 @@ function PlayerDashboard() {
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
+
+    const age = Number(profileForm.age);
+    const height = Number(profileForm.height);
+    if (profileForm.age && (age < 10 || age > 60)) {
+      showNotice("error", "L'âge doit être compris entre 10 et 60 ans.");
+      return;
+    }
+    if (profileForm.height && (height < 140 || height > 220)) {
+      showNotice("error", "La taille doit être entre 140 et 220 cm.");
+      return;
+    }
+    if (profileForm.bio && profileForm.bio.length > 500) {
+      showNotice("error", "La bio ne peut pas dépasser 500 caractères.");
+      return;
+    }
 
     try {
       setProfileSaving(true);
@@ -510,6 +550,7 @@ function PlayerDashboard() {
                         <img
                           src={getMediaUrl(player.profile_photo)}
                           alt="Profil joueur"
+                          loading="lazy"
                         />
                       ) : (
                         <span>{(user.name || "J").charAt(0)}</span>
@@ -760,15 +801,31 @@ function PlayerDashboard() {
                   <h3>Stats par saison</h3>
                   <div className="season-stats-table">
                     <div className="season-stats-row season-stats-head">
-                      <span>Saison</span>
-                      <span>Club</span>
-                      <span>MJ</span>
-                      <span>B</span>
-                      <span>P</span>
-                      <span>G/A</span>
-                      <span>Ratio</span>
+                      {[
+                        { key: "season_year", label: "Saison" },
+                        { key: "team_name", label: "Club" },
+                        { key: "matches", label: "MJ" },
+                        { key: "goals", label: "B" },
+                        { key: "assists", label: "P" },
+                        { key: "ga", label: "G/A" },
+                        { key: "goal_ratio", label: "Ratio" },
+                      ].map(({ key, label }) => (
+                        <button
+                          key={key}
+                          className={`stat-sort-btn${seasonSortKey === key ? " active" : ""}`}
+                          onClick={() => handleSeasonSort(key)}
+                          type="button"
+                        >
+                          {label}
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+                            {seasonSortKey === key && seasonSortDir === "asc"
+                              ? <path d="M5 2l4 6H1z" />
+                              : <path d="M5 8L1 2h8z" />}
+                          </svg>
+                        </button>
+                      ))}
                     </div>
-                    {seasonStats.map((season) => (
+                    {sortedSeasonStats.map((season) => (
                       <div
                         className="season-stats-row"
                         key={`${season.team_id}-${season.season_year}`}
@@ -881,6 +938,15 @@ function PlayerDashboard() {
       </main>
 
       <DashboardBottomNav items={mobileNavItems} />
+
+      <button
+        className={`scroll-top-btn${showScrollTop ? " visible" : ""}`}
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        aria-label="Retour en haut"
+        type="button"
+      >
+        ↑
+      </button>
     </div>
   );
 }

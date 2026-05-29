@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import BrandLogo from "../components/BrandLogo";
 import DashboardBottomNav from "../components/DashboardBottomNav";
+import PlayerCard from "../components/PlayerCard";
 import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
 import getMediaUrl from "../utils/mediaUrl";
@@ -57,6 +58,7 @@ function TeamDashboard() {
   const [searchError, setSearchError] = useState("");
   const [searchResultsOpen, setSearchResultsOpen] = useState(false);
   const [rankingTab, setRankingTab] = useState("goals");
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [seasonYear, setSeasonYear] = useState("all");
   const [loading, setLoading] = useState(true);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -187,36 +189,18 @@ function TeamDashboard() {
     setNotice({ type, message });
   };
 
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const scrollToSection = (sectionId) => {
     document.getElementById(sectionId)?.scrollIntoView({
       behavior: "smooth",
       block: "start",
     });
   };
-
-  const renderPlayerIdentity = (player) => (
-    <div className="player-card-main">
-      <div className="mini-avatar">
-        {player.profile_photo ? (
-          <img
-            src={getMediaUrl(player.profile_photo)}
-            alt={player.name || "Joueur"}
-          />
-        ) : (
-          <span>{(player.name || "J").charAt(0)}</span>
-        )}
-      </div>
-
-      <div>
-        <h4>{player.name}</h4>
-        <p>
-          {player.position || "Poste inconnu"} - {player.city || "Ville inconnue"}
-        </p>
-        <p>Rôle club : {player.club_role || "Joueur"}</p>
-        <p>Club actuel : {player.team_name || "Aucun"}</p>
-      </div>
-    </div>
-  );
 
   const rankingConfig = {
     goals: { label: "Buteurs", valueLabel: "buts", field: "goals" },
@@ -681,7 +665,8 @@ function TeamDashboard() {
     }
   };
 
-  const handleRemovePlayer = async (playerId) => {
+  const handleRemovePlayer = async (playerId, playerName) => {
+    if (!window.confirm(`Retirer ${playerName || "ce joueur"} de l'effectif ?`)) return;
     try {
       await axios.delete(`${API_URL}/api/team/players/${playerId}`, {
         headers: {
@@ -978,7 +963,7 @@ function TeamDashboard() {
               <div className="profile-photo-section dashboard-profile-card">
                 <div className="profile-photo club-logo-photo">
                   {team?.logo_photo ? (
-                    <img src={getMediaUrl(team.logo_photo)} alt="Logo du club" />
+                    <img src={getMediaUrl(team.logo_photo)} alt="Logo du club" loading="lazy" />
                   ) : (
                     <span>{(team?.team_name || user?.name || "C").charAt(0)}</span>
                   )}
@@ -1042,6 +1027,7 @@ function TeamDashboard() {
                         <img
                           src={getMediaUrl(photo.image_url)}
                           alt={photo.caption || "Photo du club"}
+                          loading="lazy"
                         />
                         <div>
                           <p>{photo.caption || "Photo du club"}</p>
@@ -1065,6 +1051,7 @@ function TeamDashboard() {
                             <img
                               src={getMediaUrl(photo.image_url)}
                               alt={photo.caption || "Photo du club"}
+                              loading="lazy"
                             />
                             <div>
                               <p>{photo.caption || "Photo du club"}</p>
@@ -1236,7 +1223,7 @@ function TeamDashboard() {
                   {rankingPlayers.slice(0, 2).map((player, index) => (
                     <div className="ranking-row" key={player.id}>
                       <span className="rank-number">{index + 1}</span>
-                      {renderPlayerIdentity(player)}
+                      <PlayerCard player={player} />
                       <strong>
                         {Number(player[rankingConfig[rankingTab].field] || 0)}{" "}
                         {rankingConfig[rankingTab].valueLabel}
@@ -1250,7 +1237,7 @@ function TeamDashboard() {
                         {rankingPlayers.slice(2).map((player, extraIndex) => (
                           <div className="ranking-row" key={player.id}>
                             <span className="rank-number">{extraIndex + 3}</span>
-                            {renderPlayerIdentity(player)}
+                            <PlayerCard player={player} />
                             <strong>
                               {Number(player[rankingConfig[rankingTab].field] || 0)}{" "}
                               {rankingConfig[rankingTab].valueLabel}
@@ -1324,7 +1311,7 @@ function TeamDashboard() {
                   <div className="team-player-list compact-scroll-list">
                     {searchResults.map((player) => (
                       <div className="team-player-card" key={player.id}>
-                        {renderPlayerIdentity(player)}
+                        <PlayerCard player={player} />
 
                         <div className="member-actions">
                           <button onClick={() => handleInvitePlayer(player.id)}>
@@ -1364,6 +1351,7 @@ function TeamDashboard() {
                               <img
                                 src={getMediaUrl(invitation.profile_photo)}
                                 alt={invitation.name || "Joueur"}
+                                loading="lazy"
                               />
                             ) : (
                               <span>{(invitation.name || "J").charAt(0)}</span>
@@ -1434,6 +1422,7 @@ function TeamDashboard() {
                             <img
                               src={getMediaUrl(player.profile_photo)}
                               alt={player.name || "Joueur"}
+                              loading="lazy"
                             />
                           ) : (
                             <span>{(player.name || "J").charAt(0)}</span>
@@ -1467,7 +1456,7 @@ function TeamDashboard() {
                             </option>
                           ))}
                         </select>
-                        <button onClick={() => handleRemovePlayer(player.id)}>
+                        <button onClick={() => handleRemovePlayer(player.id, player.name)}>
                           Retirer
                         </button>
                       </div>
@@ -1485,6 +1474,7 @@ function TeamDashboard() {
                                   <img
                                     src={getMediaUrl(player.profile_photo)}
                                     alt={player.name || "Joueur"}
+                                    loading="lazy"
                                   />
                                 ) : (
                                   <span>{(player.name || "J").charAt(0)}</span>
@@ -1520,7 +1510,7 @@ function TeamDashboard() {
                                   </option>
                                 ))}
                               </select>
-                              <button onClick={() => handleRemovePlayer(player.id)}>
+                              <button onClick={() => handleRemovePlayer(player.id, player.name)}>
                                 Retirer
                               </button>
                             </div>
@@ -1556,6 +1546,7 @@ function TeamDashboard() {
                             <img
                               src={getMediaUrl(member.profile_photo)}
                               alt={member.name || "Ancien membre"}
+                              loading="lazy"
                             />
                           ) : (
                             <span>{(member.name || "A").charAt(0)}</span>
@@ -1800,6 +1791,15 @@ function TeamDashboard() {
       </main>
 
       <DashboardBottomNav items={mobileNavItems} />
+
+      <button
+        className={`scroll-top-btn${showScrollTop ? " visible" : ""}`}
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        aria-label="Retour en haut"
+        type="button"
+      >
+        ↑
+      </button>
     </div>
   );
 }
