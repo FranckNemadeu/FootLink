@@ -1,8 +1,16 @@
 import "./App.css";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Link, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  Route,
+  Routes,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import PlayerDashboard from "./pages/playerDashboard";
@@ -64,6 +72,57 @@ const normalizeClub = (club) => ({
 
 const getRandomClubs = (items, count = 3) =>
   [...items].sort(() => Math.random() - 0.5).slice(0, count);
+
+const getClubRankingGroups = (clubPlayers) => [
+  {
+    id: "buteurs",
+    title: "Meilleurs buteurs",
+    field: "goals",
+    suffix: "buts",
+    players: [...clubPlayers].sort(
+      (a, b) => b.goals - a.goals || a.name.localeCompare(b.name)
+    ),
+  },
+  {
+    id: "passeurs",
+    title: "Meilleurs passeurs",
+    field: "assists",
+    suffix: "passes",
+    players: [...clubPlayers].sort(
+      (a, b) => b.assists - a.assists || a.name.localeCompare(b.name)
+    ),
+  },
+  {
+    id: "ga",
+    title: "Meilleurs G/A",
+    field: "ga",
+    suffix: "G/A",
+    players: [...clubPlayers].sort(
+      (a, b) =>
+        Number(b.ga || 0) - Number(a.ga || 0) ||
+        b.goals - a.goals ||
+        a.name.localeCompare(b.name)
+    ),
+  },
+  {
+    id: "mvp",
+    title: "Meilleurs joueurs",
+    field: "motm_count",
+    suffix: "HDM",
+    players: [...clubPlayers].sort(
+      (a, b) => b.motm_count - a.motm_count || a.name.localeCompare(b.name)
+    ),
+  },
+  {
+    id: "cartons",
+    title: "Plus de cartons",
+    field: "cards",
+    suffix: "cartons",
+    players: [...clubPlayers].sort(
+      (a, b) => b.cards - a.cards || a.name.localeCompare(b.name)
+    ),
+  },
+];
 
 function Home() {
   const navigate = useNavigate();
@@ -1166,51 +1225,7 @@ function PublicClub() {
         .concat(clubSeasonStats.map((row) => String(row.season_year)).filter(Boolean))
     ),
   ].sort((a, b) => Number(b) - Number(a));
-  const rankingGroups = [
-    {
-      title: "Meilleurs buteurs",
-      field: "goals",
-      suffix: "buts",
-      players: [...clubPlayers].sort(
-        (a, b) => b.goals - a.goals || a.name.localeCompare(b.name)
-      ),
-    },
-    {
-      title: "Meilleurs passeurs",
-      field: "assists",
-      suffix: "passes",
-      players: [...clubPlayers].sort(
-        (a, b) => b.assists - a.assists || a.name.localeCompare(b.name)
-      ),
-    },
-    {
-      title: "Meilleurs G/A",
-      field: "ga",
-      suffix: "G/A",
-      players: [...clubPlayers].sort(
-        (a, b) =>
-          Number(b.ga || 0) - Number(a.ga || 0) ||
-          b.goals - a.goals ||
-          a.name.localeCompare(b.name)
-      ),
-    },
-    {
-      title: "Meilleurs joueurs",
-      field: "motm_count",
-      suffix: "HDM",
-      players: [...clubPlayers].sort(
-        (a, b) => b.motm_count - a.motm_count || a.name.localeCompare(b.name)
-      ),
-    },
-    {
-      title: "Plus de cartons",
-      field: "cards",
-      suffix: "cartons",
-      players: [...clubPlayers].sort(
-        (a, b) => b.cards - a.cards || a.name.localeCompare(b.name)
-      ),
-    },
-  ];
+  const rankingGroups = getClubRankingGroups(clubPlayers);
   const tabs = [
     { id: "classements", label: "Classements" },
     { id: "matchs", label: "Matchs" },
@@ -1354,8 +1369,16 @@ function PublicClub() {
             {clubPlayers.length > 0 ? (
               <div className="public-ranking-grid">
                 {rankingGroups.map((group) => (
-                  <div className="public-ranking-card" key={group.field}>
-                    <h3>{group.title}</h3>
+                  <div className="public-ranking-card" key={group.id}>
+                    <div className="public-ranking-card-head">
+                      <h3>{group.title}</h3>
+                      <Link
+                        className="ranking-screenshot-link"
+                        to={`/clubs/${slug}/rankings/${group.id}?season=${seasonYear}`}
+                      >
+                        Page screenshot
+                      </Link>
+                    </div>
                     <div className="ranking-list">
                       {group.players.slice(0, 2).map((player, index) => (
                         <Link
@@ -1617,6 +1640,148 @@ function PublicClub() {
   );
 }
 
+function PublicClubRanking() {
+  const { slug, rankingType } = useParams();
+  const [searchParams] = useSearchParams();
+  const seasonYear = searchParams.get("season") || "all";
+  const [club, setClub] = useState(null);
+  const [clubPlayers, setClubPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [rankingError, setRankingError] = useState("");
+
+  useEffect(() => {
+    if (!Number(slug)) {
+      setClub(null);
+      setClubPlayers([]);
+      setRankingError("Club introuvable.");
+      setLoading(false);
+      return;
+    }
+
+    const loadRanking = async () => {
+      try {
+        setLoading(true);
+        setRankingError("");
+        const res = await axios.get(`${API_URL}/api/team/public/${slug}`, {
+          params: seasonYear === "all" ? {} : { year: seasonYear },
+        });
+        const normalizedClub = normalizeClub(res.data.team);
+        setClub(normalizedClub);
+        setClubPlayers(
+          (res.data.players || []).map((player, index) =>
+            normalizePlayer(
+              {
+                ...player,
+                club: player.club || normalizedClub.name,
+                team_name: player.team_name || normalizedClub.name,
+              },
+              index
+            )
+          )
+        );
+      } catch (err) {
+        console.log(err);
+        setClub(null);
+        setClubPlayers([]);
+        setRankingError(
+          err.response?.data?.message || "Impossible de charger ce classement."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRanking();
+  }, [seasonYear, slug]);
+
+  const rankingGroups = getClubRankingGroups(clubPlayers);
+  const ranking =
+    rankingGroups.find((group) => group.id === rankingType) || rankingGroups[0];
+  const seasonLabel =
+    seasonYear === "all" ? "Toutes les saisons" : `Saison ${seasonYear}`;
+
+  if (loading) {
+    return (
+      <PublicShell>
+        <section className="home-section">
+          <p className="dashboard-message dashboard-loading-state">
+            Chargement du classement...
+          </p>
+        </section>
+      </PublicShell>
+    );
+  }
+
+  if (!club) {
+    return (
+      <PublicShell>
+        <section className="home-section">
+          <div className="dashboard-message dashboard-empty-state">
+            <p>{rankingError || "Classement introuvable."}</p>
+            <Link className="team-btn nav-link-btn" to="/clubs">
+              Retour aux clubs
+            </Link>
+          </div>
+        </section>
+      </PublicShell>
+    );
+  }
+
+  return (
+    <PublicShell>
+      <section className="ranking-share-page">
+        <div className="ranking-share-header">
+          <div>
+            <p className="home-kicker">{club.name}</p>
+            <h2>{ranking.title}</h2>
+            <div className="official-badge-row">
+              <span className="dashboard-pill">{seasonLabel}</span>
+              <span className="dashboard-pill">{clubPlayers.length} joueurs</span>
+            </div>
+          </div>
+          <Link className="team-btn nav-link-btn" to={`/clubs/${slug}`}>
+            Retour au club
+          </Link>
+        </div>
+
+        {ranking.players.length > 0 ? (
+          <div className="ranking-share-list">
+            {ranking.players.map((player, index) => (
+              <Link
+                className="ranking-share-row"
+                key={player.id}
+                to={playerLink(player)}
+              >
+                <span className="rank-number">{index + 1}</span>
+                <div className="ranking-share-player">
+                  <span className="mini-avatar">
+                    {player.profile_photo ? (
+                      <img src={getMediaUrl(player.profile_photo)} alt={player.name} />
+                    ) : (
+                      player.name.slice(0, 2)
+                    )}
+                  </span>
+                  <div>
+                    <strong>{player.name}</strong>
+                    <p>{player.position || "Poste inconnu"}</p>
+                  </div>
+                </div>
+                <strong>
+                  {Number(player[ranking.field] || 0)} {ranking.suffix}
+                </strong>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="dashboard-message dashboard-empty-state">
+            Aucun joueur public n'est encore rattache a ce club.
+          </p>
+        )}
+      </section>
+    </PublicShell>
+  );
+}
+
 function PublicShell({ children }) {
   return (
     <div className="home">
@@ -1785,12 +1950,14 @@ function NotFound() {
 
 function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/players" element={<PlayersList />} />
         <Route path="/players/:slug" element={<PublicPlayer />} />
         <Route path="/clubs" element={<ClubsList />} />
+        <Route path="/clubs/:slug/rankings/:rankingType" element={<PublicClubRanking />} />
         <Route path="/clubs/:slug" element={<PublicClub />} />
         <Route path="/confidentialite" element={<PrivacyPolicy />} />
         <Route path="/login" element={<Login />} />
@@ -1818,6 +1985,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AuthProvider>
+    </ThemeProvider>
   );
 }
 

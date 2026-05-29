@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import BrandLogo from "../components/BrandLogo";
 import DashboardBottomNav from "../components/DashboardBottomNav";
 import PlayerCard from "../components/PlayerCard";
+import SettingsPanel from "../components/SettingsPanel";
 import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
 import getMediaUrl from "../utils/mediaUrl";
@@ -59,6 +61,8 @@ function TeamDashboard() {
   const [searchResultsOpen, setSearchResultsOpen] = useState(false);
   const [rankingTab, setRankingTab] = useState("goals");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const { t } = useTranslation();
   const [seasonYear, setSeasonYear] = useState("all");
   const [loading, setLoading] = useState(true);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -859,31 +863,41 @@ function TeamDashboard() {
         <BrandLogo />
 
         <div className="dashboard-nav-links">
-          <Link to="/">Accueil</Link>
+          <Link to="/">{t("nav.home")}</Link>
           <button type="button" onClick={() => scrollToSection("classements")}>
-            Classements
+            {t("nav.stats")}
           </button>
           <button type="button" onClick={() => scrollToSection("recherche")}>
-            Recherche
+            {t("nav.search")}
           </button>
           <button type="button" onClick={() => scrollToSection("galerie")}>
-            Galerie
+            {t("nav.gallery")}
           </button>
           <button type="button" onClick={() => scrollToSection("joueurs")}>
-            Joueurs
-          </button>
-          <button type="button" onClick={() => scrollToSection("anciens")}>
-            Anciens
+            {t("nav.players")}
           </button>
           <button type="button" onClick={() => scrollToSection("matchs")}>
-            Matchs
+            {t("nav.matches")}
           </button>
           <button type="button" onClick={() => scrollToSection("compte")}>
-            Compte
+            {t("nav.account")}
           </button>
-          <button onClick={handleLogout}>Déconnexion</button>
+          <button onClick={handleLogout}>{t("nav.logout")}</button>
+          <button
+            type="button"
+            className="settings-trigger"
+            onClick={() => setShowSettings(true)}
+            aria-label={t("nav.settings")}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
         </div>
       </nav>
+
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
       <main className="dashboard-content">
         <section className="dashboard-header dashboard-hero team-dashboard-hero">
           <div className="dashboard-title-block">

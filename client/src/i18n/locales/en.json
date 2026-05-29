@@ -1,0 +1,98 @@
+{
+  "nav": {
+    "home": "Home",
+    "profile": "Profile",
+    "stats": "Stats",
+    "clubs": "Clubs",
+    "gallery": "Gallery",
+    "players": "Players",
+    "former": "Alumni",
+    "matches": "Matches",
+    "account": "Account",
+    "logout": "Log out",
+    "search": "Search",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "playerSpace": "Player space",
+    "teamSpace": "Club space",
+    "welcome": "Welcome",
+    "connected": "Connected",
+    "profileComplete": "Profile complete",
+    "freeAgent": "Free agent",
+    "inClub": "In a club"
+  },
+  "stats": {
+    "matches": "Matches",
+    "goals": "Goals",
+    "assists": "Assists",
+    "cards": "Cards",
+    "season": "Season",
+    "club": "Club",
+    "ratio": "Ratio",
+    "motm": "Man of the match",
+    "seasonStats": "Season stats"
+  },
+  "profile": {
+    "title": "Profile info",
+    "identity": "Identity",
+    "position": "Position",
+    "age": "Age",
+    "city": "City",
+    "height": "Height",
+    "foot": "Preferred foot",
+    "bio": "Bio",
+    "photo": "Change photo",
+    "uploading": "Uploading...",
+    "noClub": "No club",
+    "noProfile": "No player profile found for this account.",
+    "save": "Save",
+    "saving": "Saving...",
+    "edit": "Edit my profile",
+    "update": "Update"
+  },
+  "clubs": {
+    "title": "My clubs",
+    "join": "Request to join",
+    "joining": "Sending...",
+    "leave": "Leave my club",
+    "select": "Select a club",
+    "recruitment": "Recruitment",
+    "noClub": "No club accepted yet."
+  },
+  "invitations": {
+    "title": "Invitations",
+    "accept": "Accept",
+    "decline": "Decline",
+    "none": "No pending invitations.",
+    "pending": "Pending"
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": "Theme",
+    "language": "Language",
+    "darkGold": "Dark Gold",
+    "darkRed": "Dark Red",
+    "light": "Light"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred.",
+    "empty": "No data available.",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "remove": "Remove",
+    "send": "Send",
+    "close": "Close",
+    "back": "Back",
+    "noValue": "Not specified"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out",
+    "player": "Player",
+    "club": "Club"
+  }
+}

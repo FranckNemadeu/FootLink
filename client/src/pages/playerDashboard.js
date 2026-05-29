@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import BrandLogo from "../components/BrandLogo";
 import DashboardBottomNav from "../components/DashboardBottomNav";
+import SettingsPanel from "../components/SettingsPanel";
 import { useAuth } from "../contexts/AuthContext";
 import API_URL from "../config/api";
 import getMediaUrl from "../utils/mediaUrl";
@@ -11,12 +13,14 @@ import { fetchTeamOptions } from "../utils/fetchTeams";
 
 function PlayerDashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, token, logout } = useAuth();
+  const [showSettings, setShowSettings] = useState(false);
   const mobileNavItems = [
     {
       id: "profil",
       target: "profil",
-      label: "Profil",
+      label: t("nav.profile"),
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <circle cx="12" cy="8" r="4" />
@@ -27,7 +31,7 @@ function PlayerDashboard() {
     {
       id: "stats",
       target: "stats",
-      label: "Stats",
+      label: t("nav.stats"),
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <rect x="3" y="12" width="4" height="9" rx="1" />
@@ -39,7 +43,7 @@ function PlayerDashboard() {
     {
       id: "clubs",
       target: "clubs",
-      label: "Clubs",
+      label: t("nav.clubs"),
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M12 2L4 5v6c0 5.25 3.75 10.15 8 11.5C16.25 21.15 20 16.25 20 11V5L12 2z" />
@@ -49,7 +53,7 @@ function PlayerDashboard() {
     {
       id: "compte",
       target: "compte",
-      label: "Compte",
+      label: t("nav.account"),
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="3" />
@@ -456,34 +460,47 @@ function PlayerDashboard() {
         <BrandLogo />
 
         <div className="dashboard-nav-links">
-          <Link to="/">Accueil</Link>
+          <Link to="/">{t("nav.home")}</Link>
           <button type="button" onClick={() => scrollToSection("profil")}>
-            Profil
+            {t("nav.profile")}
           </button>
           <button type="button" onClick={() => scrollToSection("stats")}>
-            Stats
+            {t("nav.stats")}
           </button>
-          <button onClick={handleLogout}>Déconnexion</button>
+          <button onClick={handleLogout}>{t("nav.logout")}</button>
+          <button
+            type="button"
+            className="settings-trigger"
+            onClick={() => setShowSettings(true)}
+            aria-label={t("nav.settings")}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
         </div>
       </nav>
+
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
 
       <main className="dashboard-content">
         <section className="dashboard-header dashboard-hero">
           <div className="dashboard-title-block">
             <div className="dashboard-badge-row">
-              <p className="dashboard-label">Espace joueur</p>
+              <p className="dashboard-label">{t("dashboard.playerSpace")}</p>
               <span className="dashboard-pill">{playerRole}</span>
             </div>
-            <h2>Bienvenue {user.name || "joueur"}</h2>
+            <h2>{t("dashboard.welcome")} {user.name || "joueur"}</h2>
             <p>
               Garde ton profil, tes clubs et tes performances prêts à être vus.
             </p>
           </div>
 
           <div className="dashboard-hero-aside">
-            <span className="player-status">Connecté</span>
+            <span className="player-status">{t("dashboard.connected")}</span>
             <div className="dashboard-progress">
-              <span>Profil complété</span>
+              <span>{t("dashboard.profileComplete")}</span>
               <strong>{profileCompletionPercent}%</strong>
               <div>
                 <i style={{ width: `${profileCompletionPercent}%` }} />

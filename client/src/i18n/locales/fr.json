@@ -1,0 +1,98 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "profile": "Profil",
+    "stats": "Stats",
+    "clubs": "Clubs",
+    "gallery": "Galerie",
+    "players": "Joueurs",
+    "former": "Anciens",
+    "matches": "Matchs",
+    "account": "Compte",
+    "logout": "Déconnexion",
+    "search": "Recherche",
+    "settings": "Paramètres"
+  },
+  "dashboard": {
+    "playerSpace": "Espace joueur",
+    "teamSpace": "Espace club",
+    "welcome": "Bienvenue",
+    "connected": "Connecté",
+    "profileComplete": "Profil complété",
+    "freeAgent": "Libre",
+    "inClub": "En club"
+  },
+  "stats": {
+    "matches": "Matchs",
+    "goals": "Buts",
+    "assists": "Passes",
+    "cards": "Cartons",
+    "season": "Saison",
+    "club": "Club",
+    "ratio": "Ratio",
+    "motm": "Homme du match",
+    "seasonStats": "Stats par saison"
+  },
+  "profile": {
+    "title": "Infos profil",
+    "identity": "Identité",
+    "position": "Poste",
+    "age": "Âge",
+    "city": "Ville",
+    "height": "Taille",
+    "foot": "Pied fort",
+    "bio": "Bio",
+    "photo": "Changer la photo",
+    "uploading": "Téléversement...",
+    "noClub": "Sans club",
+    "noProfile": "Aucun profil joueur trouvé pour ce compte.",
+    "save": "Sauvegarder",
+    "saving": "Sauvegarde...",
+    "edit": "Modifier mon profil",
+    "update": "Mise à jour"
+  },
+  "clubs": {
+    "title": "Mes clubs",
+    "join": "Demander à rejoindre",
+    "joining": "Envoi...",
+    "leave": "Quitter mon club",
+    "select": "Sélectionne un club",
+    "recruitment": "Recrutement",
+    "noClub": "Aucun club accepté pour le moment."
+  },
+  "invitations": {
+    "title": "Invitations",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "none": "Aucune invitation en attente.",
+    "pending": "En attente"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "theme": "Thème",
+    "language": "Langue",
+    "darkGold": "Sombre Doré",
+    "darkRed": "Sombre Rouge",
+    "light": "Clair"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue.",
+    "empty": "Aucune donnée disponible.",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "remove": "Retirer",
+    "send": "Envoyer",
+    "close": "Fermer",
+    "back": "Retour",
+    "noValue": "Non renseigné"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "Inscription",
+    "logout": "Déconnexion",
+    "player": "Joueur",
+    "club": "Club"
+  }
+}
