@@ -629,7 +629,7 @@ exports.searchPlayers = (req, res) => {
   const { position, city, maxAge } = req.query;
 
   let sql = `
-    SELECT p.*, u.name, u.email
+    SELECT p.*, u.name
     FROM players p
     JOIN users u ON u.id = p.user_id
     WHERE 1=1

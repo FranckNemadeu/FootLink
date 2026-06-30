@@ -86,12 +86,6 @@ app.use("/api/player", playerRoutes);
 //app.use("/api/player", playerRoutes) → utilise les routes de joueur pour toutes les requêtes commençant par /api/player
 //Par exemple, POST /api/player va utiliser la route pour créer un profil de joueur définie dans routes/player.js
 
-const matchRoutes = require("./routes/match");
-app.use("/api/match", matchRoutes);
-//matchRoutes → les routes pour gérer les matchs et les stats
-//app.use("/api/match", matchRoutes) → utilise les routes de match pour toutes les requêtes commençant par /api/match
-//Par exemple, POST /api/match va utiliser la route pour créer un match définie dans routes/match.js
-
 const teamRoutes = require("./routes/team");
 app.use("/api/team", teamRoutes);
 

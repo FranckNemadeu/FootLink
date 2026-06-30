@@ -9,22 +9,26 @@ const connectionConfig = {
   password: process.env.DB_PASSWORD,
   database: databaseName,
   port: process.env.DB_PORT || 3306,
+  connectionLimit: 10,
 };
 
-let connection = mysql.createConnection(connectionConfig);
+// Pool plutot qu'une connexion unique partagee : avec une seule connexion,
+// deux requetes concurrentes (ex. deux suppressions de compte en meme temps)
+// pouvaient s'executer sur la meme transaction MySQL et se corrompre l'une
+// l'autre. Chaque requete prend maintenant sa propre connexion du pool.
+let pool = mysql.createPool(connectionConfig);
 
 const db = {
-  query: (...args) => connection.query(...args),
-  beginTransaction: (...args) => connection.beginTransaction(...args),
-  commit: (...args) => connection.commit(...args),
-  rollback: (...args) => connection.rollback(...args),
-  promise: () => connection.promise(),
-  end: (...args) => connection.end(...args),
+  query: (...args) => pool.query(...args),
+  getConnection: (...args) => pool.getConnection(...args),
+  promise: () => pool.promise(),
+  end: (...args) => pool.end(...args),
 };
 
 const connectToDatabase = () => {
-  connection.connect((err) => {
+  pool.getConnection((err, connection) => {
     if (!err) {
+      connection.release();
       console.log("MariaDB connectee");
       return;
     }
@@ -49,13 +53,19 @@ const connectToDatabase = () => {
         return;
       }
 
-      connection = mysql.createConnection(connectionConfig);
-      connection.connect((retryErr) => {
+      pool = mysql.createPool(connectionConfig);
+      db.query = (...args) => pool.query(...args);
+      db.getConnection = (...args) => pool.getConnection(...args);
+      db.promise = () => pool.promise();
+      db.end = (...args) => pool.end(...args);
+
+      pool.getConnection((retryErr, connection) => {
         if (retryErr) {
           console.error("Erreur DB", retryErr);
           return;
         }
 
+        connection.release();
         console.log("MariaDB connectee");
       });
     });

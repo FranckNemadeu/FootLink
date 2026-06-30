@@ -119,61 +119,72 @@ router.delete("/account", verifyToken, (req, res) => {
 
       const player = players[0];
 
-      db.beginTransaction((transactionErr) => {
-        if (transactionErr) {
+      db.getConnection((poolErr, connection) => {
+        if (poolErr) {
           return res.status(500).json({ message: "Impossible de demarrer la suppression" });
         }
 
-        const rollback = (message) => {
-          db.rollback(() => res.status(500).json({ message }));
-        };
-
-        db.query(
-          "DELETE FROM team_invitations WHERE player_id = ?",
-          [player.id],
-          (inviteErr) => {
-            if (inviteErr) return rollback("Impossible de supprimer les invitations");
-
-            db.query(
-              "DELETE FROM match_stats WHERE player_id = ?",
-              [player.id],
-              (statsErr) => {
-                if (statsErr) return rollback("Impossible de supprimer les stats");
-
-                db.query(
-                  "DELETE FROM players WHERE id = ? AND user_id = ?",
-                  [player.id, req.user.id],
-                  (deletePlayerErr) => {
-                    if (deletePlayerErr) return rollback("Impossible de supprimer le profil joueur");
-
-                    db.query(
-                      "DELETE FROM users WHERE id = ?",
-                      [req.user.id],
-                      (deleteUserErr) => {
-                        if (deleteUserErr) return rollback("Impossible de supprimer le compte");
-
-                        db.commit((commitErr) => {
-                          if (commitErr) return rollback("Impossible de finaliser la suppression");
-
-                          if (player.profile_photo && player.profile_photo.startsWith("/uploads/")) {
-                            const photoPath = path.join(
-                              __dirname,
-                              "..",
-                              player.profile_photo.replace(/^[/\\]+/, "")
-                            );
-                            fs.unlink(photoPath, () => {});
-                          }
-
-                          res.json({ message: "Compte joueur supprime" });
-                        });
-                      }
-                    );
-                  }
-                );
-              }
-            );
+        connection.beginTransaction((transactionErr) => {
+          if (transactionErr) {
+            connection.release();
+            return res.status(500).json({ message: "Impossible de demarrer la suppression" });
           }
-        );
+
+          const rollback = (message) => {
+            connection.rollback(() => {
+              connection.release();
+              res.status(500).json({ message });
+            });
+          };
+
+          connection.query(
+            "DELETE FROM team_invitations WHERE player_id = ?",
+            [player.id],
+            (inviteErr) => {
+              if (inviteErr) return rollback("Impossible de supprimer les invitations");
+
+              connection.query(
+                "DELETE FROM match_stats WHERE player_id = ?",
+                [player.id],
+                (statsErr) => {
+                  if (statsErr) return rollback("Impossible de supprimer les stats");
+
+                  connection.query(
+                    "DELETE FROM players WHERE id = ? AND user_id = ?",
+                    [player.id, req.user.id],
+                    (deletePlayerErr) => {
+                      if (deletePlayerErr) return rollback("Impossible de supprimer le profil joueur");
+
+                      connection.query(
+                        "DELETE FROM users WHERE id = ?",
+                        [req.user.id],
+                        (deleteUserErr) => {
+                          if (deleteUserErr) return rollback("Impossible de supprimer le compte");
+
+                          connection.commit((commitErr) => {
+                            if (commitErr) return rollback("Impossible de finaliser la suppression");
+                            connection.release();
+
+                            if (player.profile_photo && player.profile_photo.startsWith("/uploads/")) {
+                              const photoPath = path.join(
+                                __dirname,
+                                "..",
+                                player.profile_photo.replace(/^[/\\]+/, "")
+                              );
+                              fs.unlink(photoPath, () => {});
+                            }
+
+                            res.json({ message: "Compte joueur supprime" });
+                          });
+                        }
+                      );
+                    }
+                  );
+                }
+              );
+            }
+          );
+        });
       });
     });
   });

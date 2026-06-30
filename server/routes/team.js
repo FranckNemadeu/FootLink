@@ -2029,47 +2029,57 @@ router.delete("/account", verifyToken, (req, res) => {
           return sendDbError(res, galleryTableErr, "Impossible de preparer la galerie");
         }
 
-      db.beginTransaction((transactionErr) => {
+      db.getConnection((poolErr, connection) => {
+        if (poolErr) {
+          return sendDbError(res, poolErr, "Impossible de demarrer la suppression");
+        }
+
+      connection.beginTransaction((transactionErr) => {
         if (transactionErr) {
+          connection.release();
           return sendDbError(res, transactionErr, "Impossible de demarrer la suppression");
         }
 
         const rollback = (message) => {
-          db.rollback(() => res.status(500).json({ message }));
+          connection.rollback(() => {
+            connection.release();
+            res.status(500).json({ message });
+          });
         };
 
-        db.query("DELETE FROM player_team_memberships WHERE team_id = ?", [team.id], (membershipErr) => {
+        connection.query("DELETE FROM player_team_memberships WHERE team_id = ?", [team.id], (membershipErr) => {
           if (membershipErr) return rollback("Impossible de supprimer les appartenances");
 
-        db.query("DELETE FROM team_gallery WHERE team_id = ?", [team.id], (galleryErr) => {
+        connection.query("DELETE FROM team_gallery WHERE team_id = ?", [team.id], (galleryErr) => {
           if (galleryErr) return rollback("Impossible de supprimer la galerie");
 
-        db.query("DELETE FROM team_invitations WHERE team_id = ?", [team.id], (inviteErr) => {
+        connection.query("DELETE FROM team_invitations WHERE team_id = ?", [team.id], (inviteErr) => {
           if (inviteErr) return rollback("Impossible de supprimer les invitations");
 
-          db.query(
+          connection.query(
             "DELETE FROM match_stats WHERE match_id IN (SELECT id FROM matches WHERE team_id = ?)",
             [team.id],
             (statsErr) => {
               if (statsErr) return rollback("Impossible de supprimer les stats des matchs");
 
-              db.query("DELETE FROM matches WHERE team_id = ?", [team.id], (matchesErr) => {
+              connection.query("DELETE FROM matches WHERE team_id = ?", [team.id], (matchesErr) => {
                 if (matchesErr) return rollback("Impossible de supprimer les matchs");
 
-                db.query(
+                connection.query(
                   "UPDATE players SET team_name = NULL, no_team = 1 WHERE LOWER(team_name) = LOWER(?)",
                   [team.team_name],
                   (playersErr) => {
                     if (playersErr) return rollback("Impossible de detacher les joueurs");
 
-                    db.query("DELETE FROM teams WHERE id = ? AND user_id = ?", [team.id, req.user.id], (teamDeleteErr) => {
+                    connection.query("DELETE FROM teams WHERE id = ? AND user_id = ?", [team.id, req.user.id], (teamDeleteErr) => {
                       if (teamDeleteErr) return rollback("Impossible de supprimer le club");
 
-                      db.query("DELETE FROM users WHERE id = ?", [req.user.id], (userDeleteErr) => {
+                      connection.query("DELETE FROM users WHERE id = ?", [req.user.id], (userDeleteErr) => {
                         if (userDeleteErr) return rollback("Impossible de supprimer le compte");
 
-                        db.commit((commitErr) => {
+                        connection.commit((commitErr) => {
                           if (commitErr) return rollback("Impossible de finaliser la suppression");
+                          connection.release();
 
                           if (team.logo_photo && team.logo_photo.startsWith("/uploads/")) {
                             const logoPath = path.join(
@@ -2092,6 +2102,7 @@ router.delete("/account", verifyToken, (req, res) => {
         });
         });
         });
+      });
       });
       });
     });

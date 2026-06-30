@@ -1,11 +1,31 @@
 const express = require("express");
 const router = express.Router();
+const rateLimit = require("express-rate-limit");
 const db = require("../db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { ensureCoreTables } = require("../dbSchema");
 const { isEmailConfigured, sendEmail } = require("../config/email");
+
+// Bruteforce/spam : login plus permissif (mot de passe oublie possible),
+// le reste plus strict car ce sont des actions qui declenchent un email ou
+// creent un compte.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Trop de tentatives de connexion. Reessaie dans quelques minutes." },
+});
+
+const accountActionLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Trop de tentatives. Reessaie dans quelques minutes." },
+});
 
 const sendDbError = (res, err, fallbackMessage) => {
   console.log(err);
@@ -326,7 +346,7 @@ const createUser = async (
 };
 
 // REGISTER PLAYER
-router.post("/register/player", (req, res) => {
+router.post("/register/player", accountActionLimiter, (req, res) => {
   const {
     name: rawName,
     email: rawEmail,
@@ -557,7 +577,7 @@ router.post("/register/player", (req, res) => {
 });
 
 // REGISTER TEAM
-router.post("/register/team", (req, res) => {
+router.post("/register/team", accountActionLimiter, (req, res) => {
   const {
     name: rawName,
     email: rawEmail,
@@ -710,7 +730,7 @@ router.post("/register/team", (req, res) => {
 });
 
 // LOGIN
-router.post("/login", (req, res) => {
+router.post("/login", loginLimiter, (req, res) => {
   const { email: rawEmail, password } = req.body;
   const email = normalizeEmail(rawEmail);
   const sql = "SELECT * FROM users WHERE email = ?";
@@ -833,7 +853,7 @@ router.post("/verify-email", (req, res) => {
     );
 });
 
-router.post("/resend-verification", (req, res) => {
+router.post("/resend-verification", accountActionLimiter, (req, res) => {
   const email = normalizeEmail(req.body.email);
   const neutralMessage =
     "Si ce compte doit etre verifie, un nouvel email vient d'etre envoye.";
@@ -893,7 +913,7 @@ router.post("/resend-verification", (req, res) => {
     );
 });
 
-router.post("/forgot-password", (req, res) => {
+router.post("/forgot-password", accountActionLimiter, (req, res) => {
   const email = normalizeEmail(req.body.email);
   const neutralMessage =
     "Si un compte existe avec cet email, un lien de reinitialisation vient d'etre envoye.";
