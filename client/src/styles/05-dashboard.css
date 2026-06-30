@@ -1,0 +1,929 @@
+/* Dashboard premium cockpit */
+.dashboard-page {
+  min-height: 100vh;
+}
+
+.dashboard-content {
+  display: grid;
+  gap: 18px;
+}
+
+.dashboard-hero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: end;
+  margin-bottom: 4px;
+  isolation: isolate;
+}
+
+.dashboard-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 88% 20%, rgba(var(--accent-rgb), 0.26), transparent 28%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.16), rgba(255, 255, 255, 0.035) 46%, transparent);
+}
+
+.dashboard-title-block {
+  min-width: 0;
+}
+
+.dashboard-title-block h2 {
+  margin-top: 6px;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 0.98;
+}
+
+.dashboard-title-block p {
+  max-width: 660px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.dashboard-badge-row,
+.panel-heading,
+.dashboard-hero-aside,
+.dashboard-hero-metrics,
+.dashboard-mini-stats {
+  display: flex;
+  align-items: center;
+}
+
+.dashboard-badge-row {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dashboard-badge-row .dashboard-label {
+  margin-bottom: 0;
+}
+
+.dashboard-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 6px 11px;
+  border: 1px solid rgba(var(--accent-rgb), 0.34);
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.13);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dashboard-hero-aside {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  min-width: 250px;
+}
+
+.dashboard-progress {
+  min-width: 230px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.dashboard-progress span,
+.dashboard-hero-metrics span,
+.dashboard-mini-stats span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dashboard-progress strong {
+  display: block;
+  margin: 6px 0 10px;
+  color: #ffffff;
+  font-size: 26px;
+}
+
+.dashboard-progress div {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.dashboard-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ffffff, var(--accent));
+  box-shadow: 0 0 24px rgba(var(--accent-rgb), 0.48);
+}
+
+.team-dashboard-hero {
+  align-items: stretch;
+}
+
+.dashboard-hero-metrics {
+  gap: 10px;
+  align-self: stretch;
+}
+
+.dashboard-hero-metrics div,
+.dashboard-mini-stats span {
+  min-width: 120px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-hero-metrics strong,
+.dashboard-mini-stats strong {
+  display: block;
+  margin-top: 8px;
+  color: #ffffff;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 0.95;
+}
+
+.panel-heading {
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.panel-heading .dashboard-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.panel-heading h3,
+.panel-heading h4 {
+  margin: 0;
+  color: #ffffff;
+  line-height: 1.05;
+}
+
+.compact-heading {
+  margin-bottom: 12px;
+}
+
+.compact-heading h3,
+.compact-heading h4 {
+  font-size: 20px;
+}
+
+.dashboard-profile-card {
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.12), rgba(255, 255, 255, 0.045)),
+    rgba(255, 255, 255, 0.045);
+}
+
+.dashboard-profile-card .profile-photo {
+  width: 108px;
+  height: 108px;
+}
+
+.dashboard-profile-card .profile-identity {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-info {
+  align-items: stretch;
+}
+
+.profile-info p,
+.club-change-section,
+.profile-edit-form,
+.invitations-panel,
+.danger-zone {
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-info p::before,
+.stat-card-modern::before,
+.dashboard-empty-state::before,
+.dashboard-loading-state::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent), transparent);
+  opacity: 0.8;
+}
+
+.profile-info p {
+  position: relative;
+  min-height: 82px;
+}
+
+.profile-info p:not(.profile-bio) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.profile-bio {
+  line-height: 1.55;
+}
+
+.stat-card-modern,
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card-modern span,
+.stat-card span {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.stat-card-modern strong,
+.stat-card strong {
+  font-size: clamp(34px, 5vw, 54px);
+  line-height: 0.96;
+}
+
+.invitations-panel {
+  margin-top: 22px;
+}
+
+.dashboard-mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.dashboard-mini-stats span {
+  min-width: 0;
+}
+
+.dashboard-empty-state,
+.dashboard-loading-state {
+  position: relative;
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  color: #dfe4ea;
+}
+
+.dashboard-empty-state {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(var(--accent-rgb), 0.035)),
+    rgba(255, 255, 255, 0.04);
+}
+
+.dashboard-loading-state {
+  overflow: hidden;
+}
+
+.dashboard-loading-state::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: footlink-loading-sheen 1.3s infinite;
+}
+
+@keyframes footlink-loading-sheen {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.team-player-list,
+.ranking-list,
+.public-match-list {
+  gap: 12px;
+}
+
+.team-player-card,
+.ranking-row,
+.public-ranking-row {
+  align-items: center;
+  min-height: 82px;
+  padding: 14px;
+}
+
+.team-player-card p,
+.ranking-row p,
+.public-ranking-row p {
+  line-height: 1.35;
+}
+
+.player-card-main {
+  min-width: 0;
+}
+
+.player-card-main > div:last-child,
+.team-player-card > div:first-child {
+  min-width: 0;
+}
+
+.team-player-card h4,
+.player-card-main h4 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.member-actions,
+.invitation-actions {
+  flex-shrink: 0;
+}
+
+.member-actions select {
+  min-width: 150px;
+}
+
+.season-filter {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.team-search-form,
+.team-stats-form,
+.club-selection,
+.gallery-upload-panel {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.team-stats-form + .panel-heading {
+  margin-top: 24px;
+}
+
+.match-stats-editor {
+  margin-top: 16px;
+}
+
+.match-stats-list {
+  display: grid;
+  gap: 10px;
+}
+
+.match-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.match-stat-row strong {
+  color: var(--text);
+}
+
+.match-stat-row p {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.match-stat-row button {
+  min-height: 40px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.match-stat-row button:hover {
+  border-color: rgba(var(--accent-rgb), 0.48);
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
+.dashboard-page,
+.dashboard-content,
+.profile-panel,
+.stats-panel,
+.team-player-list,
+.team-player-card,
+.team-search-form,
+.team-stats-form,
+.match-stat-row {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.team-player-card {
+  overflow: hidden;
+}
+
+.team-player-card p,
+.match-stat-row p,
+.player-card-main h4 {
+  overflow-wrap: anywhere;
+}
+
+.member-actions,
+.invitation-actions,
+.panel-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.panel-inline-actions {
+  margin: 10px 0;
+}
+
+.collapsible-results,
+.compact-roster-list .ranking-more {
+  max-width: 100%;
+}
+
+.compact-scroll-list {
+  max-height: min(56vh, 520px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.team-search-form,
+.team-stats-form {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.season-stats-card {
+  overflow: hidden;
+}
+
+.season-stats-table {
+  display: grid;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.season-stats-row {
+  display: grid;
+  grid-template-columns: minmax(70px, 0.7fr) minmax(130px, 1.4fr) repeat(5, minmax(62px, 0.6fr));
+  align-items: center;
+  gap: 8px;
+  min-width: 680px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--text);
+}
+
+.season-stats-head {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.season-stats-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.club-gallery-item {
+  overflow: hidden;
+}
+
+.club-gallery-item img {
+  transition: transform 0.3s, filter 0.3s;
+}
+
+.club-gallery-item:hover img {
+  transform: scale(1.035);
+  filter: saturate(1.1);
+}
+
+.danger-zone {
+  border-color: rgba(255, 77, 100, 0.34);
+  background:
+    linear-gradient(135deg, rgba(255, 77, 100, 0.11), rgba(255, 255, 255, 0.035)),
+    rgba(20, 10, 14, 0.84);
+}
+
+.danger-zone h3 {
+  color: #ffffff;
+}
+
+.danger-zone p {
+  color: #d0a9b0;
+}
+
+@media (max-width: 1080px) {
+  .dashboard-hero,
+  .team-dashboard-hero {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .dashboard-hero-aside {
+    min-width: 0;
+  }
+
+  .dashboard-hero-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboard-hero-metrics div {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 800px) {
+  .dashboard-title-block h2 {
+    font-size: clamp(34px, 12vw, 46px);
+  }
+
+  .dashboard-hero-metrics,
+  .dashboard-mini-stats,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-heading,
+  .dashboard-badge-row {
+    align-items: flex-start;
+  }
+
+  .panel-heading {
+    flex-direction: column;
+  }
+
+  .dashboard-profile-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .club-selection,
+  .gallery-upload-panel,
+  .team-search-form,
+  .team-stats-form {
+    grid-template-columns: 1fr;
+  }
+
+  .team-player-card,
+  .ranking-row,
+  .public-ranking-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .member-actions,
+  .invitation-actions {
+    width: 100%;
+  }
+
+  .member-actions select,
+  .member-actions button,
+  .invitation-actions button,
+  .team-player-card > button {
+    width: 100%;
+  }
+}
+
+/* Contrast guardrails: keep every form control readable */
+.login-form input,
+.login-form select,
+.login-form textarea,
+.gallery-upload-panel input,
+.club-selection select,
+.profile-edit-form input,
+.profile-edit-form select,
+.profile-edit-form textarea,
+.team-search-form input,
+.team-stats-form input,
+.team-stats-form select,
+.team-stats-form textarea,
+.member-actions select,
+.season-filter select,
+.danger-zone input,
+.danger-zone textarea {
+  background: #171310;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  caret-color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+}
+
+.login-form input:focus,
+.login-form select:focus,
+.login-form textarea:focus,
+.gallery-upload-panel input:focus,
+.club-selection select:focus,
+.profile-edit-form input:focus,
+.profile-edit-form select:focus,
+.profile-edit-form textarea:focus,
+.team-search-form input:focus,
+.team-stats-form input:focus,
+.team-stats-form select:focus,
+.team-stats-form textarea:focus,
+.member-actions select:focus,
+.season-filter select:focus,
+.danger-zone input:focus,
+.danger-zone textarea:focus {
+  background: #1d1810;
+  border-color: rgba(var(--accent-rgb), 0.68);
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.16);
+}
+
+.login-form input::placeholder,
+.login-form textarea::placeholder,
+.gallery-upload-panel input::placeholder,
+.team-search-form input::placeholder,
+.team-stats-form input::placeholder,
+.profile-edit-form input::placeholder,
+.profile-edit-form textarea::placeholder,
+.danger-zone input::placeholder,
+.danger-zone textarea::placeholder {
+  color: rgba(226, 232, 240, 0.68);
+  opacity: 1;
+  -webkit-text-fill-color: rgba(226, 232, 240, 0.68);
+}
+
+.danger-zone {
+  border-color: rgba(255, 77, 100, 0.42);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.16), rgba(255, 255, 255, 0.035)),
+    #13070c;
+  color: #ffffff;
+}
+
+.danger-zone h3,
+.danger-zone label,
+.danger-zone strong {
+  color: #ffffff;
+}
+
+.danger-zone p,
+.danger-zone span {
+  color: #f1c5cc;
+}
+
+.danger-zone .danger-btn,
+.danger-zone button {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+}
+
+/* Page-fit guardrails and season stats import */
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.home {
+  overflow-x: hidden;
+}
+
+.home main {
+  width: min(1240px, calc(100vw - 40px));
+  max-width: 1240px;
+}
+
+.landing-hero {
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+}
+
+.home-hero-copy,
+.hero-visual,
+.hero-score-card,
+.hero-scout-card,
+.home-section,
+.player-poster,
+.scorer-row,
+.experience-card,
+.step-card,
+.audience-card,
+.home-stat-tile {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.home-hero-copy h1,
+.home-hero-copy p,
+.section-heading h2 {
+  overflow-wrap: anywhere;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10, 8, 5, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.modal-dialog {
+  width: min(980px, calc(100vw - 32px));
+  max-height: min(86vh, 780px);
+  overflow: auto;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.1), rgba(255, 255, 255, 0.045)),
+    #171310;
+  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.58);
+}
+
+.modal-heading,
+.modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-heading {
+  margin-bottom: 18px;
+}
+
+.modal-close-btn {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+}
+
+.season-import-year {
+  display: grid;
+  gap: 8px;
+  max-width: 220px;
+  margin-bottom: 16px;
+}
+
+.season-import-grid {
+  display: grid;
+  gap: 8px;
+  max-height: min(54vh, 480px);
+  overflow: auto;
+  padding-bottom: 4px;
+}
+
+.season-import-row {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.4fr) repeat(6, minmax(72px, 0.5fr));
+  align-items: center;
+  gap: 8px;
+  min-width: 720px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.season-import-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #1e1a12;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.season-import-player {
+  min-width: 0;
+}
+
+.season-import-player strong,
+.season-import-player span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.season-import-player span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.season-import-row input,
+.season-import-year input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: #171310;
+  color: #ffffff;
+  font: inherit;
+  outline: none;
+  padding: 10px;
+}
+
+.season-import-row input:focus,
+.season-import-year input:focus {
+  border-color: rgba(var(--accent-rgb), 0.68);
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.16);
+}
+
+.modal-actions {
+  justify-content: flex-end;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1080px) {
+  .landing-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .home main {
+    width: min(100vw - 28px, 1240px);
+  }
+
+  .hero-visual {
+    min-height: 460px;
+  }
+
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-dialog {
+    width: calc(100vw - 24px);
+    max-height: 88vh;
+  }
+
+  .modal-heading,
+  .modal-actions {
+    align-items: stretch;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+}
+
+button:disabled,
+.login-form button:disabled,
+.profile-edit-form button:disabled,
+.team-search-form button:disabled,
+.team-stats-form button:disabled,
+.club-selection button:disabled,
+.danger-zone .danger-btn:disabled,
+.danger-zone button:disabled {
+  opacity: 0.72;
+  color: rgba(255, 255, 255, 0.86);
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.86);
+}
+
+select option {
+  background: #171310;
+  color: #ffffff;
+}
+
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #ffffff;
+  box-shadow: 0 0 0 1000px #171310 inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+

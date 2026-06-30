@@ -1171,9 +1171,11 @@ function TeamDashboard() {
                       </div>
 
                       {importRowsLoading ? (
-                        <p className="dashboard-message dashboard-loading-state">
-                          Chargement des stats de {importYear}...
-                        </p>
+                        <div className="season-import-skeleton">
+                          {[0, 1, 2, 3].map((i) => (
+                            <div className="sk-block sk-line-row" key={i} />
+                          ))}
+                        </div>
                       ) : importRows.length > 0 ? (
                         importRows.map((row) => (
                           <div className="season-import-row" key={row.player_id}>

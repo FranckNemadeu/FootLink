@@ -1,0 +1,727 @@
+/* ─── Settings Panel ─── */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+}
+
+@media (min-width: 480px) {
+  .settings-overlay {
+    align-items: center;
+  }
+}
+
+.settings-panel {
+  width: min(460px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card-bg);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px);
+  padding: 24px;
+  display: grid;
+  gap: 24px;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-header h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.settings-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.settings-close:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.settings-section {
+  display: grid;
+  gap: 12px;
+}
+
+.settings-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.settings-themes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.theme-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.theme-card:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.theme-card.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.theme-preview {
+  width: 48px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-accent-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.theme-name {
+  text-align: center;
+  line-height: 1.2;
+}
+
+.theme-check {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.settings-langs {
+  display: flex;
+  gap: 10px;
+}
+
+.lang-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.lang-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.lang-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.settings-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+
+.settings-trigger:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* ═══════════════════════════════════════════════════════
+   ✦  PREMIUM VISUAL LAYER — WOW Edition
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  --font-display: 'Bebas Neue', 'Barlow Condensed', Impact, sans-serif;
+  --glow: 0 0 24px rgba(var(--accent-rgb), 0.45);
+  --glow-sm: 0 0 12px rgba(var(--accent-rgb), 0.3);
+  --shadow-deep: 0 1px 0 rgba(255,255,255,0.07) inset, 0 -1px 0 rgba(0,0,0,0.55) inset, 0 8px 28px rgba(0,0,0,0.42), 0 36px 80px rgba(0,0,0,0.42);
+}
+
+/* ── Grain cinématique ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 300px 300px;
+  opacity: 0.038;
+  mix-blend-mode: overlay;
+}
+
+/* ── Gradient text sur titres hero & dashboard ── */
+.dashboard-title-block h2,
+.home-hero-copy h1 {
+  background: linear-gradient(135deg, #ffffff 0%, rgba(var(--accent-rgb), 0.45) 55%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.section-heading h2,
+.stats-command-card h2,
+.scouting-card h2 {
+  background: linear-gradient(135deg, #ffffff 30%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Stat numbers — Bebas + gradient ── */
+.stat-card strong,
+.stat-card-modern strong {
+  font-family: var(--font-display);
+  font-size: clamp(46px, 7vw, 68px);
+  letter-spacing: 0.01em;
+  line-height: 0.88;
+  background: linear-gradient(150deg, #ffffff 20%, rgba(var(--accent-rgb), 0.7) 70%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dashboard-hero-metrics strong,
+.dashboard-mini-stats strong {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  background: linear-gradient(150deg, #ffffff 30%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dashboard-progress strong {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #ffffff, var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Premium deep shadows sur cards ── */
+.login-form,
+.profile-panel,
+.stats-panel,
+.club-card,
+.team-player-card,
+.home-stat-tile,
+.experience-card,
+.step-card,
+.stats-command-card,
+.scouting-card,
+.public-bio-card,
+.public-ranking-card {
+  box-shadow: var(--shadow-deep);
+}
+
+.club-card:hover,
+.team-player-card:hover,
+.stat-card:hover,
+.home-stat-tile:hover,
+.experience-card:hover,
+.step-card:hover,
+.audience-card:hover,
+.public-ranking-card:hover,
+.public-match-row:hover {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.1) inset,
+    0 -1px 0 rgba(0,0,0,0.6) inset,
+    0 12px 40px rgba(0,0,0,0.55),
+    0 48px 100px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(var(--accent-rgb),0.35);
+}
+
+/* ── Shimmer animé sur boutons CTA ── */
+.player-btn,
+.register-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.player-btn::after,
+.register-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+  transform: skewX(-18deg);
+  animation: ft-btn-shimmer 3.5s infinite;
+}
+
+@keyframes ft-btn-shimmer {
+  0%   { left: -150%; }
+  60%, 100% { left: 210%; }
+}
+
+/* ── Glow sur boutons principaux ── */
+.player-btn,
+.register-btn {
+  box-shadow: 0 6px 28px rgba(var(--accent-rgb),0.35), 0 2px 8px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.12) inset;
+}
+
+.player-btn:hover,
+.register-btn:hover {
+  box-shadow: 0 10px 40px rgba(var(--accent-rgb),0.5), 0 4px 16px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.15) inset;
+}
+
+/* ── Anneau photo premium ── */
+.profile-photo,
+.mini-avatar,
+.public-avatar,
+.club-badge,
+.public-club-badge {
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 3px rgba(var(--accent-rgb),0.6),
+    0 0 20px rgba(var(--accent-rgb),0.25),
+    0 4px 20px rgba(0,0,0,0.5);
+}
+
+/* ── Dashboard label — dot lumineux ── */
+.dashboard-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.dashboard-label::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb),0.2), 0 0 10px rgba(var(--accent-rgb),0.7);
+  flex-shrink: 0;
+  animation: ft-dot-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes ft-dot-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 2px rgba(var(--accent-rgb),0.2), 0 0 10px rgba(var(--accent-rgb),0.7); }
+  50%       { opacity: 0.7; box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.1), 0 0 18px rgba(var(--accent-rgb),0.4); }
+}
+
+/* ── Rank number premium ── */
+.rank-number {
+  font-family: var(--font-display);
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 16px rgba(var(--accent-rgb),0.4), 0 1px 0 rgba(255,255,255,0.12) inset;
+}
+
+/* ── Player status badge glow ── */
+.player-status {
+  box-shadow: 0 4px 20px rgba(var(--accent-rgb),0.4), 0 1px 0 rgba(255,255,255,0.12) inset;
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.06em;
+}
+
+/* ── Dashboard pill glow ── */
+.dashboard-pill {
+  box-shadow: 0 4px 16px rgba(var(--accent-rgb),0.25);
+}
+
+/* ── Spotlight dans le header dashboard ── */
+.dashboard-header::after {
+  content: '';
+  position: absolute;
+  top: -60%;
+  right: -5%;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(var(--accent-rgb),0.13), transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+}
+
+/* ── Progress bar glow ── */
+.dashboard-progress i {
+  box-shadow: 0 0 18px rgba(var(--accent-rgb),0.6), 0 0 6px rgba(255,255,255,0.3);
+}
+
+/* ── Section stats command card numbers ── */
+.command-metrics strong {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #ffffff, var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Club-card stats numbers ── */
+.club-card-stats strong,
+.club-card strong {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+/* ── Season stats head ── */
+.season-stats-head {
+  background: linear-gradient(90deg, rgba(var(--accent-rgb),0.12), rgba(var(--accent-rgb),0.04) 70%, transparent);
+  border-color: rgba(var(--accent-rgb),0.28) !important;
+}
+
+/* ── Input focus premium ── */
+.profile-edit-form input:focus,
+.profile-edit-form select:focus,
+.profile-edit-form textarea:focus,
+.login-form input:focus,
+.login-form select:focus,
+.team-search-form input:focus,
+.team-stats-form input:focus,
+.team-stats-form select:focus,
+.club-selection select:focus {
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.22), 0 0 22px rgba(var(--accent-rgb),0.1) !important;
+}
+
+/* ── Bottom nav premium ── */
+.dashboard-bottom-nav {
+  backdrop-filter: blur(28px) saturate(160%);
+}
+
+.dashboard-bottom-nav button.active span,
+.dashboard-bottom-nav button:hover span {
+  box-shadow: var(--glow-sm);
+}
+
+/* ── Scrollbar gold ── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--accent-rgb),0.35);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--accent-rgb),0.65);
+}
+
+/* ── Invitation accept button glow ── */
+.invitation-actions button:first-child {
+  box-shadow: 0 4px 18px rgba(var(--accent-rgb),0.28);
+}
+
+/* ── Score card / scout card numbers ── */
+.hero-score-card b,
+.hero-mini-stats strong {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+/* ── Club directory stats ── */
+.club-directory-stats strong {
+  font-family: var(--font-display);
+  font-size: 36px;
+  background: linear-gradient(135deg, #ffffff, var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Scouting row number ── */
+.scouting-row b {
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Home stat tile big number ── */
+.home-stat-tile strong {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 52px);
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #ffffff, var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Glassmorphism upgrade ── */
+.modal-dialog {
+  backdrop-filter: blur(28px) saturate(160%);
+  box-shadow: 0 40px 120px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.06) inset;
+}
+
+/* ── Navbar blur premium ── */
+.navbar,
+.dashboard-navbar {
+  backdrop-filter: blur(24px) saturate(180%);
+}
+
+/* ── Transition globale plus fluide ── */
+*,
+*::before,
+*::after {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Light theme: désactiver gradient text (illisible sur fond clair) */
+:root[data-theme="light"] .dashboard-title-block h2,
+:root[data-theme="light"] .home-hero-copy h1,
+:root[data-theme="light"] .section-heading h2,
+:root[data-theme="light"] .stat-card strong,
+:root[data-theme="light"] .stat-card-modern strong,
+:root[data-theme="light"] .dashboard-hero-metrics strong,
+:root[data-theme="light"] .dashboard-mini-stats strong,
+:root[data-theme="light"] .dashboard-progress strong,
+:root[data-theme="light"] .home-stat-tile strong,
+:root[data-theme="light"] .club-directory-stats strong,
+:root[data-theme="light"] .command-metrics strong {
+  background: none;
+  -webkit-text-fill-color: var(--text);
+  color: var(--text);
+}
+
+.public-ranking-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.public-ranking-card-head h3 {
+  margin-bottom: 0;
+}
+
+.ranking-screenshot-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.34);
+  border-radius: 8px;
+  background: rgba(var(--accent-rgb), 0.13);
+  color: #fff7cf;
+  font-size: 12px;
+  font-weight: 900;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ranking-screenshot-link:hover {
+  border-color: rgba(240, 208, 96, 0.72);
+  background: rgba(var(--accent-rgb), 0.22);
+}
+
+.ranking-share-page {
+  width: min(1040px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: clamp(28px, 5vw, 56px) 0;
+}
+
+.ranking-share-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid rgba(var(--accent-rgb), 0.28);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(22, 17, 12, 0.94), rgba(10, 12, 11, 0.94));
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.34);
+}
+
+.ranking-share-header h2 {
+  margin: 4px 0 14px;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 5vw, 56px);
+  line-height: 0.98;
+}
+
+.ranking-share-list {
+  display: grid;
+  gap: 10px;
+}
+
+.ranking-share-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 8px;
+  background: rgba(12, 13, 12, 0.88);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.ranking-share-row:hover {
+  border-color: rgba(240, 208, 96, 0.56);
+  transform: translateY(-1px);
+}
+
+.ranking-share-row > strong {
+  color: var(--accent);
+  font-size: clamp(18px, 3vw, 28px);
+  white-space: nowrap;
+}
+
+.ranking-share-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ranking-share-player div {
+  min-width: 0;
+}
+
+.ranking-share-player strong {
+  display: block;
+  overflow: hidden;
+  color: #ffffff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking-share-player p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .public-ranking-card-head,
+  .ranking-share-header {
+    flex-direction: column;
+  }
+
+  .ranking-share-row {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .ranking-share-row > strong {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-hero-copy h2 {
+    font-size: 30px;
+  }
+
+  .public-detail h2,
+  .not-found h2 {
+    font-size: 28px;
+  }
+
+  .public-club-badge {
+    width: 110px;
+    height: 110px;
+    font-size: 26px;
+  }
+
+  .dashboard-header h2 {
+    font-size: 24px;
+  }
+
+  .public-club-tabs,
+  .ranking-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .club-card-stats,
+  .club-card-leaders {
+    grid-template-columns: 1fr;
+  }
+
+  .poster-player-art span {
+    font-size: 64px;
+  }
+
+  .public-copy-panel {
+    padding: 18px;
+  }
+}

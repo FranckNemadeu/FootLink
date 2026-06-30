@@ -1,0 +1,731 @@
+/* Theme rouge et blanc */
+body {
+  background: #050706;
+  color: #f4fff8;
+}
+
+.home,
+.dashboard-page,
+.login-page {
+  position: relative;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(var(--accent-rgb), 0.24), transparent 28%),
+    radial-gradient(circle at 92% 10%, rgba(217, 4, 41, 0.22), transparent 26%),
+    linear-gradient(180deg, #07100b 0%, #050706 52%, #0c120f 100%);
+  color: #f4fff8;
+}
+
+.home::before,
+.dashboard-page::before,
+.login-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(105deg, transparent 0 22%, rgba(var(--accent-rgb), 0.14) 30%, transparent 42%),
+    linear-gradient(255deg, transparent 0 18%, rgba(255, 255, 255, 0.12) 30%, transparent 46%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.035) 0,
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px,
+      transparent 86px
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(23, 58, 35, 0.12));
+  mix-blend-mode: screen;
+}
+
+.home::after,
+.dashboard-page::after,
+.login-page::after {
+  content: "";
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 0;
+  height: 44vh;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 0 12%, rgba(var(--accent-rgb), 0.32) 12% 12.35%, transparent 12.35% 87.65%, rgba(var(--accent-rgb), 0.32) 87.65% 88%, transparent 88%),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 100%),
+    linear-gradient(180deg, transparent 0%, rgba(13, 95, 55, 0.3) 100%);
+  opacity: 0.38;
+}
+
+.home > *,
+.dashboard-page > *,
+.login-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.navbar,
+.dashboard-navbar {
+  background: rgba(5, 7, 6, 0.86);
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+}
+
+.navbar h1,
+.brand-link,
+.dashboard-navbar h1,
+.home-kicker,
+.dashboard-label,
+.profile-panel h3,
+.stats-panel h3,
+.login-form h2 {
+  color: #29ff7a;
+}
+
+.brand-link:hover .brand-logo-image {
+  transform: translateY(-1px);
+  filter: drop-shadow(0 8px 14px rgba(217, 4, 41, 0.18));
+}
+
+.home-hero-copy h2,
+.section-heading h2,
+.dashboard-header h2,
+.public-detail h2,
+.team-player-card h4,
+.club-card h3,
+.scorer-row h3,
+.profile-identity h4 {
+  color: #f4fff8;
+}
+
+.home-hero-copy > p:not(.home-kicker),
+.public-detail p,
+.scorer-row p,
+.club-card p,
+.team-player-card p,
+.profile-info span,
+.stat-card span,
+.profile-identity p,
+.checkbox-row,
+.dashboard-message {
+  color: #a7b9ae;
+}
+
+.login-btn,
+.nav-link-btn,
+.dashboard-nav-links button,
+.dashboard-nav-links a {
+  border: 1px solid rgba(var(--accent-rgb), 0.32);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f4fff8;
+}
+
+.login-btn:hover,
+.nav-link-btn:hover {
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
+.register-btn,
+.player-btn,
+.team-btn,
+.login-form button,
+.photo-upload-btn,
+.club-selection button,
+.profile-edit-form button,
+.team-player-card button,
+.team-stats-form button,
+.team-search-form button,
+.dashboard-nav-links button:last-child {
+  background: #29ff7a;
+  border: 1px solid #29ff7a;
+  color: #07100b;
+  box-shadow: 0 10px 24px rgba(var(--accent-rgb), 0.2);
+}
+
+.member-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.member-actions select {
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--text);
+  font: inherit;
+}
+
+.gallery-upload-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.dashboard-gallery-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.season-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.season-filter label {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.season-filter select {
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--text);
+  font: inherit;
+}
+
+.danger-btn,
+.invitation-actions button:last-child {
+  background: #7f1020;
+  border-color: #7f1020;
+  color: #ffffff;
+}
+
+.login-form,
+.profile-panel,
+.stats-panel,
+.public-stats span,
+.scorer-row,
+.club-card,
+.team-player-card,
+.club-change-section,
+.profile-edit-form,
+.dashboard-message,
+.dashboard-error {
+  background: rgba(10, 15, 12, 0.86);
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  color: #f4fff8;
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+}
+
+.login-form {
+  width: min(460px, 100%);
+  gap: 2px;
+}
+
+.auth-text-link {
+  color: #bfffd5;
+  font-size: 14px;
+  margin-top: 12px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.auth-text-link:hover {
+  color: #29ff7a;
+}
+
+.secondary-auth-btn {
+  margin-bottom: 14px;
+}
+
+.register-form {
+  width: min(620px, 100%);
+}
+
+.login-form .back-btn {
+  color: #d90429;
+  box-shadow: none;
+}
+
+.login-form input,
+.login-form select,
+.login-form textarea,
+.gallery-upload-panel input,
+.club-selection select,
+.profile-edit-form input,
+.profile-edit-form select,
+.profile-edit-form textarea,
+.team-search-form input,
+.team-stats-form input,
+.team-stats-form select {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  color: #f4fff8;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.login-form input:focus,
+.login-form select:focus,
+.login-form textarea:focus,
+.gallery-upload-panel input:focus,
+.club-selection select:focus,
+.profile-edit-form input:focus,
+.profile-edit-form select:focus,
+.profile-edit-form textarea:focus,
+.team-search-form input:focus,
+.team-stats-form input:focus,
+.team-stats-form select:focus {
+  background: #ffffff;
+  border-color: #29ff7a;
+  color: #07100b;
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.12);
+}
+
+.login-form input::placeholder,
+.login-form textarea::placeholder,
+.gallery-upload-panel input::placeholder,
+.team-search-form input::placeholder,
+.team-stats-form input::placeholder,
+.profile-edit-form input::placeholder,
+.profile-edit-form textarea::placeholder,
+.danger-zone input::placeholder {
+  color: #8ea397;
+}
+
+.poster-red,
+.poster-green,
+.poster-gold,
+.poster-blue {
+  background:
+    linear-gradient(180deg, rgba(var(--accent-rgb), 0.2), transparent 42%),
+    linear-gradient(160deg, #0d1d13 0%, #142319 56%, #050706 100%);
+  border-color: rgba(var(--accent-rgb), 0.2);
+  color: #f4fff8;
+}
+
+.poster-content {
+  background: linear-gradient(transparent, rgba(5, 7, 6, 0.96) 18%);
+}
+
+.poster-content span,
+.poster-content p {
+  color: #a7b9ae;
+}
+
+.poster-content strong,
+.club-card strong,
+.stat-card strong,
+.scorer-row strong {
+  color: #29ff7a;
+}
+
+.poster-player-art {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(var(--accent-rgb), 0.22), transparent 13%),
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.12), rgba(255, 255, 255, 0.05));
+}
+
+.poster-player-art::before {
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+.poster-player-art span,
+.public-avatar span {
+  color: #29ff7a;
+}
+
+.poster-player-art img,
+.public-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rank-number,
+.club-badge,
+.player-status {
+  background: #29ff7a;
+  color: #07100b;
+}
+
+.player-poster:hover,
+.scorer-row:hover,
+.club-card:hover {
+  border-color: #29ff7a;
+  box-shadow: 0 22px 52px rgba(var(--accent-rgb), 0.16);
+}
+
+.public-avatar,
+.profile-info p,
+.stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(var(--accent-rgb), 0.16);
+}
+
+.profile-photo-section {
+  padding: 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(var(--accent-rgb), 0.16);
+}
+
+.profile-photo,
+.mini-avatar {
+  background: #0b140f;
+  border: 2px solid #29ff7a;
+}
+
+.profile-photo span,
+.mini-avatar span {
+  color: #29ff7a;
+}
+
+.profile-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-identity h4 {
+  font-size: 22px;
+}
+
+.player-card-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.mini-avatar {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scorer-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.scorer-avatar {
+  width: 42px;
+  height: 42px;
+  flex-basis: 42px;
+}
+
+.public-club-players {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.public-club-players .team-player-card {
+  text-decoration: none;
+}
+
+.dashboard-error {
+  color: #a6001d;
+  border-color: #ee9cab;
+}
+
+@media (max-width: 800px) {
+  .dashboard-page {
+    padding-bottom: 86px;
+  }
+
+  .dashboard-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 12px 16px;
+  }
+
+  .dashboard-navbar .brand-logo-image {
+    height: 46px;
+  }
+
+  .dashboard-nav-links {
+    display: none;
+  }
+
+  .dashboard-content {
+    width: min(100% - 28px, 1100px);
+    padding: 24px 0 28px;
+  }
+
+  .dashboard-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    border: 1px solid rgba(var(--accent-rgb), 0.18);
+    border-radius: 8px;
+    background:
+      linear-gradient(135deg, rgba(var(--accent-rgb), 0.12), transparent 52%),
+      rgba(10, 15, 12, 0.9);
+  }
+
+  .dashboard-header h2 {
+    font-size: 30px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .profile-panel,
+  .stats-panel {
+    padding: 20px;
+  }
+
+  .profile-photo-section {
+    align-items: flex-start;
+  }
+
+  .profile-info,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .club-selection,
+  .team-search-form,
+  .team-stats-form {
+    grid-template-columns: 1fr;
+  }
+
+  .team-player-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .invitation-actions {
+    width: 100%;
+  }
+
+  .invitation-actions button,
+  .team-player-card > button {
+    width: 100%;
+  }
+
+  .dashboard-bottom-nav {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    z-index: 50;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(13, 10, 6, 0.92);
+    box-shadow: 0 -18px 42px rgba(0, 0, 0, 0.46);
+    backdrop-filter: blur(18px);
+  }
+
+  .dashboard-bottom-nav button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 58px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #dfe4ea;
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .dashboard-bottom-nav button span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin: 0 auto 4px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: #ffffff;
+  }
+
+  .dashboard-bottom-nav button.active,
+  .dashboard-bottom-nav button:hover {
+    color: #ffffff;
+    background: var(--accent-soft);
+  }
+
+  .dashboard-bottom-nav button:active {
+    background: var(--accent-soft);
+  }
+
+  .navbar {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 16px 20px;
+  }
+
+  .nav-buttons {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .nav-menu {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .nav-user {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .brand-logo-image {
+    height: 50px;
+  }
+
+  .home main {
+    width: min(100% - 28px, 1180px);
+  }
+
+  .home-hero {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 34px 0 18px;
+  }
+
+  .home-hero-copy h2 {
+    font-size: 38px;
+  }
+
+  .home-hero-copy > p:not(.home-kicker) {
+    font-size: 17px;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+  }
+
+  .hero-posters,
+  .scorer-board,
+  .club-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .player-poster,
+  .player-poster:nth-child(2) {
+    min-height: 360px;
+  }
+
+  .public-detail,
+  .public-showcase {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    padding: 34px 0;
+  }
+
+  .public-detail h2 {
+    font-size: 38px;
+  }
+
+  .not-found h2 {
+    font-size: 36px;
+  }
+
+  .public-avatar {
+    min-height: 280px;
+  }
+
+  .public-copy-panel {
+    padding: 24px;
+  }
+
+  .public-stat-grid,
+  .public-roster-grid,
+  .public-ranking-grid,
+  .public-club-info-grid,
+  .club-leaders-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .public-club-tabs,
+  .ranking-tabs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ranking-row {
+    grid-template-columns: 28px 1fr;
+  }
+
+  .ranking-row > strong {
+    grid-column: 2;
+  }
+
+  .public-club-badge {
+    width: 150px;
+    height: 150px;
+    font-size: 34px;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dashboard-navbar,
+  .dashboard-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .dashboard-navbar {
+    padding: 20px;
+  }
+
+  .dashboard-nav-links {
+    flex-wrap: wrap;
+  }
+
+  .dashboard-header h2 {
+    font-size: 30px;
+  }
+
+  .dashboard-grid,
+  .profile-info,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .team-player-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .team-search-form {
+    grid-template-columns: 1fr;
+  }
+}
+

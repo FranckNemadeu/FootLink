@@ -1,0 +1,1631 @@
+/* Professional polish layer */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-main);
+  letter-spacing: 0;
+}
+
+.home,
+.dashboard-page,
+.login-page {
+  background:
+    linear-gradient(118deg, rgba(216, 181, 104, 0.105), transparent 30%),
+    linear-gradient(245deg, rgba(138, 164, 200, 0.11), transparent 38%),
+    linear-gradient(180deg, #070a12 0%, #05070c 54%, #0c111c 100%);
+}
+
+.home::before,
+.dashboard-page::before,
+.login-page::before {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.035) 0,
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px,
+      transparent 96px
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(216, 181, 104, 0.045));
+  mix-blend-mode: normal;
+  opacity: 0.55;
+}
+
+.home::after,
+.dashboard-page::after,
+.login-page::after {
+  opacity: 0.12;
+}
+
+.navbar,
+.dashboard-navbar {
+  background: rgba(6, 9, 16, 0.92);
+  border-bottom-color: var(--line);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.3);
+}
+
+.home-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(390px, 0.96fr);
+  min-height: 68vh;
+}
+
+.home-hero-copy h2,
+.public-detail h2,
+.not-found h2 {
+  letter-spacing: 0;
+}
+
+.home-hero-copy h2 {
+  max-width: 720px;
+  font-size: clamp(42px, 5.4vw, 68px);
+  line-height: 0.98;
+}
+
+.home-kicker,
+.dashboard-label {
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+
+.player-btn,
+.team-btn,
+.login-form button,
+.photo-upload-btn,
+.club-selection button,
+.profile-edit-form button,
+.team-player-card button,
+.team-stats-form button,
+.team-search-form button,
+.dashboard-nav-links button:last-child {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #06110c;
+  font-weight: 800;
+  box-shadow: 0 10px 28px rgba(53, 208, 116, 0.14);
+}
+
+.team-btn {
+  background: transparent;
+  border-color: rgba(216, 181, 104, 0.58);
+  color: var(--text);
+}
+
+button:hover,
+.player-poster:hover,
+.scorer-row:hover,
+.club-card:hover,
+.nav-link-btn:hover {
+  transform: translateY(-2px);
+}
+
+.player-poster,
+.scorer-row,
+.club-card,
+.profile-panel,
+.stats-panel,
+.login-form,
+.public-visual-panel,
+.public-copy-panel,
+.public-bio-card,
+.team-player-card,
+.club-change-section,
+.profile-edit-form,
+.dashboard-message,
+.dashboard-error,
+.public-ranking-card,
+.public-match-row,
+.public-club-tabs {
+  background: var(--panel);
+  border-color: var(--line);
+  box-shadow: var(--shadow);
+}
+
+.poster-red,
+.poster-green,
+.poster-gold,
+.poster-blue {
+  background:
+    linear-gradient(180deg, rgba(216, 181, 104, 0.15), transparent 38%),
+    linear-gradient(160deg, #182033 0%, #101624 54%, #05070c 100%);
+}
+
+.poster-player-art,
+.public-avatar {
+  background:
+    linear-gradient(145deg, rgba(216, 181, 104, 0.13), rgba(138, 164, 200, 0.09)),
+    #101624;
+}
+
+.poster-content strong,
+.club-card strong,
+.stat-card strong,
+.scorer-row strong,
+.public-stat-grid strong,
+.public-bio-card h3,
+.public-ranking-card h3,
+.club-leaders-panel span {
+  color: var(--accent);
+}
+
+.rank-number,
+.club-badge,
+.player-status {
+  background: var(--accent);
+  color: #151106;
+}
+
+.profile-panel h3,
+.stats-panel h3,
+.login-form h2,
+.brand-link,
+.dashboard-navbar h1 {
+  color: var(--text);
+}
+
+.brand-link,
+.dashboard-navbar h1 {
+  color: var(--accent);
+}
+
+.section-heading h2,
+.home-hero-copy h2,
+.dashboard-header h2,
+.public-detail h2 {
+  color: #f8fbfb;
+}
+
+.login-form {
+  border-radius: 8px;
+  padding: clamp(28px, 5vw, 44px);
+}
+
+.login-form input,
+.login-form select,
+.login-form textarea,
+.club-selection select,
+.profile-edit-form input,
+.profile-edit-form select,
+.profile-edit-form textarea,
+.team-search-form input,
+.team-stats-form input,
+.team-stats-form select {
+  min-height: 46px;
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.055);
+  font-family: var(--font-main);
+}
+
+.auth-notice,
+.dashboard-notice {
+  border-radius: 8px;
+  line-height: 1.45;
+}
+
+.auth-notice-error,
+.dashboard-notice-error,
+.dashboard-error {
+  color: #930b20;
+  border-color: rgba(196, 53, 74, 0.34);
+}
+
+.danger-zone {
+  border-color: rgba(196, 53, 74, 0.34);
+}
+
+.nav-menu,
+.public-club-tabs,
+.ranking-tabs {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: var(--line);
+}
+
+.nav-menu a {
+  color: #dce7ee;
+}
+
+.nav-menu a:hover,
+.login-btn:hover,
+.nav-link-btn:hover {
+  background: rgba(216, 181, 104, 0.1);
+  color: #ffffff;
+}
+
+.login-btn,
+.nav-link-btn,
+.dashboard-nav-links button,
+.dashboard-nav-links a {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.nav-primary {
+  border-color: rgba(216, 181, 104, 0.52);
+}
+
+.club-card {
+  background:
+    linear-gradient(155deg, rgba(216, 181, 104, 0.11), rgba(138, 164, 200, 0.07)),
+    var(--panel);
+}
+
+.club-card-stats span,
+.profile-info p,
+.stat-card,
+.public-stats span {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: var(--line);
+}
+
+.stat-card {
+  background:
+    linear-gradient(150deg, rgba(121, 169, 216, 0.12), rgba(255, 255, 255, 0.035)),
+    var(--panel-strong);
+}
+
+.profile-photo,
+.mini-avatar {
+  background: #111827;
+  border-color: rgba(216, 181, 104, 0.58);
+}
+
+.profile-photo span,
+.mini-avatar span,
+.poster-player-art span,
+.public-avatar span {
+  color: var(--accent);
+}
+
+.public-club-tabs button.active,
+.ranking-tabs button.active {
+  background: var(--accent);
+  color: #11100a;
+}
+
+.danger-btn,
+.invitation-actions button:last-child {
+  background: #a82b3d;
+  border-color: #a82b3d;
+}
+
+@media (max-width: 800px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .home-hero-copy h2 {
+    font-size: clamp(36px, 11vw, 46px);
+  }
+}
+
+/* Homepage premium refresh */
+.home main {
+  width: min(1240px, calc(100% - 40px));
+}
+
+.landing-hero {
+  min-height: 700px;
+  grid-template-columns: minmax(0, 0.95fr) minmax(420px, 1.05fr);
+  gap: clamp(28px, 5vw, 70px);
+  padding: clamp(38px, 6vw, 74px) 0 26px;
+}
+
+.home-hero-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.home-hero-copy h1 {
+  max-width: 760px;
+  margin-bottom: 18px;
+  color: #f8fbfb;
+  font-size: clamp(48px, 6.6vw, 86px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.home-hero-copy > p:not(.home-kicker) {
+  max-width: 520px;
+  color: #c9d4d1;
+  font-size: clamp(18px, 2vw, 22px);
+  line-height: 1.45;
+}
+
+.hero-badge-row,
+.hero-trust-row,
+.hero-buttons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.hero-badge-row {
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.hero-badge-row .home-kicker {
+  margin-bottom: 0;
+}
+
+.live-pill,
+.hero-trust-row span,
+.feature-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 11px;
+  border: 1px solid rgba(216, 181, 104, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #e9f2ef;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.live-pill {
+  color: var(--accent);
+  border-color: rgba(72, 214, 138, 0.34);
+}
+
+.hero-buttons {
+  gap: 14px;
+  margin-top: 26px;
+}
+
+.hero-buttons .player-btn,
+.hero-buttons .team-btn,
+.section-heading .nav-link-btn {
+  min-width: 180px;
+  min-height: 50px;
+  border-radius: 8px;
+  font-weight: 900;
+}
+
+.hero-buttons .player-btn:hover,
+.hero-buttons .team-btn:hover,
+.section-heading .nav-link-btn:hover,
+.experience-card:hover,
+.home-stat-tile:hover,
+.stats-command-card:hover,
+.scouting-card:hover {
+  transform: translateY(-4px);
+}
+
+.hero-buttons .player-btn:hover {
+  box-shadow: 0 18px 42px rgba(72, 214, 138, 0.28);
+}
+
+.hero-buttons .team-btn:hover,
+.section-heading .nav-link-btn:hover {
+  border-color: rgba(216, 181, 104, 0.82);
+  box-shadow: 0 18px 42px rgba(216, 181, 104, 0.14);
+}
+
+.hero-trust-row {
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.hero-trust-row span {
+  min-height: 28px;
+  padding: 5px 10px;
+  color: #b8c7c3;
+  font-size: 11px;
+}
+
+.hero-visual {
+  min-height: 640px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(216, 181, 104, 0.22);
+  border-radius: 8px;
+  background: #0c111c;
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.42);
+  isolation: isolate;
+}
+
+.hero-stadium-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.03);
+  filter: saturate(1.08) contrast(1.06);
+}
+
+.hero-visual::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(5, 7, 12, 0.16), rgba(5, 7, 12, 0.86)),
+    linear-gradient(110deg, rgba(5, 7, 12, 0.86), transparent 58%);
+}
+
+.hero-visual::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.hero-score-card,
+.hero-scout-card {
+  position: absolute;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(8, 12, 18, 0.76);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+}
+
+.hero-score-card {
+  top: 28px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 18px;
+}
+
+.hero-score-card span,
+.scout-card-head span,
+.home-stat-tile span,
+.command-metrics span,
+.season-preview span,
+.scouting-row small {
+  color: #aebbb8;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.hero-score-card strong,
+.scout-card-head strong,
+.hero-player-chip strong,
+.scouting-row strong {
+  display: block;
+  color: #ffffff;
+}
+
+.hero-score-card b {
+  color: var(--accent);
+  font-size: 24px;
+}
+
+.hero-scout-card {
+  left: 28px;
+  right: 28px;
+  bottom: 28px;
+  padding: 22px;
+}
+
+.scout-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.hero-player-stack,
+.scouting-list {
+  display: grid;
+  gap: 10px;
+}
+
+.hero-player-chip,
+.scouting-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.hero-player-chip {
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+  transition: transform 0.22s, border-color 0.22s, background 0.22s;
+}
+
+.hero-player-chip:hover,
+.scouting-row:hover {
+  transform: translateX(4px);
+  border-color: rgba(72, 214, 138, 0.38);
+  background: rgba(72, 214, 138, 0.08);
+}
+
+.hero-player-chip small {
+  color: #c3ceca;
+  font-size: 12px;
+}
+
+.hero-mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.hero-mini-stats span {
+  min-height: 68px;
+  padding: 12px;
+  border: 1px solid rgba(216, 181, 104, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #bfcac6;
+  font-size: 12px;
+}
+
+.hero-mini-stats strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--accent);
+  font-size: 24px;
+}
+
+.home-stat-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.home-stat-tile,
+.experience-card,
+.stats-command-card,
+.scouting-card {
+  border: 1px solid rgba(216, 181, 104, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(155deg, rgba(216, 181, 104, 0.08), rgba(138, 164, 200, 0.06)),
+    rgba(13, 18, 28, 0.88);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  transition: transform 0.24s, border-color 0.24s, box-shadow 0.24s;
+}
+
+.home-stat-tile {
+  min-height: 104px;
+  padding: 20px;
+}
+
+.home-stat-tile strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #ffffff;
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1;
+}
+
+.home-stat-tile:hover,
+.experience-card:hover,
+.stats-command-card:hover,
+.scouting-card:hover {
+  border-color: rgba(72, 214, 138, 0.32);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+}
+
+.section-heading-centered {
+  display: grid;
+  justify-content: center;
+  text-align: center;
+}
+
+.section-heading-centered h2 {
+  max-width: 740px;
+}
+
+.guidance-section {
+  padding-top: clamp(28px, 5vw, 52px);
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.step-card,
+.audience-card {
+  border: 1px solid rgba(216, 181, 104, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.065), rgba(72, 214, 138, 0.035)),
+    rgba(12, 17, 27, 0.9);
+  box-shadow: var(--shadow);
+  transition: transform 0.24s, border-color 0.24s, box-shadow 0.24s, background 0.24s;
+}
+
+.step-card {
+  min-height: 148px;
+  padding: 20px;
+}
+
+.step-card span,
+.audience-card span {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.step-card h3,
+.audience-card h3 {
+  margin: 12px 0 8px;
+  color: #f8fbfb;
+  font-size: 23px;
+  line-height: 1.12;
+}
+
+.step-card p,
+.audience-card p {
+  color: #b6c2bf;
+  line-height: 1.45;
+  max-width: 28ch;
+}
+
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.audience-card {
+  min-height: 176px;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.audience-card strong {
+  width: fit-content;
+  margin-top: auto;
+  padding: 11px 14px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #06110c;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.audience-club strong {
+  border: 1px solid rgba(216, 181, 104, 0.58);
+  background: transparent;
+  color: var(--text);
+}
+
+.step-card:hover,
+.audience-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(72, 214, 138, 0.32);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+}
+
+.audience-card:hover strong {
+  box-shadow: 0 14px 34px rgba(72, 214, 138, 0.16);
+}
+
+.experience-section,
+.players-section,
+.intelligence-section,
+.clubs-section {
+  padding-top: clamp(36px, 6vw, 64px);
+}
+
+.experience-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.experience-card {
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px;
+}
+
+.experience-card h3 {
+  color: #f8fbfb;
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.experience-card p {
+  color: #b6c2bf;
+  line-height: 1.45;
+}
+
+.experience-card strong {
+  margin-top: auto;
+  color: var(--accent);
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.player-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.home-player-filter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.home-player-filter select {
+  min-height: 42px;
+  min-width: min(280px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #171310;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 800;
+  padding: 0 12px;
+}
+
+.home-player-filter-note {
+  margin: -4px 0 16px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.players-directory-filter select {
+  min-height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: #171310;
+  color: #ffffff;
+  font: inherit;
+  padding: 0 14px;
+}
+
+.players-directory-grid {
+  align-items: stretch;
+}
+
+.player-showcase-grid .player-poster,
+.player-showcase-grid .player-poster:nth-child(2) {
+  min-height: 420px;
+}
+
+.player-feature-card .poster-player-art {
+  inset: 18px 18px 118px;
+}
+
+.player-feature-card .poster-content h3 {
+  font-size: 26px;
+}
+
+.compact-leaderboard {
+  margin-top: 16px;
+}
+
+.compact-leaderboard .scorer-row {
+  min-height: 88px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(216, 181, 104, 0.055)),
+    rgba(12, 17, 27, 0.92);
+}
+
+.intelligence-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+  gap: 16px;
+}
+
+.stats-command-card,
+.scouting-card {
+  padding: clamp(22px, 4vw, 32px);
+}
+
+.stats-command-card .section-heading,
+.scouting-card .section-heading {
+  margin-bottom: 18px;
+}
+
+.command-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.command-metrics div {
+  min-height: 132px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.command-metrics strong {
+  display: block;
+  margin-top: 12px;
+  color: var(--accent);
+  font-size: clamp(34px, 5vw, 64px);
+  line-height: 0.95;
+}
+
+.season-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(72, 214, 138, 0.18);
+  border-radius: 8px;
+  background: rgba(72, 214, 138, 0.07);
+}
+
+.season-preview strong,
+.season-preview small {
+  display: block;
+  text-align: right;
+}
+
+.season-preview strong {
+  color: #ffffff;
+}
+
+.season-preview small {
+  margin-top: 3px;
+  color: #b8c7c3;
+}
+
+.scouting-card {
+  overflow: hidden;
+}
+
+.scouting-row {
+  grid-template-columns: auto 1fr auto;
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  transition: transform 0.22s, border-color 0.22s, background 0.22s;
+}
+
+.scouting-row small {
+  display: block;
+  margin-top: 4px;
+  text-transform: none;
+}
+
+.scouting-row b {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #11100a;
+}
+
+.clubs-section .club-card {
+  min-height: 300px;
+}
+
+.clubs-section .club-card:hover,
+.player-showcase-grid .player-poster:hover,
+.compact-leaderboard .scorer-row:hover {
+  border-color: rgba(216, 181, 104, 0.42);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+}
+
+@media (max-width: 1080px) {
+  .landing-hero,
+  .intelligence-section {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-visual {
+    min-height: 560px;
+  }
+
+  .experience-grid,
+  .steps-grid,
+  .home-stat-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .scorer-board.compact-leaderboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .home main {
+    width: min(100% - 28px, 1240px);
+  }
+
+  .landing-hero {
+    min-height: auto;
+    padding: 34px 0 16px;
+  }
+
+  .home-hero-copy h1 {
+    font-size: clamp(38px, 12vw, 54px);
+  }
+
+  .hero-buttons .player-btn,
+  .hero-buttons .team-btn,
+  .section-heading .nav-link-btn {
+    width: 100%;
+  }
+
+  .hero-trust-row {
+    gap: 8px;
+  }
+
+  .hero-visual {
+    min-height: 520px;
+  }
+
+  .hero-score-card {
+    top: 18px;
+    right: 18px;
+    left: 18px;
+    justify-content: space-between;
+  }
+
+  .hero-scout-card {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    padding: 16px;
+  }
+
+  .hero-mini-stats,
+  .home-stat-strip,
+  .experience-grid,
+  .steps-grid,
+  .audience-grid,
+  .player-showcase-grid,
+  .command-metrics,
+  .scorer-board.compact-leaderboard {
+    grid-template-columns: 1fr;
+  }
+
+  .home-stat-tile {
+    min-height: 96px;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+  }
+
+  .section-heading-centered {
+    text-align: left;
+    justify-content: start;
+  }
+
+  .player-showcase-grid .player-poster,
+  .player-showcase-grid .player-poster:nth-child(2) {
+    min-height: 360px;
+  }
+
+  .season-preview {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .season-preview strong,
+  .season-preview small {
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-buttons .player-btn,
+  .hero-buttons .team-btn,
+  .section-heading .nav-link-btn,
+  .experience-card,
+  .step-card,
+  .audience-card,
+  .home-stat-tile,
+  .stats-command-card,
+  .scouting-card,
+  .hero-player-chip,
+  .scouting-row {
+    transition: none;
+  }
+}
+
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background:
+    radial-gradient(circle at 16% 10%, rgba(var(--accent-rgb), 0.16), transparent 28%),
+    linear-gradient(180deg, #0e0b07 0%, #130e09 48%, #0d0a06 100%);
+  color: var(--text);
+  font-family: var(--font-main);
+}
+
+.home,
+.dashboard-page,
+.login-page {
+  background:
+    radial-gradient(circle at 78% 8%, rgba(var(--accent-rgb), 0.12), transparent 30%),
+    linear-gradient(180deg, #0f0c08 0%, #150f0a 52%, #0d0a06 100%);
+}
+
+.home::before,
+.dashboard-page::before,
+.login-page::before {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: 0.34;
+}
+
+.navbar,
+.dashboard-navbar {
+  border-bottom: 1px solid var(--line);
+  background: rgba(13, 10, 6, 0.9);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(18px);
+}
+
+.dashboard-navbar {
+  border-radius: 0 0 8px 8px;
+}
+
+.nav-menu,
+.public-club-tabs,
+.ranking-tabs,
+.dashboard-nav-links {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.nav-menu a,
+.dashboard-nav-links a,
+.dashboard-nav-links button,
+.public-club-tabs button,
+.ranking-tabs button {
+  border-radius: 8px;
+  color: #dfe4ea;
+  font-weight: 800;
+  transition: transform 0.22s, background 0.22s, color 0.22s, border-color 0.22s;
+}
+
+.nav-menu a:hover,
+.dashboard-nav-links a:hover,
+.dashboard-nav-links button:hover,
+.public-club-tabs button:hover,
+.ranking-tabs button:hover {
+  background: var(--accent-soft);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.brand-link,
+.dashboard-navbar h1,
+.home-kicker,
+.dashboard-label {
+  color: #ffffff;
+}
+
+.home-kicker,
+.dashboard-label,
+.feature-label,
+.live-pill,
+.hero-trust-row span,
+.step-card span,
+.audience-card span {
+  letter-spacing: 0.08em;
+}
+
+.brand-logo-image {
+  filter: drop-shadow(0 12px 20px rgba(var(--accent-rgb), 0.16));
+}
+
+.home-hero-copy h1,
+.home-hero-copy h2,
+.section-heading h2,
+.dashboard-header h2,
+.public-detail h2,
+.login-form h2,
+.profile-panel h3,
+.stats-panel h3,
+.public-bio-card h3,
+.public-ranking-card h3,
+.team-player-card h4,
+.club-card h3,
+.experience-card h3,
+.step-card h3,
+.audience-card h3,
+.stats-command-card h2,
+.scouting-card h2 {
+  color: var(--text);
+  letter-spacing: 0;
+}
+
+.home-hero-copy > p:not(.home-kicker),
+.public-detail p,
+.public-lead,
+.club-card p,
+.team-player-card p,
+.profile-identity p,
+.profile-info span,
+.dashboard-message,
+.experience-card p,
+.step-card p,
+.audience-card p,
+.scouting-row small,
+.hero-player-chip small,
+.club-card-leaders p,
+.public-ranking-row p,
+.public-match-row p {
+  color: var(--muted);
+}
+
+.login-btn,
+.register-btn,
+.player-btn,
+.team-btn,
+.nav-link-btn,
+.photo-upload-btn,
+.club-selection button,
+.profile-edit-form button,
+.team-player-card button,
+.team-stats-form button,
+.team-search-form button,
+.dashboard-nav-links button,
+.dashboard-nav-links a,
+.invitation-actions button,
+.danger-zone button,
+.login-form button {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-weight: 900;
+  letter-spacing: 0;
+  transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s, background 0.22s, color 0.22s;
+}
+
+.player-btn,
+.register-btn,
+.login-form button,
+.photo-upload-btn,
+.club-selection button,
+.profile-edit-form button,
+.team-player-card button,
+.team-stats-form button,
+.team-search-form button,
+.dashboard-nav-links button:last-child,
+.audience-card strong {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  box-shadow: 0 16px 34px rgba(var(--accent-rgb), 0.22);
+}
+
+.team-btn,
+.login-btn,
+.nav-link-btn,
+.dashboard-nav-links button,
+.dashboard-nav-links a,
+.audience-club strong {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: var(--line);
+  color: #f5f7fb;
+  box-shadow: none;
+}
+
+.nav-primary {
+  border-color: rgba(var(--accent-rgb), 0.42);
+  background: var(--accent-soft);
+}
+
+button:hover,
+.player-btn:hover,
+.team-btn:hover,
+.login-btn:hover,
+.nav-link-btn:hover,
+.photo-upload-btn:hover,
+.club-selection button:hover,
+.profile-edit-form button:hover,
+.team-player-card button:hover,
+.team-stats-form button:hover,
+.team-search-form button:hover,
+.dashboard-nav-links button:hover,
+.dashboard-nav-links a:hover,
+.audience-card:hover strong {
+  transform: translateY(-2px);
+  border-color: rgba(var(--accent-rgb), 0.5);
+  box-shadow: 0 18px 38px rgba(var(--accent-rgb), 0.18);
+}
+
+.danger-btn,
+.danger-zone button,
+.invitation-actions button:last-child {
+  background: rgba(255, 77, 100, 0.12);
+  border-color: rgba(255, 77, 100, 0.45);
+  color: #ffdbe1;
+  box-shadow: none;
+}
+
+.login-form,
+.profile-panel,
+.stats-panel,
+.public-visual-panel,
+.public-copy-panel,
+.public-bio-card,
+.public-ranking-card,
+.public-match-row,
+.club-card,
+.team-player-card,
+.club-change-section,
+.profile-edit-form,
+.dashboard-message,
+.dashboard-error,
+.stat-card,
+.public-stats span,
+.club-card-stats span,
+.hero-visual,
+.hero-score-card,
+.hero-scout-card,
+.home-stat-tile,
+.experience-card,
+.step-card,
+.audience-card,
+.stats-command-card,
+.scouting-card,
+.club-gallery-item,
+.ranking-row,
+.public-ranking-row {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.055), rgba(var(--accent-rgb), 0.035)),
+    var(--card-bg);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+
+.login-form,
+.profile-panel,
+.stats-panel,
+.public-copy-panel,
+.public-visual-panel,
+.public-bio-card,
+.stats-command-card,
+.scouting-card {
+  padding: clamp(22px, 4vw, 34px);
+}
+
+.club-card,
+.team-player-card,
+.stat-card,
+.home-stat-tile,
+.experience-card,
+.step-card,
+.audience-card,
+.public-ranking-card,
+.public-match-row,
+.club-gallery-item {
+  transition: transform 0.24s, border-color 0.24s, box-shadow 0.24s, background 0.24s;
+}
+
+.club-card:hover,
+.team-player-card:hover,
+.stat-card:hover,
+.home-stat-tile:hover,
+.experience-card:hover,
+.step-card:hover,
+.audience-card:hover,
+.public-ranking-card:hover,
+.public-match-row:hover,
+.club-gallery-item:hover,
+.player-poster:hover,
+.scorer-row:hover,
+.hero-player-chip:hover,
+.scouting-row:hover {
+  transform: translateY(-4px);
+  border-color: rgba(var(--accent-rgb), 0.42);
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.07), rgba(var(--accent-rgb), 0.06)),
+    var(--card-bg-hover);
+  box-shadow: 0 28px 76px rgba(0, 0, 0, 0.46);
+}
+
+.login-form input,
+.login-form select,
+.login-form textarea,
+.gallery-upload-panel input,
+.club-selection select,
+.profile-edit-form input,
+.profile-edit-form select,
+.profile-edit-form textarea,
+.team-search-form input,
+.team-stats-form input,
+.team-stats-form select,
+.team-stats-form textarea,
+.member-actions select,
+.season-filter select,
+.danger-zone input,
+.input-field {
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font: inherit;
+  outline: none;
+  transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
+}
+
+.login-form input:focus,
+.login-form select:focus,
+.login-form textarea:focus,
+.gallery-upload-panel input:focus,
+.club-selection select:focus,
+.profile-edit-form input:focus,
+.profile-edit-form select:focus,
+.profile-edit-form textarea:focus,
+.team-search-form input:focus,
+.team-stats-form input:focus,
+.team-stats-form select:focus,
+.team-stats-form textarea:focus,
+.member-actions select:focus,
+.season-filter select:focus,
+.danger-zone input:focus,
+.input-field:focus {
+  border-color: rgba(var(--accent-rgb), 0.62);
+  background: rgba(255, 255, 255, 0.085);
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.12);
+}
+
+.login-form input::placeholder,
+.login-form textarea::placeholder,
+.gallery-upload-panel input::placeholder,
+.team-search-form input::placeholder,
+.team-stats-form input::placeholder,
+.profile-edit-form input::placeholder,
+.profile-edit-form textarea::placeholder,
+.danger-zone input::placeholder {
+  color: rgba(248, 250, 252, 0.46);
+}
+
+.dashboard-content {
+  width: min(1240px, calc(100% - 40px));
+  padding: clamp(22px, 4vw, 42px) 0 96px;
+}
+
+.dashboard-header {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: clamp(20px, 4vw, 30px);
+  background:
+    linear-gradient(120deg, rgba(var(--accent-rgb), 0.12), rgba(255, 255, 255, 0.035)),
+    rgba(18, 14, 9, 0.82);
+  box-shadow: var(--shadow);
+}
+
+.dashboard-grid {
+  grid-template-columns: 1.4fr 1fr;
+  gap: clamp(16px, 2.6vw, 24px);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-info p,
+.stat-card,
+.public-stats span,
+.club-card-stats span,
+.command-metrics div,
+.hero-mini-stats span {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.profile-photo,
+.mini-avatar,
+.public-avatar,
+.club-badge,
+.public-club-badge {
+  border: 1px solid rgba(var(--accent-rgb), 0.38);
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.18), rgba(255, 255, 255, 0.05)),
+    #181310;
+  color: #ffffff;
+}
+
+.rank-number,
+.player-status,
+.public-club-tabs button.active,
+.ranking-tabs button.active,
+.scouting-row b {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(var(--accent-rgb), 0.2);
+}
+
+.home-stat-tile strong,
+.club-card strong,
+.stat-card strong,
+.scorer-row strong,
+.poster-content strong,
+.public-stat-grid strong,
+.public-bio-card h3,
+.public-ranking-card h3,
+.club-leaders-panel span,
+.command-metrics strong,
+.hero-mini-stats strong,
+.hero-score-card b,
+.experience-card strong {
+  color: #ffffff;
+}
+
+.live-pill,
+.feature-label,
+.hero-trust-row span {
+  border-color: rgba(var(--accent-rgb), 0.32);
+  background: var(--accent-soft);
+  color: #ffffff;
+}
+
+.hero-visual::before {
+  background:
+    linear-gradient(180deg, rgba(13, 10, 6, 0.12), rgba(13, 10, 6, 0.9)),
+    linear-gradient(110deg, rgba(13, 10, 6, 0.86), transparent 58%);
+}
+
+.poster-red,
+.poster-green,
+.poster-gold,
+.poster-blue,
+.club-card {
+  background:
+    linear-gradient(155deg, rgba(var(--accent-rgb), 0.12), rgba(255, 255, 255, 0.045)),
+    var(--card-bg);
+}
+
+.dashboard-notice,
+.auth-notice {
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-notice-success,
+.auth-notice-success {
+  border-color: rgba(var(--accent-rgb), 0.3);
+  background: rgba(var(--accent-rgb), 0.1);
+  color: #ffffff;
+}
+
+.dashboard-notice-error,
+.auth-notice-error,
+.dashboard-error {
+  border-color: rgba(255, 77, 100, 0.4);
+  background: rgba(255, 77, 100, 0.1);
+  color: #ffdbe1;
+}
+
+
+.login-form .back-btn,
+.login-form .secondary-auth-btn {
+  width: fit-content;
+  min-height: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #f5f7fb;
+  box-shadow: none;
+}
+
+.login-form .secondary-auth-btn {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.login-form .back-btn:hover,
+.auth-text-link:hover {
+  color: #ffffff;
+  text-shadow: 0 0 18px rgba(var(--accent-rgb), 0.4);
+}
+
+.auth-text-link,
+.info-text {
+  color: var(--muted);
+}
+
+.checkbox-row {
+  color: #dfe4ea;
+}
+
+.checkbox-row input {
+  accent-color: var(--accent);
+}
+
+.invitation-actions button:first-child {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+button:disabled,
+.login-form button:disabled,
+.photo-upload-btn:has(input:disabled),
+.danger-zone .danger-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+
+select option {
+  background: #181310;
+  color: var(--text);
+}
+
+@media (max-width: 800px) {
+  .dashboard-content,
+  .home main {
+    width: min(100% - 28px, 1240px);
+  }
+
+  .navbar,
+  .dashboard-navbar {
+    gap: 14px;
+  }
+
+  .nav-menu,
+  .dashboard-nav-links {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .login-form,
+  .profile-panel,
+  .stats-panel,
+  .public-copy-panel,
+  .public-visual-panel,
+  .public-bio-card,
+  .stats-command-card,
+  .scouting-card {
+    padding: 22px;
+  }
+}
+
