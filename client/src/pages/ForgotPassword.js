@@ -17,7 +17,7 @@ function ForgotPassword() {
     try {
       const res = await axios.post(`${API_URL}/api/auth/forgot-password`, {
         email: email.trim().toLowerCase(),
-      }, { timeout: 20000 });
+      }, { timeout: 45000 });
 
       setMessage({ type: "success", text: res.data.message });
     } catch (err) {

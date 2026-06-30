@@ -5,6 +5,7 @@ import {
   Link,
   Route,
   Routes,
+  useLocation,
   useNavigate,
   useParams,
   useSearchParams,
@@ -126,6 +127,7 @@ const getClubRankingGroups = (clubPlayers) => [
 
 function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [players, setPlayers] = useState([]);
   const [homeClubs, setHomeClubs] = useState([]);
   const [homePlayerOffset, setHomePlayerOffset] = useState(0);
@@ -176,6 +178,13 @@ function Home() {
 
     loadHomeData();
   }, []);
+
+  useEffect(() => {
+    if (!location.hash) return;
+
+    const target = document.querySelector(location.hash);
+    if (target) target.scrollIntoView({ behavior: "smooth" });
+  }, [location.hash]);
 
   useEffect(() => {
     if (players.length <= 3) return undefined;
@@ -1800,10 +1809,10 @@ function PublicNav({ showBack = false }) {
 
       <div className="nav-menu" aria-label="Navigation principale">
         <Link to="/">Accueil</Link>
-        <a href="/#how-it-works">Guide</a>
+        <Link to="/#how-it-works">Guide</Link>
         <Link to="/players">Joueurs</Link>
         <Link to="/clubs">Clubs</Link>
-        <a href="/#stats">Stats</a>
+        <Link to="/#stats">Stats</Link>
         <Link to="/confidentialite">Confidentialite</Link>
       </div>
 
