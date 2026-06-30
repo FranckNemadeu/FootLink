@@ -288,12 +288,27 @@ button:hover,
 }
 
 @media (max-width: 800px) {
-  .home-hero {
+  .home-hero,
+  .landing-hero {
     grid-template-columns: 1fr;
+    min-height: unset;
+  }
+
+  .hero-visual {
+    display: none;
   }
 
   .home-hero-copy h2 {
     font-size: clamp(36px, 11vw, 46px);
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .audience-grid {
+    grid-template-columns: 1fr;
   }
 }
 

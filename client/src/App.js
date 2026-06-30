@@ -216,73 +216,15 @@ function Home() {
     top_scorer: "",
   };
   const getLeaderName = (name) => name || "À définir";
-  const totalClubPlayers = homeClubs.reduce((sum, club) => sum + club.players, 0);
-  const totalGoals =
-    homeClubs.reduce((sum, club) => sum + club.goals, 0) ||
-    players.reduce((sum, player) => sum + player.goals, 0);
-  const totalAssists =
-    homeClubs.reduce((sum, club) => sum + club.assists, 0) ||
-    players.reduce((sum, player) => sum + player.assists, 0);
-  const totalMatches =
-    homeClubs.reduce((sum, club) => sum + club.matches, 0) ||
-    players.reduce((sum, player) => sum + player.matches, 0);
   const heroImage =
     "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1400&q=80";
-  const platformStats = [
-    { label: "Clubs", value: homeClubs.length },
-    { label: "Joueurs", value: totalClubPlayers || players.length },
-    { label: "Buts", value: totalGoals },
-    { label: "Matchs", value: totalMatches || totalAssists },
-  ];
-  const onboardingSteps = [
-    {
-      step: "01",
-      title: "Choisis ton rôle",
-      text: "Joueur ou club.",
-    },
-    {
-      step: "02",
-      title: "Complète ton profil",
-      text: "Photo, poste, clubs.",
-    },
-    {
-      step: "03",
-      title: "Suis tes stats",
-      text: "Saisons, leaders, MVP.",
-    },
-  ];
-  const experienceCards = [
-    {
-      label: "Joueurs",
-      title: "Profil joueur",
-      text: "Photo, poste, clubs.",
-      metric: `${players.length}+ profils`,
-    },
-    {
-      label: "Équipes",
-      title: "Espace club",
-      text: "Effectif, demandes, galerie.",
-      metric: `${homeClubs.length} clubs`,
-    },
-    {
-      label: "Stats",
-      title: "Stats saison",
-      text: "Matchs, leaders, MVP.",
-      metric: `${totalGoals} buts`,
-    },
-    {
-      label: "Scouting",
-      title: "Scouting",
-      text: "Comparer vite.",
-      metric: "Live board",
-    },
-  ];
 
   return (
     <div className="home">
       <PublicNav />
 
       <main>
+
         <section className="home-hero landing-hero">
           <div className="home-hero-copy">
             <div className="hero-badge-row">
@@ -354,37 +296,38 @@ function Home() {
               </div>
 
               <div className="hero-player-stack">
-                {featuredHomePlayers.length > 0 ? (
+                {homeLoading ? (
+                  [1, 2, 3].map((n) => (
+                    <div key={n} className="hero-player-chip hero-chip-skeleton">
+                      <span className="mini-avatar skeleton-avatar" />
+                      <span>
+                        <span className="skeleton-line skeleton-line-lg" />
+                        <span className="skeleton-line skeleton-line-sm" />
+                      </span>
+                    </div>
+                  ))
+                ) : featuredHomePlayers.length > 0 ? (
                   featuredHomePlayers.map((player) => (
-                  <Link
-                    className="hero-player-chip"
-                    key={player.id || player.slug || player.name}
-                    to={playerLink(player)}
-                  >
-                    <span className="mini-avatar">
-                      {player.profile_photo ? (
-                        <img
-                          src={getMediaUrl(player.profile_photo)}
-                          alt={player.name}
-                        />
-                      ) : (
-                        player.name.charAt(0)
-                      )}
-                    </span>
-                    <span>
-                      <strong>{player.name}</strong>
-                      <small>
-                        {player.position} · {player.goals} buts
-                      </small>
-                    </span>
-                  </Link>
+                    <Link
+                      className="hero-player-chip"
+                      key={player.id || player.slug || player.name}
+                      to={playerLink(player)}
+                    >
+                      <span className="mini-avatar">
+                        {player.profile_photo ? (
+                          <img src={getMediaUrl(player.profile_photo)} alt={player.name} />
+                        ) : player.name.charAt(0)}
+                      </span>
+                      <span>
+                        <strong>{player.name}</strong>
+                        <small>{player.position} · {player.goals} buts</small>
+                      </span>
+                    </Link>
                   ))
                 ) : (
-                  <div className="dashboard-message dashboard-empty-state">
-                    {homeLoading
-                      ? "Chargement des joueurs..."
-                      : "Les joueurs apparaitront ici."}
-                  </div>
+                  <p className="dashboard-message dashboard-empty-state">
+                    Aucun joueur public pour le moment.
+                  </p>
                 )}
               </div>
 
@@ -406,78 +349,13 @@ function Home() {
           </div>
         </section>
 
-        <section className="home-section home-stat-strip" aria-label="Statistiques FootLink">
-          {platformStats.map((stat) => (
-            <div className="home-stat-tile" key={stat.label}>
-              <strong>{stat.value}</strong>
-              <span>{stat.label}</span>
-            </div>
-          ))}
-        </section>
-
         {homeError && (
           <p className="dashboard-message dashboard-empty-state home-api-notice">
             {homeError}
           </p>
         )}
 
-        <section className="home-section guidance-section" id="how-it-works">
-          <div className="section-heading section-heading-centered">
-            <p className="home-kicker">Démarrer</p>
-            <h2>Trois actions</h2>
-          </div>
-
-          <div className="steps-grid">
-            {onboardingSteps.map((item) => (
-              <article className="step-card" key={item.step}>
-                <span>{item.step}</span>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-              </article>
-            ))}
-          </div>
-
-          <div className="audience-grid">
-            <Link
-              className="audience-card audience-player"
-              to={isAuthenticated ? dashboardPath : "/register/player"}
-            >
-              <span>Joueur</span>
-              <h3>Être visible</h3>
-              <p>Profil, clubs, stats.</p>
-              <strong>{isAuthenticated ? "Mon espace" : "Commencer"}</strong>
-            </Link>
-
-            <Link
-              className="audience-card audience-club"
-              to={isAuthenticated ? "/clubs" : "/register/team"}
-            >
-              <span>Club</span>
-              <h3>Gérer l'équipe</h3>
-              <p>Effectif, demandes, vitrine.</p>
-              <strong>{isAuthenticated ? "Explorer" : "Inscrire"}</strong>
-            </Link>
-          </div>
-        </section>
-
-        <section className="home-section experience-section">
-          <div className="section-heading section-heading-centered">
-            <p className="home-kicker">Essentiel</p>
-            <h2>Tout en un coup d'oeil</h2>
-          </div>
-
-          <div className="experience-grid">
-            {experienceCards.map((card) => (
-              <article className="experience-card" key={card.label}>
-                <span className="feature-label">{card.label}</span>
-                <h3>{card.title}</h3>
-                <p>{card.text}</p>
-                <strong>{card.metric}</strong>
-              </article>
-            ))}
-          </div>
-        </section>
-
+        {/* ── Section 2 : Joueurs en vedette ── */}
         <section className="home-section players-section" id="players">
           <div className="section-heading">
             <div>
@@ -490,139 +368,68 @@ function Home() {
           </div>
 
           <div className="player-showcase-grid">
-            {featuredHomePlayers.length > 0 ? (
+            {homeLoading ? (
+              ["red", "green", "gold", "blue"].map((tone) => (
+                <div key={tone} className={`player-poster player-feature-card poster-${tone} poster-skeleton`}>
+                  <div className="poster-player-art" />
+                  <div className="poster-content">
+                    <span className="skeleton-line skeleton-line-sm" />
+                    <span className="skeleton-line skeleton-line-lg" style={{ marginTop: 6 }} />
+                    <span className="skeleton-line skeleton-line-md" style={{ marginTop: 4 }} />
+                  </div>
+                </div>
+              ))
+            ) : featuredHomePlayers.length > 0 ? (
               featuredHomePlayers.map((player) => (
-              <Link
-                className={`player-poster player-feature-card poster-${player.tone}`}
-                key={player.id || player.slug || player.name}
-                to={playerLink(player)}
-              >
-                <div className="poster-player-art">
-                  {player.profile_photo ? (
-                    <img
-                      src={getMediaUrl(player.profile_photo)}
-                      alt={player.name}
-                    />
-                  ) : (
-                    <span>{player.name.charAt(0)}</span>
-                  )}
-                </div>
-                <div className="poster-content">
-                  <span>{player.position}</span>
-                  <h3>{player.name}</h3>
-                  <p>{player.club}</p>
-                  <strong>{player.goals} buts</strong>
-                </div>
-              </Link>
+                <Link
+                  className={`player-poster player-feature-card poster-${player.tone}`}
+                  key={player.id || player.slug || player.name}
+                  to={playerLink(player)}
+                >
+                  <div className="poster-player-art">
+                    {player.profile_photo ? (
+                      <img src={getMediaUrl(player.profile_photo)} alt={player.name} />
+                    ) : <span>{player.name.charAt(0)}</span>}
+                  </div>
+                  <div className="poster-content">
+                    <span>{player.position}</span>
+                    <h3>{player.name}</h3>
+                    <p>{player.club}</p>
+                    <strong>{player.goals} buts</strong>
+                  </div>
+                </Link>
               ))
             ) : (
               <p className="dashboard-message dashboard-empty-state">
-                {homeLoading
-                  ? "Chargement des joueurs..."
-                  : "Aucun joueur public n'est disponible pour le moment."}
+                Aucun joueur public disponible pour le moment.
               </p>
             )}
           </div>
 
           {leaderboardPlayers.length > 0 && (
             <div className="scorer-board compact-leaderboard">
-            {leaderboardPlayers.map((player, index) => (
-              <Link className="scorer-row" key={`${player.name}-${index}`} to={playerLink(player)}>
-                <span className="rank-number">{index + 1}</span>
-                <div className="scorer-player">
-                  <span className="mini-avatar scorer-avatar">
-                    {player.profile_photo ? (
-                      <img src={getMediaUrl(player.profile_photo)} alt={player.name} />
-                    ) : (
-                      player.name.charAt(0)
-                    )}
-                  </span>
-                  <div>
-                    <h3>{player.name}</h3>
-                    <p>{player.club}</p>
+              {leaderboardPlayers.map((player, index) => (
+                <Link className="scorer-row" key={`${player.name}-${index}`} to={playerLink(player)}>
+                  <span className="rank-number">{index + 1}</span>
+                  <div className="scorer-player">
+                    <span className="mini-avatar scorer-avatar">
+                      {player.profile_photo ? (
+                        <img src={getMediaUrl(player.profile_photo)} alt={player.name} />
+                      ) : player.name.charAt(0)}
+                    </span>
+                    <div>
+                      <h3>{player.name}</h3>
+                      <p>{player.club}</p>
+                    </div>
                   </div>
-                </div>
-                <strong>{player.goals}</strong>
-              </Link>
-            ))}
+                  <strong>{player.goals}</strong>
+                </Link>
+              ))}
             </div>
           )}
         </section>
 
-        <section className="home-section intelligence-section" id="stats">
-          <div className="stats-command-card">
-            <div className="section-heading">
-              <div>
-                <p className="home-kicker">Stats</p>
-                <h2>Stats nettes</h2>
-              </div>
-            </div>
-
-            <div className="command-metrics">
-              <div>
-                <span>Buts</span>
-                <strong>{totalGoals}</strong>
-              </div>
-              <div>
-                <span>Passes</span>
-                <strong>{totalAssists}</strong>
-              </div>
-              <div>
-                <span>Matchs</span>
-                <strong>{totalMatches}</strong>
-              </div>
-            </div>
-
-            <div className="season-preview">
-              <span>Saison en cours</span>
-              <div>
-                <strong>{getLeaderName(heroClub.top_scorer)}</strong>
-                <small>Leader offensif</small>
-              </div>
-            </div>
-          </div>
-
-          <div className="scouting-card" id="scouting">
-            <div className="section-heading">
-              <div>
-                <p className="home-kicker">Scouting</p>
-                <h2>Comparer vite</h2>
-              </div>
-            </div>
-
-            <div className="scouting-list">
-              {featuredHomePlayers.length > 0 ? (
-                featuredHomePlayers.map((player) => (
-                <Link
-                  className="scouting-row"
-                  key={`scout-${player.id || player.slug || player.name}`}
-                  to={playerLink(player)}
-                >
-                  <span className="mini-avatar">
-                    {player.profile_photo ? (
-                      <img src={getMediaUrl(player.profile_photo)} alt={player.name} />
-                    ) : (
-                      player.name.charAt(0)
-                    )}
-                  </span>
-                  <div>
-                    <strong>{player.name}</strong>
-                    <small>
-                      {player.club} · {player.position}
-                    </small>
-                  </div>
-                  <b>{player.goals + player.assists}</b>
-                </Link>
-                ))
-              ) : (
-                <p className="dashboard-message dashboard-empty-state">
-                  Aucun profil à comparer pour le moment.
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
-
+        {/* ── Section 3 : Clubs actifs ── */}
         <section className="home-section clubs-section" id="clubs">
           <div className="section-heading">
             <div>
@@ -676,7 +483,38 @@ function Home() {
             )}
           </div>
         </section>
+
+        {/* ── Section 4 : Comment démarrer ── */}
+        <section className="home-section guidance-section" id="how-it-works">
+          <div className="section-heading section-heading-centered">
+            <p className="home-kicker">Démarrer</p>
+            <h2>Simple à mettre en place</h2>
+          </div>
+
+          <div className="audience-grid">
+            <Link
+              className="audience-card audience-player"
+              to={isAuthenticated ? dashboardPath : "/register/player"}
+            >
+              <span>Joueur</span>
+              <h3>Crée ton profil joueur</h3>
+              <p>Ajoute ta photo, ton poste et tes clubs passés. Tes stats saison s'accumulent automatiquement à chaque match ajouté par ton équipe.</p>
+              <strong>{isAuthenticated ? "Mon espace →" : "Commencer gratuitement →"}</strong>
+            </Link>
+
+            <Link
+              className="audience-card audience-club"
+              to={isAuthenticated ? "/clubs" : "/register/team"}
+            >
+              <span>Club</span>
+              <h3>Ouvre la vitrine de ton équipe</h3>
+              <p>Gère ton effectif, reçois les demandes de joueurs et publie les résultats de tes matchs. Visible publiquement sur FootLink.</p>
+              <strong>{isAuthenticated ? "Explorer les clubs →" : "Inscrire mon club →"}</strong>
+            </Link>
+          </div>
+        </section>
       </main>
+      <SiteFooter />
     </div>
   );
 }
@@ -1791,11 +1629,33 @@ function PublicClubRanking() {
   );
 }
 
+function SiteFooter() {
+  return (
+    <footer className="site-footer">
+      <div className="site-footer-inner">
+        <div className="site-footer-brand">
+          <BrandLogo />
+          <p>La plateforme football des joueurs et clubs locaux.</p>
+        </div>
+        <nav className="site-footer-links" aria-label="Liens secondaires">
+          <Link to="/players">Joueurs</Link>
+          <Link to="/clubs">Clubs</Link>
+          <Link to="/register/player">Créer un profil</Link>
+          <Link to="/register/team">Inscrire un club</Link>
+          <Link to="/confidentialite">Confidentialité</Link>
+        </nav>
+      </div>
+      <p className="site-footer-copy">© {new Date().getFullYear()} FootLink. Tous droits réservés.</p>
+    </footer>
+  );
+}
+
 function PublicShell({ children }) {
   return (
     <div className="home">
       <PublicNav showBack />
       <main>{children}</main>
+      <SiteFooter />
     </div>
   );
 }
@@ -1809,11 +1669,10 @@ function PublicNav({ showBack = false }) {
 
       <div className="nav-menu" aria-label="Navigation principale">
         <Link to="/">Accueil</Link>
-        <Link to="/#how-it-works">Guide</Link>
         <Link to="/players">Joueurs</Link>
         <Link to="/clubs">Clubs</Link>
         <Link to="/#stats">Stats</Link>
-        <Link to="/confidentialite">Confidentialite</Link>
+        <Link to="/#how-it-works">Guide</Link>
       </div>
 
       <div className="nav-buttons">
