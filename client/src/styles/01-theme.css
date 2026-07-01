@@ -82,6 +82,67 @@
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+/* ─── Thème Nuit Marine ─── */
+:root[data-theme="dark-navy"] {
+  --bg: #050a14;
+  --panel: rgba(8, 18, 38, 0.92);
+  --panel-strong: #0c1627;
+  --line: rgba(37, 99, 235, 0.16);
+  --text: #e8f0fe;
+  --muted: #8ca0c4;
+  --accent: #2563eb;
+  --accent-rgb: 37, 99, 235;
+  --accent-dark: #1d4ed8;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --danger: #ef4444;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  --card-bg: rgba(10, 20, 42, 0.88);
+  --card-bg-hover: rgba(14, 26, 52, 0.94);
+}
+
+:root[data-theme="dark-navy"] body {
+  background:
+    radial-gradient(circle at 20% 8%, rgba(37, 99, 235, 0.1), transparent 32%),
+    linear-gradient(180deg, #050a14 0%, #080e1e 50%, #050a14 100%);
+}
+
+:root[data-theme="dark-navy"] .home,
+:root[data-theme="dark-navy"] .dashboard-page,
+:root[data-theme="dark-navy"] .login-page {
+  background:
+    radial-gradient(circle at 80% 6%, rgba(37, 99, 235, 0.08), transparent 32%),
+    linear-gradient(180deg, #06091a 0%, #090f20 52%, #050a14 100%);
+}
+
+:root[data-theme="dark-navy"] .dashboard-bottom-nav button span {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+:root[data-theme="dark-navy"] .player-btn,
+:root[data-theme="dark-navy"] .register-btn {
+  background: var(--accent);
+  color: #fff;
+}
+
+:root[data-theme="dark-navy"] .player-btn:hover,
+:root[data-theme="dark-navy"] .register-btn:hover {
+  background: var(--accent-dark);
+}
+
+:root[data-theme="dark-navy"] .team-btn {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text);
+}
+
+:root[data-theme="dark-navy"] .team-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="dark-navy"] .login-btn {
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
 /* ─── Thème Clair ─── */
 :root[data-theme="light"] {
   --bg: #f5f0e8;
