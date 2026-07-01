@@ -83,64 +83,85 @@
 }
 
 /* ─── Thème Nuit Marine ─── */
+/* ─── Thème Bleu Nuit (Champions) ─── */
 :root[data-theme="dark-navy"] {
-  --bg: #050a14;
-  --panel: rgba(8, 18, 38, 0.92);
-  --panel-strong: #0c1627;
-  --line: rgba(37, 99, 235, 0.16);
-  --text: #e8f0fe;
-  --muted: #8ca0c4;
-  --accent: #2563eb;
-  --accent-rgb: 37, 99, 235;
+  --bg: #020c1b;
+  --panel: rgba(3, 14, 32, 0.94);
+  --panel-strong: #041022;
+  --line: rgba(99, 163, 255, 0.18);
+  --text: #e8f2ff;
+  --muted: #7ea8d8;
+  --accent: #3b82f6;
+  --accent-rgb: 59, 130, 246;
   --accent-dark: #1d4ed8;
-  --accent-soft: rgba(37, 99, 235, 0.12);
-  --danger: #ef4444;
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
-  --card-bg: rgba(10, 20, 42, 0.88);
-  --card-bg-hover: rgba(14, 26, 52, 0.94);
+  --accent-soft: rgba(59, 130, 246, 0.14);
+  --danger: #f87171;
+  --shadow: 0 24px 70px rgba(0, 5, 30, 0.65);
+  --font-main: Inter, "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+  --card-bg: rgba(4, 14, 34, 0.92);
+  --card-bg-hover: rgba(6, 18, 42, 0.96);
 }
 
 :root[data-theme="dark-navy"] body {
   background:
-    radial-gradient(circle at 20% 8%, rgba(37, 99, 235, 0.1), transparent 32%),
-    linear-gradient(180deg, #050a14 0%, #080e1e 50%, #050a14 100%);
+    radial-gradient(ellipse at 18% 6%,  rgba(59, 130, 246, 0.22), transparent 36%),
+    radial-gradient(ellipse at 82% 14%, rgba(99, 102, 241, 0.14), transparent 30%),
+    linear-gradient(180deg, #020c1b 0%, #030e22 50%, #020a18 100%);
 }
 
 :root[data-theme="dark-navy"] .home,
 :root[data-theme="dark-navy"] .dashboard-page,
 :root[data-theme="dark-navy"] .login-page {
   background:
-    radial-gradient(circle at 80% 6%, rgba(37, 99, 235, 0.08), transparent 32%),
-    linear-gradient(180deg, #06091a 0%, #090f20 52%, #050a14 100%);
+    radial-gradient(ellipse at 78% 5%,  rgba(59, 130, 246, 0.18), transparent 32%),
+    radial-gradient(ellipse at 10% 18%, rgba(99, 102, 241, 0.10), transparent 28%),
+    linear-gradient(180deg, #03101f 0%, #040f22 52%, #020c1b 100%);
+}
+
+/* Halo étoilé derrière le hero — évoque les nuits de Ligue des Champions */
+:root[data-theme="dark-navy"] .home-hero {
+  background:
+    radial-gradient(circle at 60% 40%, rgba(59, 130, 246, 0.08), transparent 55%);
 }
 
 :root[data-theme="dark-navy"] .dashboard-bottom-nav button span {
-  background: rgba(37, 99, 235, 0.12);
+  background: rgba(59, 130, 246, 0.14);
 }
 
 :root[data-theme="dark-navy"] .player-btn,
 :root[data-theme="dark-navy"] .register-btn {
-  background: var(--accent);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: #fff;
+  box-shadow: 0 6px 28px rgba(59, 130, 246, 0.4);
 }
 
 :root[data-theme="dark-navy"] .player-btn:hover,
 :root[data-theme="dark-navy"] .register-btn:hover {
-  background: var(--accent-dark);
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  box-shadow: 0 10px 38px rgba(59, 130, 246, 0.55);
 }
 
-:root[data-theme="dark-navy"] .team-btn {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+:root[data-theme="dark-navy"] .team-btn,
+:root[data-theme="dark-navy"] .login-btn,
+:root[data-theme="dark-navy"] .nav-link-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(99, 163, 255, 0.22);
   color: var(--text);
 }
 
-:root[data-theme="dark-navy"] .team-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+:root[data-theme="dark-navy"] .team-btn:hover,
+:root[data-theme="dark-navy"] .login-btn:hover,
+:root[data-theme="dark-navy"] .nav-link-btn:hover {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(99, 163, 255, 0.4);
 }
 
-:root[data-theme="dark-navy"] .login-btn {
-  border-color: rgba(37, 99, 235, 0.35);
+/* Scrollbar bleue nuit */
+:root[data-theme="dark-navy"] ::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.35);
+}
+:root[data-theme="dark-navy"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.55);
 }
 
 /* ─── Thème Clair ─── */

@@ -9,7 +9,8 @@ const LANGUAGES = [
 const THEME_PREVIEWS = {
   "dark-gold": { bg: "#0d0a06", accent: "#c9a227" },
   "dark-red":  { bg: "#050608", accent: "#ef233c" },
-  "light":     { bg: "#f5f0e8", accent: "#c9a227" },
+  "dark-navy": { bg: "#020c1b", accent: "#3b82f6" },
+  "light":     { bg: "#f5f0e8", accent: "#b8901f" },
 };
 
 function SettingsPanel({ onClose }) {
