@@ -1,0 +1,506 @@
+/* ═══════════════════════════════════════════════
+   THÈME COUPE DU MONDE 2026
+   Appliqué via [data-theme="wc2026"]
+   Palette imposée par le brief design.
+   Aucun contenu inventé — uniquement du style.
+═══════════════════════════════════════════════ */
+
+/* ─── Variables ─────────────────────────────── */
+:root[data-theme="wc2026"] {
+  --bg:             #060E1C;
+  --panel:          rgba(10, 22, 40, 0.96);
+  --panel-strong:   #0E1E38;
+  --line:           rgba(255, 255, 255, 0.07);
+  --text:           #FFFFFF;
+  --muted:          #7A9ABC;
+  --accent:         #ECC34A;
+  --accent-rgb:     236, 195, 74;
+  --accent-dark:    #C9A230;
+  --accent-soft:    rgba(236, 195, 74, 0.12);
+  --danger:         #CC1133;
+  --shadow:         none;
+  --card-bg:        #0E1E38;
+  --card-bg-hover:  #112240;
+
+  --wc-bg-deep:  #060E1C;
+  --wc-bg-base:  #0A1628;
+  --wc-bg-card:  #0E1E38;
+  --wc-gold:     #ECC34A;
+  --wc-red:      #CC1133;
+  --wc-green:    #1C7B42;
+  --wc-blue:     #0A5BA8;
+  --wc-text:     #FFFFFF;
+  --wc-muted:    #7A9ABC;
+  --wc-dim:      #4A6688;
+  --wc-border:   rgba(255, 255, 255, 0.07);
+}
+
+/* ─── Base / Body ────────────────────────────── */
+:root[data-theme="wc2026"] body {
+  font-family: 'DM Sans', 'Inter', sans-serif;
+  background: var(--wc-bg-deep);
+  color: var(--wc-text);
+}
+
+:root[data-theme="wc2026"] .home,
+:root[data-theme="wc2026"] .dashboard-page,
+:root[data-theme="wc2026"] .login-page {
+  background: var(--wc-bg-deep);
+}
+
+/* ─── Typographie — titres & chiffres → Oswald ─ */
+:root[data-theme="wc2026"] h1,
+:root[data-theme="wc2026"] h2,
+:root[data-theme="wc2026"] h3,
+:root[data-theme="wc2026"] h4 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+:root[data-theme="wc2026"] .stat-card strong,
+:root[data-theme="wc2026"] .home-stat-tile strong,
+:root[data-theme="wc2026"] .stat-card-modern strong,
+:root[data-theme="wc2026"] .hero-score-card b,
+:root[data-theme="wc2026"] .rank-number,
+:root[data-theme="wc2026"] .scorer-goals,
+:root[data-theme="wc2026"] .poster-content strong {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  color: var(--wc-gold);
+}
+
+/* Corps, labels, nav → DM Sans */
+:root[data-theme="wc2026"] p,
+:root[data-theme="wc2026"] span,
+:root[data-theme="wc2026"] a,
+:root[data-theme="wc2026"] label,
+:root[data-theme="wc2026"] small,
+:root[data-theme="wc2026"] .nav-menu a,
+:root[data-theme="wc2026"] .home-kicker,
+:root[data-theme="wc2026"] .dashboard-label {
+  font-family: 'DM Sans', 'Inter', sans-serif;
+}
+
+/* ─── Gradient text → désactivé en wc2026 (lisibilité flat) */
+:root[data-theme="wc2026"] h1,
+:root[data-theme="wc2026"] h2,
+:root[data-theme="wc2026"] h3,
+:root[data-theme="wc2026"] .home-hero-copy h1,
+:root[data-theme="wc2026"] .section-heading h2,
+:root[data-theme="wc2026"] .dashboard-header h2 {
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: unset;
+  background-clip: unset;
+  color: var(--wc-text);
+}
+
+/* Accent word en or */
+:root[data-theme="wc2026"] .home-hero-copy h1 em,
+:root[data-theme="wc2026"] .section-heading h2 em {
+  font-style: normal;
+  color: var(--wc-gold);
+}
+
+/* ─── NAVBAR ─────────────────────────────────── */
+:root[data-theme="wc2026"] .navbar,
+:root[data-theme="wc2026"] .dashboard-navbar {
+  background: var(--wc-bg-base);
+  border-bottom: 1px solid var(--wc-border);
+  box-shadow: none;
+}
+
+:root[data-theme="wc2026"] .nav-menu a,
+:root[data-theme="wc2026"] .dashboard-nav-links a,
+:root[data-theme="wc2026"] .dashboard-nav-links button {
+  color: var(--wc-muted);
+  font-family: 'DM Sans', sans-serif;
+}
+
+:root[data-theme="wc2026"] .nav-menu a:hover,
+:root[data-theme="wc2026"] .dashboard-nav-links a:hover {
+  color: var(--wc-text);
+}
+
+/* Bouton CTA nav → or / texte sombre */
+:root[data-theme="wc2026"] .login-btn.nav-primary,
+:root[data-theme="wc2026"] .nav-primary {
+  background: var(--wc-gold);
+  border-color: var(--wc-gold);
+  color: #060E1C;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+}
+
+:root[data-theme="wc2026"] .login-btn.nav-primary:hover,
+:root[data-theme="wc2026"] .nav-primary:hover {
+  background: #f0cc5c;
+  border-color: #f0cc5c;
+  transform: none;
+}
+
+/* Boutons secondaires nav */
+:root[data-theme="wc2026"] .login-btn:not(.nav-primary),
+:root[data-theme="wc2026"] .team-btn,
+:root[data-theme="wc2026"] .nav-link-btn:not(.nav-primary) {
+  background: transparent;
+  border: 1px solid var(--wc-border);
+  color: var(--wc-muted);
+  border-radius: 3px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+:root[data-theme="wc2026"] .login-btn:not(.nav-primary):hover,
+:root[data-theme="wc2026"] .team-btn:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--wc-text);
+  transform: none;
+}
+
+/* ─── TICKER ─────────────────────────────────── */
+.wc-ticker {
+  display: none;
+}
+
+:root[data-theme="wc2026"] .wc-ticker {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  background: var(--wc-red);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.wc-ticker-label {
+  flex-shrink: 0;
+  padding: 0 16px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+  line-height: 34px;
+}
+
+.wc-ticker-viewport {
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+  position: relative;
+}
+
+.wc-ticker-track {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  width: max-content;
+  animation: wc-scroll 30s linear infinite;
+}
+
+@keyframes wc-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.wc-ticker-item {
+  padding: 0 32px;
+  font-size: 13px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+.wc-ticker-item::after {
+  content: "·";
+  margin-left: 32px;
+  opacity: 0.4;
+}
+
+/* ─── HERO ───────────────────────────────────── */
+:root[data-theme="wc2026"] .home-hero {
+  background-color: var(--wc-bg-deep);
+  background-image:
+    repeating-linear-gradient(0deg,   rgba(255,255,255,0.015) 0 1px, transparent 1px 56px),
+    repeating-linear-gradient(90deg,  rgba(255,255,255,0.015) 0 1px, transparent 1px 56px);
+}
+
+:root[data-theme="wc2026"] .home-hero-copy h1 {
+  font-size: clamp(38px, 6vw, 58px);
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  color: var(--wc-text);
+  letter-spacing: 0.01em;
+}
+
+/* "Tes stats." accent en or — le dernier mot */
+:root[data-theme="wc2026"] .home-hero-copy h1 strong {
+  color: var(--wc-gold);
+  font-family: inherit;
+}
+
+/* Bouton primaire hero */
+:root[data-theme="wc2026"] .player-btn,
+:root[data-theme="wc2026"] .register-btn {
+  background: var(--wc-gold);
+  border-color: var(--wc-gold);
+  color: #060E1C;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: none;
+}
+
+:root[data-theme="wc2026"] .player-btn:hover,
+:root[data-theme="wc2026"] .register-btn:hover {
+  background: #f0cc5c;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Bouton secondaire hero */
+:root[data-theme="wc2026"] .hero-buttons .team-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--wc-text);
+  border-radius: 3px;
+}
+
+/* Pills hero-trust-row */
+:root[data-theme="wc2026"] .hero-trust-row span {
+  background: rgba(236, 195, 74, 0.1);
+  border-color: rgba(236, 195, 74, 0.25);
+  color: var(--wc-gold);
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Live pill */
+:root[data-theme="wc2026"] .live-pill {
+  background: rgba(204, 17, 51, 0.15);
+  border-color: rgba(204, 17, 51, 0.4);
+  color: #ff4d6a;
+}
+
+/* Home kicker */
+:root[data-theme="wc2026"] .home-kicker,
+:root[data-theme="wc2026"] .dashboard-label {
+  color: var(--wc-gold);
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ─── BARRE DE STATS (home-stat-tile) ────────── */
+:root[data-theme="wc2026"] .home-stat-tile {
+  background: var(--wc-bg-card);
+  border: 1px solid var(--wc-border);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+:root[data-theme="wc2026"] .home-stat-tile strong {
+  font-family: 'Oswald', sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--wc-gold);
+}
+
+:root[data-theme="wc2026"] .home-stat-tile span {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--wc-muted);
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ─── CARTES JOUEURS / CLUBS ─────────────────── */
+:root[data-theme="wc2026"] .club-card,
+:root[data-theme="wc2026"] .player-poster,
+:root[data-theme="wc2026"] .stat-card,
+:root[data-theme="wc2026"] .experience-card,
+:root[data-theme="wc2026"] .step-card,
+:root[data-theme="wc2026"] .audience-card,
+:root[data-theme="wc2026"] .scouting-card,
+:root[data-theme="wc2026"] .stats-command-card {
+  background: var(--wc-bg-card);
+  border: 1px solid var(--wc-border);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+/* Barre colorée 3px en haut — verte / rouge / or en rotation */
+:root[data-theme="wc2026"] .player-poster:nth-child(3n+1),
+:root[data-theme="wc2026"] .club-card:nth-child(3n+1) {
+  border-top: 3px solid var(--wc-green);
+}
+:root[data-theme="wc2026"] .player-poster:nth-child(3n+2),
+:root[data-theme="wc2026"] .club-card:nth-child(3n+2) {
+  border-top: 3px solid var(--wc-red);
+}
+:root[data-theme="wc2026"] .player-poster:nth-child(3n+3),
+:root[data-theme="wc2026"] .club-card:nth-child(3n+3) {
+  border-top: 3px solid var(--wc-gold);
+}
+
+/* Chiffres stats dans les cartes */
+:root[data-theme="wc2026"] .club-card-stats strong,
+:root[data-theme="wc2026"] .club-card strong,
+:root[data-theme="wc2026"] .team-player-card strong {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  color: var(--wc-gold);
+}
+
+/* Hover flat */
+:root[data-theme="wc2026"] .club-card:hover,
+:root[data-theme="wc2026"] .player-poster:hover {
+  background: var(--card-bg-hover);
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(236, 195, 74, 0.2);
+}
+
+/* ─── RANKING / LEADERBOARD ──────────────────── */
+:root[data-theme="wc2026"] .ranking-row,
+:root[data-theme="wc2026"] .public-ranking-row,
+:root[data-theme="wc2026"] .public-match-row,
+:root[data-theme="wc2026"] .scorer-row {
+  background: var(--wc-bg-card);
+  border: 1px solid var(--wc-border);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+:root[data-theme="wc2026"] .scorer-row:hover,
+:root[data-theme="wc2026"] .ranking-row:hover {
+  background: var(--card-bg-hover);
+  transform: none;
+  box-shadow: none;
+}
+
+/* ─── SECTION HEADINGS ───────────────────────── */
+:root[data-theme="wc2026"] .section-heading h2 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  color: var(--wc-text);
+  background: none;
+  -webkit-text-fill-color: var(--wc-text);
+}
+
+/* ─── CTA / FOOTER SECTION ───────────────────── */
+:root[data-theme="wc2026"] .site-footer {
+  background: var(--wc-bg-card);
+  border-top: 1px solid var(--wc-border);
+}
+
+:root[data-theme="wc2026"] .site-footer::before {
+  content: "COUPE DU MONDE 2026  ·  SAISON EN COURS";
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--wc-gold);
+  padding: 18px 20px 0;
+  opacity: 0.8;
+}
+
+/* ─── INPUTS / FORMS ─────────────────────────── */
+:root[data-theme="wc2026"] input,
+:root[data-theme="wc2026"] select,
+:root[data-theme="wc2026"] textarea {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--wc-border);
+  color: var(--wc-text);
+  border-radius: 3px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+:root[data-theme="wc2026"] input:focus,
+:root[data-theme="wc2026"] select:focus,
+:root[data-theme="wc2026"] textarea:focus {
+  border-color: rgba(236, 195, 74, 0.5);
+  box-shadow: none;
+  outline: none;
+}
+
+/* ─── HERO VISUAL CARD (overlay sur stade) ───── */
+:root[data-theme="wc2026"] .hero-score-card,
+:root[data-theme="wc2026"] .hero-scout-card {
+  background: rgba(10, 22, 40, 0.88);
+  border-color: rgba(236, 195, 74, 0.15);
+  box-shadow: none;
+  backdrop-filter: blur(12px);
+}
+
+/* ─── DASHBOARD ──────────────────────────────── */
+:root[data-theme="wc2026"] .dashboard-header {
+  background: var(--wc-bg-card);
+  border: 1px solid var(--wc-border);
+  box-shadow: none;
+}
+
+:root[data-theme="wc2026"] .profile-panel,
+:root[data-theme="wc2026"] .stats-panel,
+:root[data-theme="wc2026"] .login-form {
+  background: var(--wc-bg-card);
+  border: 1px solid var(--wc-border);
+  box-shadow: none;
+}
+
+/* ─── BOTTOM NAV ─────────────────────────────── */
+:root[data-theme="wc2026"] .dashboard-bottom-nav {
+  background: var(--wc-bg-base);
+  border-top: 1px solid var(--wc-border);
+  box-shadow: none;
+}
+
+:root[data-theme="wc2026"] .dashboard-bottom-nav button span {
+  background: rgba(236, 195, 74, 0.12);
+}
+
+/* ─── DÉSACTIVER TOUS LES EFFETS PREMIUM ─────── */
+/* Grain, shimmer, glow → flat design imposé par brief */
+:root[data-theme="wc2026"] .home-hero::before,
+:root[data-theme="wc2026"] .home::before,
+:root[data-theme="wc2026"] .player-btn::after,
+:root[data-theme="wc2026"] .register-btn::after {
+  display: none;
+}
+
+:root[data-theme="wc2026"] *,
+:root[data-theme="wc2026"] *::before,
+:root[data-theme="wc2026"] *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Exception : pas de none sur le ticker */
+.wc-ticker,
+.wc-ticker * {
+  box-shadow: unset !important;
+}
+
+/* ─── MOBILE ─────────────────────────────────── */
+@media (max-width: 800px) {
+  :root[data-theme="wc2026"] .player-showcase-grid,
+  :root[data-theme="wc2026"] .club-grid,
+  :root[data-theme="wc2026"] .stats-grid,
+  :root[data-theme="wc2026"] .dashboard-grid,
+  :root[data-theme="wc2026"] .home-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wc-ticker-item {
+    padding: 0 20px;
+    font-size: 12px;
+  }
+}

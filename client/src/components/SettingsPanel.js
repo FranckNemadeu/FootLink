@@ -10,6 +10,7 @@ const THEME_PREVIEWS = {
   "dark-gold": { bg: "#0d0a06", accent: "#c9a227" },
   "dark-red":  { bg: "#050608", accent: "#ef233c" },
   "dark-navy": { bg: "#020c1b", accent: "#3b82f6" },
+  "wc2026":    { bg: "#0A1628", accent: "#ECC34A" },
   "light":     { bg: "#f5f0e8", accent: "#b8901f" },
 };
 

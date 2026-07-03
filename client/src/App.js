@@ -21,6 +21,7 @@ import TeamDashboard from "./pages/TeamDashboard";
 import VerifyEmail from "./pages/VerifyEmail";
 import BrandLogo from "./components/BrandLogo";
 import PrivateRoute from "./components/PrivateRoute";
+import WcTicker from "./components/WcTicker";
 import API_URL from "./config/api";
 import getMediaUrl from "./utils/mediaUrl";
 import requestWithRetry from "./utils/requestWithRetry";
@@ -1664,6 +1665,7 @@ function PublicNav({ showBack = false }) {
   const { dashboardPath, isAuthenticated, user, logout } = useAuth();
 
   return (
+    <>
     <nav className="navbar">
       <BrandLogo />
 
@@ -1699,6 +1701,8 @@ function PublicNav({ showBack = false }) {
         )}
       </div>
     </nav>
+    <WcTicker />
+    </>
   );
 }
 

@@ -2,10 +2,11 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const STORAGE_KEY = "footlink-theme";
 export const THEMES = [
-  { id: "dark-gold",  label: "Sombre Doré",   labelEn: "Dark Gold" },
-  { id: "dark-red",   label: "Sombre Rouge",  labelEn: "Dark Red" },
-  { id: "dark-navy",  label: "Nuit Marine",   labelEn: "Dark Navy" },
-  { id: "light",      label: "Clair",         labelEn: "Light" },
+  { id: "dark-gold",  label: "Sombre Doré",    labelEn: "Dark Gold" },
+  { id: "dark-red",   label: "Sombre Rouge",   labelEn: "Dark Red" },
+  { id: "dark-navy",  label: "Nuit Marine",    labelEn: "Dark Navy" },
+  { id: "wc2026",     label: "Coupe du Monde", labelEn: "World Cup" },
+  { id: "light",      label: "Clair",          labelEn: "Light" },
 ];
 
 const ThemeContext = createContext();
