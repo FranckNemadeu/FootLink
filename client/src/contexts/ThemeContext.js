@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 const STORAGE_KEY = "footlink-theme";
+const THEME_VERSION = "2026-1";
+const VERSION_KEY = "footlink-theme-v";
 export const THEMES = [
   { id: "dark-gold",  label: "Sombre Doré",    labelEn: "Dark Gold" },
   { id: "dark-red",   label: "Sombre Rouge",   labelEn: "Dark Red" },
@@ -12,9 +14,15 @@ export const THEMES = [
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem(STORAGE_KEY) || "dark-gold"
-  );
+  const [theme, setTheme] = useState(() => {
+    const savedVersion = localStorage.getItem(VERSION_KEY);
+    if (savedVersion !== THEME_VERSION) {
+      localStorage.setItem(STORAGE_KEY, "wc2026");
+      localStorage.setItem(VERSION_KEY, THEME_VERSION);
+      return "wc2026";
+    }
+    return localStorage.getItem(STORAGE_KEY) || "wc2026";
+  });
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
