@@ -248,7 +248,9 @@ function Register({ accountType }) {
           </p>
         )}
 
+        <label htmlFor="reg-name" className="sr-only">{isTeam ? "Nom du responsable" : "Nom complet"}</label>
         <input
+          id="reg-name"
           type="text"
           placeholder={isTeam ? "Nom du responsable" : "Nom complet"}
           value={name}
@@ -259,7 +261,9 @@ function Register({ accountType }) {
           required
         />
 
+        <label htmlFor="reg-email" className="sr-only">Email</label>
         <input
+          id="reg-email"
           type="email"
           placeholder="Email"
           value={email}
@@ -268,7 +272,9 @@ function Register({ accountType }) {
           required
         />
 
+        <label htmlFor="reg-password" className="sr-only">Mot de passe</label>
         <input
+          id="reg-password"
           type="password"
           placeholder="Mot de passe"
           value={password}
@@ -278,7 +284,9 @@ function Register({ accountType }) {
           required
         />
 
+        <label htmlFor="reg-confirm" className="sr-only">Confirmer le mot de passe</label>
         <input
+          id="reg-confirm"
           type="password"
           placeholder="Confirmer le mot de passe"
           value={confirmPassword}

@@ -28,15 +28,11 @@ const accountActionLimiter = rateLimit({
 });
 
 const sendDbError = (res, err, fallbackMessage) => {
-  console.log(err);
+  console.error("[DB Error]", err.code, err.sqlMessage || err.message);
 
   if (res.headersSent) return;
 
-  res.status(500).json({
-    message: fallbackMessage,
-    error: err.sqlMessage || err.message,
-    code: err.code,
-  });
+  res.status(500).json({ message: fallbackMessage });
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -795,7 +791,7 @@ router.post("/login", loginLimiter, (req, res) => {
     );
 });
 
-router.post("/verify-email", (req, res) => {
+router.post("/verify-email", accountActionLimiter, (req, res) => {
   const token = cleanText(req.body.token);
 
   if (!token) {

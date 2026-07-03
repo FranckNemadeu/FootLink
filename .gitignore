@@ -34,6 +34,12 @@ yarn-error.log*
 .parcel-cache/
 .eslintcache
 
+# Uploads locaux (dev sans Cloudinary)
+server/uploads/
+
+# Tests
+coverage/
+
 # OS files
 .DS_Store
 Thumbs.db

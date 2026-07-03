@@ -107,7 +107,9 @@ function Login() {
           </button>
         )}
 
+        <label htmlFor="login-email" className="sr-only">Email</label>
         <input
+          id="login-email"
           type="email"
           placeholder="Email"
           value={email}
@@ -115,7 +117,9 @@ function Login() {
           required
         />
 
+        <label htmlFor="login-password" className="sr-only">Mot de passe</label>
         <input
+          id="login-password"
           type="password"
           placeholder="Mot de passe"
           value={password}

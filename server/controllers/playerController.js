@@ -109,13 +109,11 @@ const ensurePlayerClubRoleColumn = (callback) => {
 };
 
 const sendDbError = (res, err, fallbackMessage) => {
-  console.log(err);
+  console.error("[DB Error]", err.code, err.sqlMessage || err.message);
 
-  res.status(500).json({
-    message: fallbackMessage,
-    error: err.sqlMessage || err.message,
-    code: err.code,
-  });
+  if (res.headersSent) return;
+
+  res.status(500).json({ message: fallbackMessage });
 };
 
 const ensureTeamInvitationsTable = (callback) => {

@@ -1,9 +1,18 @@
 require("dotenv").config();
+
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === "change-this-secret") {
+  if (process.env.NODE_ENV === "production") {
+    console.error("FATAL: JWT_SECRET non configuré en production.");
+    process.exit(1);
+  } else {
+    console.warn("AVERTISSEMENT: JWT_SECRET utilise la valeur par defaut. Configurez .env");
+  }
+}
+
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const path = require("path");
-// express → créer un serveur web
-//cors → autoriser ton frontend (React) à parler au backend
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -32,6 +41,10 @@ const isAllowedVercelPreview = (origin) => {
   }
 };
 
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
+
 app.use(
   cors({
     origin(origin, callback) {
@@ -54,9 +67,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 //cors() → permet à React (port 3000) de parler à ton serveur (5000)
 //express.json() → permet de lire les données JSON envoyées
-app.get("/", (req, res) => {
-  res.send("API FootLink OK 🚀");
-});
+app.get("/", (req, res) => res.json({ status: "ok", name: "FootLink API" }));
+app.get("/health", (req, res) => res.json({ status: "ok", timestamp: new Date().toISOString() }));
 
 /* GET / = quand quelqu’un va sur :
 http://localhost:5000

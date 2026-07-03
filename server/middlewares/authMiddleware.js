@@ -1,12 +1,13 @@
 const jwt = require("jsonwebtoken");
 
 const verifyToken = (req, res, next) => {
-
-    
-  const token = req.headers.authorization;
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : authHeader;
 
   if (!token) {
-    return res.status(403).json({ message: "Token manquant ❌" });
+    return res.status(403).json({ message: "Token manquant" });
   }
 
   try {
@@ -14,7 +15,7 @@ const verifyToken = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Token invalide ❌" });
+    return res.status(401).json({ message: "Token invalide" });
   }
 };
 
