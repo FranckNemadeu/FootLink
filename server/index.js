@@ -1,12 +1,7 @@
 require("dotenv").config();
 
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET === "change-this-secret") {
-  if (process.env.NODE_ENV === "production") {
-    console.error("FATAL: JWT_SECRET non configuré en production.");
-    process.exit(1);
-  } else {
-    console.warn("AVERTISSEMENT: JWT_SECRET utilise la valeur par defaut. Configurez .env");
-  }
+  console.warn("AVERTISSEMENT: JWT_SECRET non configuré ou valeur par défaut — les tokens JWT ne seront pas sécurisés. Configurez JWT_SECRET dans les variables d'environnement.");
 }
 
 const express = require("express");

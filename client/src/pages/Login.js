@@ -33,7 +33,7 @@ function Login() {
       const res = await axios.post(`${API_URL}/api/auth/login`, {
         email: email.trim().toLowerCase(),
         password,
-      });
+      }, { timeout: 20000 });
 
       login(res.data.user, res.data.token);
 
@@ -44,7 +44,11 @@ function Login() {
       navigate(nextPath, { replace: true });
     } catch (err) {
       console.log(err);
-      setErrorMessage(err.response?.data?.message || "Erreur connexion");
+      if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+        setErrorMessage("Le serveur met du temps à répondre. Réessaie dans 30 secondes (le serveur se réveille).");
+      } else {
+        setErrorMessage(err.response?.data?.message || "Erreur connexion");
+      }
       setRequiresVerification(Boolean(err.response?.data?.requiresEmailVerification));
     } finally {
       setLoading(false);
