@@ -10,6 +10,9 @@ const connectionConfig = {
   database: databaseName,
   port: process.env.DB_PORT || 3306,
   connectionLimit: 10,
+  waitForConnections: true,
+  connectTimeout: 10000,
+  ...(process.env.DB_SSL === "true" && { ssl: { rejectUnauthorized: false } }),
 };
 
 // Pool plutot qu'une connexion unique partagee : avec une seule connexion,
